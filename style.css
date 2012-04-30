@@ -27,6 +27,7 @@ h1 + h2 {
 h2 {
   font-weight: 400;
   font-size: 28px;
+  margin-top: 2em;
 }
 
 h1, h2 {
