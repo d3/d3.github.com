@@ -40,8 +40,6 @@
 
 <h1>Data-Driven Documents</h1>
 
-<p><b>D3.js</b> is a JavaScript library for manipulating documents based on data.
-
 <div id="examples"></div>
 
 <script src="d3.v2.min.js"></script>
@@ -150,11 +148,34 @@ d3.select("#examples").selectAll(".example")
 
 </script>
 
-<p>D3 allows you to bind arbitrary data to a Document Object Model (DOM), and then apply data-driven transformations to the document. As a trivial example, you can use D3 to generate a basic HTML table from an array of numbers. Or, use the same data to create an interactive SVG bar chart with smooth transitions and interaction.
+<p><aside>See <a href="https://github.com/mbostock/d3/wiki/Gallery">more examples</a>.</aside>
+
+<p><b>D3.js</b> is a JavaScript library for manipulating documents based on data. <b>D3</b> helps you bring data to life using HTML, SVG and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.
+
+<p>Download the latest version here:
+
+<ul>
+  <li><a href="d3.v2.js">d3.v2.js</a> - development
+  <li><a href="d3.v2.min.js">d3.v2.min.js</a> - production (minified)
+</ul>
+
+<p>Or, to link directly to the latest release, copy this snippet:
+
+<pre><code class="html">&lt;script src="http://d3js.org/d3.v2.js">&lt;/script></code></pre>
+
+<p>The <a href="https://github.com/mbostock/d3">full source and examples</a> are also available <a href="https://github.com/mbostock/d3/zipball/master">for download</a> on GitHub.
+
+<h2>Introduction</h2>
+
+<p><aside>See <a href="https://github.com/mbostock/d3/wiki/Tutorials">more tutorials</a>.</aside>
+
+<p><b>D3</b> allows you to bind arbitrary data to a Document Object Model (DOM), and then apply data-driven transformations to the document. As a trivial example, you can use D3 to generate a basic HTML table from an array of numbers. Or, use the same data to create an interactive SVG bar chart with smooth transitions and interaction.
 
 <p>D3 is not a traditional visualization framework. Rather than provide a monolithic system with all the features anyone may ever need, D3 solves only the crux of the problem: efficient manipulation of documents based on data. This gives D3 extraordinary flexibility, exposing the full capabilities of underlying technologies such as CSS3, HTML5 and SVG. It avoids learning a new intermediate proprietary representation. With minimal overhead, D3 is extremely fast, supporting large datasets and dynamic behaviors for interaction and animation. And, for those common needs, D3’s functional style allows code reuse through a diverse collection of optional modules.
 
 <h2><a name="selections" href="#selections">#</a>Selections</h2>
+
+<p><aside>Read <a href="https://github.com/mbostock/d3/wiki/Selections">more about selections</a>.</aside>
 
 <p>Modifying documents using the native W3C <a href="http://www.w3.org/DOM/DOMTR">DOM API</a> is indubitably tedious; not only are the method names verbose, but the imperative approach requires manual iteration and bookkeeping of temporary state. For example, to change the text color of paragraph elements:
 
@@ -205,6 +226,8 @@ for (var i = 0; i < paragraphs.length; i++) {
 <p>Once the data has been bound to the document, you can omit the <code>data</code> operator, and D3 will retrieve the previously-bound data per node. This allows you to recompute properties without explicitly respecifying the associated data.
 
 <h2><a name="enter-exit" href="#enter-exit">#</a>Enter and Exit</h2>
+
+<p><aside>Read <a href="http://bost.ocks.org/mike/join/">more about data joins</a>.</aside>
 
 <p>D3 can easily manipulate existing nodes, but what if the nodes don’t exist yet? Similarly, what if there are more nodes in the document than elements in your data array, and you want to remove the surplus? Using the <i>enter</i> and <i>exit</i> selections, you can add new nodes to match your data, and remove nodes that are no longer needed.
 
@@ -272,7 +295,7 @@ p.exit().remove();</code></pre>
 
 <p>D3 is easy to debug using the browser’s built-in inspector: the nodes that you manipulate are exactly those that can be inspected natively by the browser. Furthermore, operations are applied immediately (within the scope of operators such as <code>style</code>), and the selection object is an array of nodes.
 
-<h2><a name="Transitions" href="#Transitions">#</a>Transitions</h2>
+<h2><a name="transitions" href="#transitions">#</a>Transitions</h2>
 
 <p>Given D3’s focus on manipulation—not just a one-time mapping of data to a static representation—it naturally includes support for smooth transitions. These are gradual interpolation of styles or attributes over time. Various easing functions are provided to vary tweening, such as "elastic", "cubic-in-out" and "linear". D3 knows how to interpolate basic types, such as numbers and numbers embedded within strings (font sizes, path data, <i>etc.</i>). You can provide your own interpolator to extend transitions to more complex properties, such as a backing data structure.
 
@@ -293,6 +316,8 @@ p.exit().remove();</code></pre>
 <p>By dirtying only the attributes that actually change during the transition, D3 eliminates any overhead, allowing greater graphical complexity and higher frame rates. Transitions dispatch an event on end that allows sequencing of complex multi-stage transitions.
 
 <h2><a name="subselections" href="#subselections">#</a>Subselections</h2>
+
+<p><aside>Read <a href="http://bost.ocks.org/mike/nest/">more about nesting</a>.</aside>
 
 <p>Most documents have some hierarchical structure. For example, what if you wanted to first select all lists, and then select all their list items? By calling <code>selectAll</code> on an existing selection, you generate a subselection for each node:
 
