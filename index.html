@@ -183,7 +183,7 @@ d3.select("#examples").selectAll(".example")
 <p>Modifying documents using the <a href="http://www.w3.org/DOM/DOMTR">W3C DOM API</a> is tedious: the method names are verbose, and the imperative approach requires manual iteration and bookkeeping of temporary state. For example, to change the text color of paragraph elements:
 
 <pre><code>var paragraphs = document.getElementsByTagName("p");
-for (var i = 0; i < paragraphs.length; i++) {
+for (var i = 0; i &lt; paragraphs.length; i++) {
   var paragraph = paragraphs.item(i);
   paragraph.style.setProperty("color", "white", null);
 }</code></pre>
