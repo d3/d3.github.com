@@ -216,7 +216,7 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
   return i % 2 ? "#fff" : "#eee";
 });</code></pre>
 
-<p>Computed properties often refer to bound data. Data is specified as an array of values, and each value to passed as the first argument (<code>d</code>) to selection functions. With the default join-by-index, the first element in the data array is passed to the first node in the selection, the second element to the second node, and so on. For example, if you bind an array of numbers to paragraph elements, you can use these numbers to compute dynamic font sizes:
+<p>Computed properties often refer to bound data. Data is specified as an array of values, and each value is passed as the first argument (<code>d</code>) to selection functions. With the default join-by-index, the first element in the data array is passed to the first node in the selection, the second element to the second node, and so on. For example, if you bind an array of numbers to paragraph elements, you can use these numbers to compute dynamic font sizes:
 
 <pre><code>d3.selectAll("p")
     .data([4, 8, 15, 16, 23, 42])
