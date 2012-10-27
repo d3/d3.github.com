@@ -547,10 +547,11 @@
       count: 0
     }), transition = lock[id];
     if (!transition) {
+      var time = inherit.time;
       transition = lock[id] = {
         tween: new d3_Map,
         event: d3.dispatch("start", "end"),
-        time: inherit.time,
+        time: time,
         ease: inherit.ease,
         delay: inherit.delay,
         duration: inherit.duration
@@ -585,9 +586,9 @@
           if (--lock.count) delete lock[id]; else delete node.__transition__;
           return 1;
         }
-        var d = node.__data__, ease = transition.ease, event = transition.event, time = transition.time, delay = transition.delay, duration = transition.duration, tweened = [];
+        var d = node.__data__, ease = transition.ease, event = transition.event, delay = transition.delay, duration = transition.duration, tweened = [];
         return delay <= elapsed ? start(elapsed) : d3.timer(start, delay, time), 1;
-      });
+      }, 0, time);
       return transition;
     }
   }
@@ -1843,56 +1844,50 @@
     function formatValue(text) {
       return reFormat.test(text) ? '"' + text.replace(/\"/g, '""') + '"' : text;
     }
-    var reParse = new RegExp("\r\n|[" + delimiter + "\r\n]", "g"), reFormat = new RegExp('["' + delimiter + "\n]"), delimiterCode = delimiter.charCodeAt(0);
+    var reFormat = new RegExp('["' + delimiter + "\n]"), delimiterCode = delimiter.charCodeAt(0);
     dsv.parse = function(text) {
-      var header;
-      return dsv.parseRows(text, function(row, i) {
-        if (i) {
-          var o = {}, j = -1, m = header.length;
-          while (++j < m) o[header[j]] = row[j];
-          return o;
-        } else {
-          header = row;
-          return null;
-        }
+      var o;
+      return dsv.parseRows(text, function(row) {
+        if (o) return o(row);
+        o = new Function("d", "return {" + row.map(function(name, i) {
+          return JSON.stringify(name) + ": d[" + i + "]";
+        }).join(",") + "}");
       });
     };
     dsv.parseRows = function(text, f) {
       function token() {
-        if (reParse.lastIndex >= text.length) return EOF;
-        if (eol) {
-          eol = false;
-          return EOL;
-        }
-        var j = reParse.lastIndex;
+        if (I >= N) return EOF;
+        if (eol) return eol = false, EOL;
+        var j = I;
         if (text.charCodeAt(j) === 34) {
           var i = j;
-          while (i++ < text.length) {
+          while (i++ < N) {
             if (text.charCodeAt(i) === 34) {
               if (text.charCodeAt(i + 1) !== 34) break;
-              i++;
+              ++i;
             }
           }
-          reParse.lastIndex = i + 2;
+          I = i + 2;
           var c = text.charCodeAt(i + 1);
           if (c === 13) {
             eol = true;
-            if (text.charCodeAt(i + 2) === 10) reParse.lastIndex++;
+            if (text.charCodeAt(i + 2) === 10) ++I;
           } else if (c === 10) {
             eol = true;
           }
           return text.substring(j + 1, i).replace(/""/g, '"');
         }
-        var m = reParse.exec(text);
-        if (m) {
-          eol = m[0].charCodeAt(0) !== delimiterCode;
-          return text.substring(j, m.index);
+        while (I < N) {
+          var c = text.charCodeAt(I++), k = 1;
+          if (c === 10) eol = true; else if (c === 13) {
+            eol = true;
+            if (text.charCodeAt(I) === 10) ++I, ++k;
+          } else if (c !== delimiterCode) continue;
+          return text.substring(j, I - k);
         }
-        reParse.lastIndex = text.length;
         return text.substring(j);
       }
-      var EOL = {}, EOF = {}, rows = [], n = 0, t, eol;
-      reParse.lastIndex = 0;
+      var EOL = {}, EOF = {}, rows = [], N = text.length, I = 0, n = 0, t, eol;
       while ((t = token()) !== EOF) {
         var a = [];
         while (t !== EOL && t !== EOF) {
@@ -1980,7 +1975,7 @@
     return {
       point: function(coordinates, context) {
         if (visible(coordinates = rotate(coordinates))) {
-          context.moveTo(coordinates[0], coordinates[1]);
+          context.point(coordinates[0], coordinates[1]);
         }
       },
       line: function(coordinates, context) {
@@ -2235,6 +2230,10 @@
       return [ coordinates[0] * d3_degrees, coordinates[1] * d3_degrees ];
     }
     function resample(context) {
+      function point(λ, φ) {
+        var p = projectPoint(λ, φ);
+        context.point(p[0], p[1]);
+      }
       function moveTo(λ, φ) {
         var p = projectPoint(λ00 = λ0 = λ, φ00 = φ0 = φ);
         context.moveTo(x0 = p[0], y0 = p[1]);
@@ -2266,6 +2265,7 @@
       }
       var λ00, φ00, λ0, φ0, x0, y0, maxDepth = δ2 > 0 && 16;
       return {
+        point: point,
         moveTo: moveTo,
         lineTo: lineTo,
         closePath: closePath
@@ -7048,18 +7048,19 @@
       var n = polygon.length;
       if (!n) return polygon.push([ -Z, -Z ], [ -Z, Z ], [ Z, Z ], [ Z, -Z ]);
       if (n > 2) return;
-      var p0 = vertices[i], p1 = polygon[0], p2 = polygon[1], x0 = p0[0], y0 = p0[1], x1 = p1[0], y1 = p1[1], x2 = p2[0], y2 = p2[1], dx = x2 - x1, dy = y2 - y1;
+      var p0 = vertices[i], p1 = polygon[0], p2 = polygon[1], x0 = p0[0], y0 = p0[1], x1 = p1[0], y1 = p1[1], x2 = p2[0], y2 = p2[1], dx = Math.abs(x2 - x1), dy = y2 - y1;
       if (Math.abs(dy) < ε) {
         var y = y0 < y1 ? -Z : Z;
         polygon.push([ -Z, y ], [ Z, y ]);
-      } else if (Math.abs(dx) < ε) {
+      } else if (dx < ε) {
         var x = x0 < x1 ? -Z : Z;
         polygon.push([ x, -Z ], [ x, Z ]);
       } else {
-        var y = (x2 - x1) * (y1 - y0) < (x1 - x0) * (y2 - y1) ? Z : -Z;
-        if (Math.abs(dy) - Math.abs(dx) < ε) {
+        var y = (x2 - x1) * (y1 - y0) < (x1 - x0) * (y2 - y1) ? Z : -Z, z = Math.abs(dy) - dx;
+        if (Math.abs(z) < ε) {
           polygon.push([ dy < 0 ? y : -y, y ]);
         } else {
+          if (z > 0) y *= -1;
           polygon.push([ -Z, y ], [ Z, y ]);
         }
       }
