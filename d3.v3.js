@@ -97,11 +97,6 @@
   function d3_format_typeDefault(x) {
     return x + "";
   }
-  function d3_format_group(value) {
-    var i = value.lastIndexOf("."), f = i >= 0 ? value.substring(i) : (i = value.length, ""), t = [];
-    while (i > 0) t.push(value.substring(i -= 3, i + 3));
-    return t.reverse().join(",") + f;
-  }
   function d3_formatPrefix(d, i) {
     var k = Math.pow(10, Math.abs(8 - i) * 3);
     return {
@@ -157,10 +152,7 @@
   function d3_ease_elastic(a, p) {
     var s;
     if (arguments.length < 2) p = .45;
-    if (arguments.length < 1) {
-      a = 1;
-      s = p / 4;
-    } else s = p / (2 * π) * Math.asin(1 / a);
+    if (arguments.length) s = p / (2 * π) * Math.asin(1 / a); else a = 1, s = p / 4;
     return function(t) {
       return 1 + a * Math.pow(2, 10 * -t) * Math.sin((t - s) * 2 * π / p);
     };
@@ -823,7 +815,7 @@
     };
     scale.tickFormat = function(n, format) {
       if (arguments.length < 2) format = d3_scale_logFormat;
-      if (arguments.length < 1) return format;
+      if (!arguments.length) return format;
       var k = Math.max(.1, n / scale.ticks().length), f = log === d3_scale_logn ? (e = -1e-12, Math.floor) : (e = 1e-12, Math.ceil), e;
       return function(d) {
         return d / pow(f(log(d) + e)) <= k ? format(d) : "";
@@ -1924,6 +1916,26 @@
     };
     return albers;
   }
+  function d3_geo_bounds(projection) {
+    var x0, y0, x1, y1, bounds = d3_geo_type({
+      point: function(point) {
+        point = projection(point);
+        var x = point[0], y = point[1];
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      },
+      polygon: function(coordinates) {
+        this.line(coordinates[0]);
+      }
+    });
+    return function(feature) {
+      y1 = x1 = -(x0 = y0 = Infinity);
+      bounds.object(feature);
+      return [ [ x0, y0 ], [ x1, y1 ] ];
+    };
+  }
   function d3_geo_circleClip(degrees, rotate) {
     function visible(point) {
       return Math.cos(point[1]) * Math.cos(point[0]) > cr;
@@ -2730,9 +2742,6 @@
   function d3_time_utc() {
     this._ = new Date(arguments.length > 1 ? Date.UTC.apply(this, arguments) : arguments[0]);
   }
-  function d3_time_formatAbbreviate(name) {
-    return name.substring(0, 3);
-  }
   function d3_time_parse(date, template, string, j) {
     var c, p, i = 0, n = template.length, m = string.length;
     while (i < n) {
@@ -2968,6 +2977,7 @@
     var y = d.getUTCFullYear(), d0 = d3_time_scaleUTCSetYear(y), d1 = d3_time_scaleUTCSetYear(y + 1);
     return y + (d - d0) / (d1 - d0);
   }
+  var d3_format_decimalPoint = ".", d3_format_thousandsSeparator = ",", d3_format_grouping = [ 3, 3 ];
   if (!Date.now) Date.now = function() {
     return +(new Date);
   };
@@ -3402,10 +3412,11 @@
     return arguments.length < 2 ? this[type].on(name) : this[type].on(name, listener);
   };
   d3.format = function(specifier) {
-    var match = d3_format_re.exec(specifier), fill = match[1] || " ", sign = match[3] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, suffix = "", integer = false;
+    var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "", basePrefix = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, suffix = "", integer = false;
     if (precision) precision = +precision.substring(1);
-    if (zfill) {
-      fill = "0";
+    if (zfill || fill === "0" && align === "=") {
+      zfill = fill = "0";
+      align = "=";
       if (comma) width -= Math.floor((width - 1) / 4);
     }
     switch (type) {
@@ -3423,6 +3434,12 @@
       suffix = "%";
       type = "r";
       break;
+     case "b":
+     case "o":
+     case "x":
+     case "X":
+      if (basePrefix) basePrefix = "0" + type.toLowerCase();
+     case "c":
      case "d":
       integer = true;
       precision = 0;
@@ -3432,11 +3449,13 @@
       type = "r";
       break;
     }
+    if (basePrefix === "#") basePrefix = "";
     if (type == "r" && !precision) type = "g";
     type = d3_format_types.get(type) || d3_format_typeDefault;
+    var zcomma = zfill && comma;
     return function(value) {
       if (integer && value % 1) return "";
-      var negative = value < 0 && (value = -value) ? "-" : sign;
+      var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, "-") : sign;
       if (scale < 0) {
         var prefix = d3.formatPrefix(value, precision);
         value = prefix.scale(value);
@@ -3445,22 +3464,31 @@
         value *= scale;
       }
       value = type(value, precision);
-      if (zfill) {
-        var length = value.length + negative.length;
-        if (length < width) value = (new Array(width - length + 1)).join(fill) + value;
-        if (comma) value = d3_format_group(value);
-        value = negative + value;
-      } else {
-        if (comma) value = d3_format_group(value);
-        value = negative + value;
-        var length = value.length;
-        if (length < width) value = (new Array(width - length + 1)).join(fill) + value;
-      }
-      return value + suffix;
+      if (!zfill && comma) value = d3_format_group(value);
+      var length = basePrefix.length + value.length + (zcomma ? 0 : negative.length), padding = length < width ? (new Array(length = width - length + 1)).join(fill) : "";
+      if (zcomma) value = d3_format_group(padding + value);
+      if (d3_format_decimalPoint) value.replace(".", d3_format_decimalPoint);
+      negative += basePrefix;
+      return (align === "<" ? negative + value + padding : align === ">" ? padding + negative + value : align === "^" ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length) : negative + (zcomma ? value : padding + value)) + suffix;
     };
   };
   var d3_format_re = /(?:([^{])?([<>=^]))?([+\- ])?(#)?(0)?([0-9]+)?(,)?(\.[0-9]+)?([a-zA-Z%])?/;
   var d3_format_types = d3.map({
+    b: function(x) {
+      return x.toString(2);
+    },
+    c: function(x) {
+      return String.fromCharCode(x);
+    },
+    o: function(x) {
+      return x.toString(8);
+    },
+    x: function(x) {
+      return x.toString(16);
+    },
+    X: function(x) {
+      return x.toString(16).toUpperCase();
+    },
     g: function(x, p) {
       return x.toPrecision(p);
     },
@@ -3474,6 +3502,18 @@
       return d3.round(x, p = d3_format_precision(x, p)).toFixed(Math.max(0, Math.min(20, p)));
     }
   });
+  var d3_format_group = d3_identity;
+  if (d3_format_grouping) {
+    var d3_format_groupingLength = d3_format_grouping.length;
+    d3_format_group = function(value) {
+      var i = value.lastIndexOf("."), f = i >= 0 ? "." + value.substring(i + 1) : (i = value.length, ""), t = [], j = 0, g = d3_format_grouping[0];
+      while (i > 0 && g > 0) {
+        t.push(value.substring(i -= g, i + g));
+        g = d3_format_grouping[j = (j + 1) % d3_format_groupingLength];
+      }
+      return t.reverse().join(d3_format_thousandsSeparator || "") + f;
+    };
+  }
   var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "μ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
   d3.formatPrefix = function(value, precision) {
     var i = 0;
@@ -4074,24 +4114,24 @@
     return this.each(d3_selection_property(name, value));
   };
   d3_selectionPrototype.text = function(value) {
-    return arguments.length < 1 ? this.node().textContent : this.each(typeof value === "function" ? function() {
+    return arguments.length ? this.each(typeof value === "function" ? function() {
       var v = value.apply(this, arguments);
       this.textContent = v == null ? "" : v;
     } : value == null ? function() {
       this.textContent = "";
     } : function() {
       this.textContent = value;
-    });
+    }) : this.node().textContent;
   };
   d3_selectionPrototype.html = function(value) {
-    return arguments.length < 1 ? this.node().innerHTML : this.each(typeof value === "function" ? function() {
+    return arguments.length ? this.each(typeof value === "function" ? function() {
       var v = value.apply(this, arguments);
       this.innerHTML = v == null ? "" : v;
     } : value == null ? function() {
       this.innerHTML = "";
     } : function() {
       this.innerHTML = value;
-    });
+    }) : this.node().innerHTML;
   };
   d3_selectionPrototype.append = function(name) {
     function append() {
@@ -4207,7 +4247,7 @@
     return update;
   };
   d3_selectionPrototype.datum = function(value) {
-    return arguments.length < 1 ? this.property("__data__") : this.property("__data__", value);
+    return arguments.length ? this.property("__data__", value) : this.property("__data__");
   };
   d3_selectionPrototype.filter = function(filter) {
     var subgroups = [], subgroup, group, node;
@@ -6476,24 +6516,7 @@
   (d3.geo.azimuthalEquidistant = function() {
     return d3_geo_projection(d3_geo_azimuthalEquidistant);
   }).raw = d3_geo_azimuthalEquidistant;
-  d3.geo.bounds = function(feature) {
-    d3_geo_boundsTop = d3_geo_boundsRight = -(d3_geo_boundsLeft = d3_geo_boundsBottom = Infinity);
-    d3_geo_bounds.object(feature);
-    return [ [ d3_geo_boundsLeft, d3_geo_boundsBottom ], [ d3_geo_boundsRight, d3_geo_boundsTop ] ];
-  };
-  var d3_geo_boundsLeft, d3_geo_boundsBottom, d3_geo_boundsRight, d3_geo_boundsTop;
-  var d3_geo_bounds = d3_geo_type({
-    point: function(point) {
-      var x = point[0], y = point[1];
-      if (x < d3_geo_boundsLeft) d3_geo_boundsLeft = x;
-      if (x > d3_geo_boundsRight) d3_geo_boundsRight = x;
-      if (y < d3_geo_boundsBottom) d3_geo_boundsBottom = y;
-      if (y > d3_geo_boundsTop) d3_geo_boundsTop = y;
-    },
-    polygon: function(coordinates) {
-      this.line(coordinates[0]);
-    }
-  });
+  d3.geo.bounds = d3_geo_bounds(d3_identity);
   d3.geo.circle = function() {
     function circle() {}
     function bufferContext(lineStrings) {
@@ -6778,7 +6801,7 @@
       }
       return z ? [ x, y, 6 * z ] : null;
     }
-    var pointRadius = 4.5, pointCircle = d3_geo_pathCircle(pointRadius), projection = d3.geo.albersUsa(), buffer = [];
+    var pointRadius = 4.5, pointCircle = d3_geo_pathCircle(pointRadius), projection = d3.geo.albersUsa(), bounds, buffer = [];
     var bufferContext = {
       point: function(x, y) {
         buffer.push("M", x, ",", y, pointCircle);
@@ -6858,12 +6881,16 @@
       Point: singleCentroid(pointCentroid),
       Polygon: singleCentroid(polygonCentroid)
     });
+    path.bounds = function(object) {
+      return (bounds || (bounds = d3_geo_bounds(projection)))(object);
+    };
     path.centroid = function(object) {
       return centroidType.object(object);
     };
     path.projection = function(_) {
       if (!arguments.length) return projection;
       projection = _;
+      bounds = null;
       return path;
     };
     path.context = function(_) {
@@ -7215,8 +7242,8 @@
     }
   };
   var d3_time_prototype = Date.prototype;
-  var d3_time_formatDateTime = "%a %b %e %H:%M:%S %Y", d3_time_formatDate = "%m/%d/%y", d3_time_formatTime = "%H:%M:%S";
-  var d3_time_days = d3_time_daySymbols, d3_time_dayAbbreviations = d3_time_days.map(d3_time_formatAbbreviate), d3_time_months = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], d3_time_monthAbbreviations = d3_time_months.map(d3_time_formatAbbreviate);
+  var d3_time_formatDateTime = "%a %b %e %X %Y", d3_time_formatDate = "%m/%d/%Y", d3_time_formatTime = "%H:%M:%S";
+  var d3_time_days = [ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ], d3_time_dayAbbreviations = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ], d3_time_months = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], d3_time_monthAbbreviations = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
   d3.time.format = function(template) {
     function format(date) {
       var string = [], i = -1, j = 0, c, f;
