@@ -14,9 +14,16 @@
   d3 = {
     version: "3.0.0pre"
   };
-  var π = Math.PI, ε = 1e-6, εε = .001, d3_radians = π / 180, d3_degrees = 180 / π, d3_zero = function() {
+  var π = Math.PI, ε = 1e-6, εε = .001, d3_radians = π / 180, d3_degrees = 180 / π;
+  function d3_zero() {
     return 0;
-  };
+  }
+  function d3_target(d) {
+    return d.target;
+  }
+  function d3_source(d) {
+    return d.source;
+  }
   function d3_class(ctor, properties) {
     try {
       for (var key in properties) {
@@ -3151,7 +3158,7 @@
     return area;
   };
   d3.svg.chord = function() {
-    var source = d3_svg_chordSource, target = d3_svg_chordTarget, radius = d3_svg_chordRadius, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle;
+    var source = d3_source, target = d3_target, radius = d3_svg_chordRadius, startAngle = d3_svg_arcStartAngle, endAngle = d3_svg_arcEndAngle;
     function chord(d, i) {
       var s = subgroup(this, source, d, i), t = subgroup(this, target, d, i);
       return "M" + s.p0 + arc(s.r, s.p1, s.a1 - s.a0) + (equals(s, t) ? curve(s.r, s.p1, s.r, s.p0) : curve(s.r, s.p1, t.r, t.p0) + arc(t.r, t.p1, t.a1 - t.a0) + curve(t.r, t.p1, s.r, s.p0)) + "Z";
@@ -3202,17 +3209,11 @@
     };
     return chord;
   };
-  function d3_svg_chordSource(d) {
-    return d.source;
-  }
-  function d3_svg_chordTarget(d) {
-    return d.target;
-  }
   function d3_svg_chordRadius(d) {
     return d.radius;
   }
   d3.svg.diagonal = function() {
-    var source = d3_svg_chordSource, target = d3_svg_chordTarget, projection = d3_svg_diagonalProjection;
+    var source = d3_source, target = d3_target, projection = d3_svg_diagonalProjection;
     function diagonal(d, i) {
       var p0 = source.call(this, d, i), p3 = target.call(this, d, i), m = (p0.y + p3.y) / 2, p = [ p0, {
         x: p0.x,
@@ -5335,12 +5336,12 @@
     Feature: function(feature) {
       this.geometry(feature.geometry);
     },
-    FeatureCollection: function(colllection) {
-      var features = colllection.features, i = -1, n = features.length;
+    FeatureCollection: function(collection) {
+      var features = collection.features, i = -1, n = features.length;
       while (++i < n) this.Feature(features[i]);
     },
-    GeometryCollection: function(colllection) {
-      var geometries = colllection.geometries, i = -1, n = geometries.length;
+    GeometryCollection: function(collection) {
+      var geometries = collection.geometries, i = -1, n = geometries.length;
       while (++i < n) this.geometry(geometries[i]);
     },
     LineString: function(lineString) {
@@ -5918,7 +5919,7 @@
     };
   }
   d3.geo.greatArc = function() {
-    var source = d3_geo_greatArcSource, p0, target = d3_geo_greatArcTarget, p1, precision = 6 * d3_radians, interpolate = d3_geo_greatArcInterpolator();
+    var source = d3_source, p0, target = d3_target, p1, precision = 6 * d3_radians, interpolate = d3_geo_greatArcInterpolator();
     function greatArc() {
       var d = greatArc.distance.apply(this, arguments), t = 0, dt = precision / d, coordinates = [ p0 ];
       while ((t += dt) < 1) coordinates.push(interpolate(t));
@@ -5952,12 +5953,6 @@
     };
     return greatArc;
   };
-  function d3_geo_greatArcSource(d) {
-    return d.source;
-  }
-  function d3_geo_greatArcTarget(d) {
-    return d.target;
-  }
   function d3_geo_greatArcInterpolator() {
     var x0, y0, cy0, sy0, kx0, ky0, x1, y1, cy1, sy1, kx1, ky1, d, k;
     function interpolate(t) {
@@ -6074,99 +6069,42 @@
       Feature: function(feature) {
         return centroidType.geometry(feature.geometry);
       },
-      FeatureCollection: function(collection) {
-        return centroidType.GeometryCollection({
-          geometries: collection.features.map(function(feature) {
-            return feature.geometry;
-          })
-        });
-      },
-      GeometryCollection: function(collection) {
-        var geometries = collection.geometries, dimensions = geometries.map(geometryDimension), dimension = d3.max(dimensions), coordinates = [];
-        for (var i = 0, n = geometries.length, o; i < n; i++) {
-          if (dimensions[i] !== dimension) continue;
-          o = geometries[i];
-          if (/^Multi/.test(o.type)) coordinates = coordinates.concat(o.coordinates); else coordinates.push(o.coordinates);
-        }
-        return coordinates.length ? centroidType["Multi" + (dimension === 0 ? "Point" : dimension === 1 ? "LineString" : "Polygon")]({
-          coordinates: coordinates
-        }) : null;
-      },
-      LineString: singleCentroid(lineCentroid),
-      MultiLineString: multiCentroid(lineCentroid),
-      MultiPoint: multiCentroid(pointCentroid),
-      MultiPolygon: multiCentroid(polygonCentroid),
-      Point: singleCentroid(pointCentroid),
-      Polygon: singleCentroid(polygonCentroid)
+      LineString: d3_geo_pathCentroid1(lineCentroid),
+      MultiLineString: d3_geo_pathCentroid2(lineCentroid),
+      MultiPoint: d3_geo_pathCentroid2(pointCentroid),
+      MultiPolygon: d3_geo_pathCentroid3(ringCentroid),
+      Point: d3_geo_pathCentroid1(pointCentroid),
+      Polygon: d3_geo_pathCentroid2(ringCentroid)
     });
-    function geometryDimension(o) {
-      switch (o.type) {
-       case "Point":
-       case "MultiPoint":
-        return 0;
-
-       case "LineString":
-       case "MultiLineString":
-        return 1;
-
-       case "Polygon":
-       case "MultiPolygon":
-        return 2;
-      }
+    function pointCentroid(centroid, point) {
+      point = projection(point);
+      centroid[0] += point[0];
+      centroid[1] += point[1];
+      return 1;
     }
-    function singleCentroid(weightedCentroid) {
-      return function(o) {
-        var centroid = weightedCentroid(o.coordinates);
-        return centroid ? [ centroid[0] / centroid[2], centroid[1] / centroid[2] ] : null;
-      };
-    }
-    function multiCentroid(weightedCentroid) {
-      return function(o) {
-        var coordinates = o.coordinates, centroid, x = 0, y = 0, z = 0, i = -1, n = coordinates.length;
-        while (++i < n) {
-          centroid = weightedCentroid(coordinates[i]);
-          if (centroid != null) {
-            x += centroid[0];
-            y += centroid[1];
-            z += centroid[2];
-          }
-        }
-        return z ? [ x / z, y / z ] : null;
-      };
-    }
-    function pointCentroid(coordinates) {
-      coordinates = projection(coordinates);
-      coordinates.push(1);
-      return coordinates;
-    }
-    function lineCentroid(coordinates) {
-      if (!(n = coordinates.length)) return null;
-      var n, point = projection(coordinates[0]), x0 = point[0], y0 = point[1], x1, y1, dx, dy, x = 0, y = 0, z = 0, i = 0, δ;
+    function lineCentroid(centroid, line) {
+      if (!(n = line.length)) return 0;
+      var n, point = projection(line[0]), x0 = point[0], y0 = point[1], x1, y1, dx, dy, i = 0, δ, z = 0;
       while (++i < n) {
-        x1 = (point = projection(coordinates[i]))[0];
+        point = projection(line[i]);
+        x1 = point[0];
         y1 = point[1];
         dx = x1 - x0;
         dy = y1 - y0;
         z += δ = Math.sqrt(dx * dx + dy * dy);
-        x += δ * (x0 + x1) / 2;
-        y += δ * (y0 + y1) / 2;
+        centroid[0] += δ * (x0 + x1) / 2;
+        centroid[1] += δ * (y0 + y1) / 2;
         x0 = x1;
         y0 = y1;
       }
-      return z ? [ x, y, z ] : null;
+      return z;
     }
-    function polygonCentroid(coordinates) {
-      var polygon = d3.geom.polygon(coordinates[0].map(projection)), area = polygon.area(), centroid = polygon.centroid(area < 0 ? (area *= -1, 
-      1) : -1), x = centroid[0], y = centroid[1], z = area, i = 0, n = coordinates.length;
-      while (++i < n) {
-        polygon = d3.geom.polygon(coordinates[i].map(projection));
-        area = polygon.area();
-        centroid = polygon.centroid(area < 0 ? (area *= -1, 1) : -1);
-        x -= centroid[0];
-        y -= centroid[1];
-        z -= area;
-      }
-      return z ? [ x, y, 6 * z ] : null;
+    function ringCentroid(centroid, ring, i) {
+      var polygon = d3.geom.polygon(ring.map(projection)), area = polygon.area(), point = polygon.centroid(area < 0 ? (area *= -1, 
+      1) : -1);
+      centroid[0] += point[0];
+      centroid[1] += point[1];
+      return area * (i > 0 ? -6 : 6);
     }
     path.bounds = function(object) {
       return (bounds || (bounds = d3_geo_bounds(projection)))(object);
@@ -6195,6 +6133,30 @@
   };
   function d3_geo_pathCircle(radius) {
     return "m0," + radius + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius + "a" + radius + "," + radius + " 0 1,1 0," + +2 * radius + "z";
+  }
+  function d3_geo_pathCentroid1(weightedCentroid) {
+    return function(line) {
+      var centroid = [ 0, 0 ], z = weightedCentroid(centroid, line.coordinates, 0);
+      return z ? (centroid[0] /= z, centroid[1] /= z, centroid) : null;
+    };
+  }
+  function d3_geo_pathCentroid2(weightedCentroid) {
+    return function(polygon) {
+      for (var centroid = [ 0, 0 ], z = 0, rings = polygon.coordinates, i = 0, n = rings.length; i < n; ++i) {
+        z += weightedCentroid(centroid, rings[i], i);
+      }
+      return z ? (centroid[0] /= z, centroid[1] /= z, centroid) : null;
+    };
+  }
+  function d3_geo_pathCentroid3(weightedCentroid) {
+    return function(multiPolygon) {
+      for (var centroid = [ 0, 0 ], z = 0, polygons = multiPolygon.coordinates, i = 0, n = polygons.length; i < n; ++i) {
+        for (var rings = polygons[i], j = 0, m = rings.length; j < m; ++j) {
+          z += weightedCentroid(centroid, rings[j], j);
+        }
+      }
+      return z ? (centroid[0] /= z, centroid[1] /= z, centroid) : null;
+    };
   }
   d3.geo.projection = d3_geo_projection;
   d3.geo.projectionMutator = d3_geo_projectionMutator;
@@ -6553,7 +6515,7 @@
     return (b[0] - a[0]) * (p[1] - a[1]) < (b[1] - a[1]) * (p[0] - a[0]);
   }
   function d3_geom_polygonIntersect(c, d, a, b) {
-    var x1 = c[0], x2 = d[0], x3 = a[0], x4 = b[0], y1 = c[1], y2 = d[1], y3 = a[1], y4 = b[1], x13 = x1 - x3, x21 = x2 - x1, x43 = x4 - x3, y13 = y1 - y3, y21 = y2 - y1, y43 = y4 - y3, ua = (x43 * y13 - y43 * x13) / (y43 * x21 - x43 * y21);
+    var x1 = c[0], x3 = a[0], x21 = d[0] - x1, x43 = b[0] - x3, y1 = c[1], y3 = a[1], y21 = d[1] - y1, y43 = b[1] - y3, ua = (x43 * (y1 - y3) - y43 * (x1 - x3)) / (y43 * x21 - x43 * y21);
     return [ x1 + ua * x21, y1 + ua * y21 ];
   }
   d3.geom.voronoi = function(vertices) {
