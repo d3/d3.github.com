@@ -5491,95 +5491,32 @@
     };
   }
   d3.geo.circle = function() {
-    var origin = [ 0, 0 ], degrees, clip, precision = 6, rotate, interpolate;
+    var origin = [ 0, 0 ], angle, precision = 6, rotate, interpolate;
     function circle() {
       var o = typeof origin === "function" ? origin.apply(this, arguments) : origin;
       rotate = d3_geo_rotation(-o[0] * d3_radians, -o[1] * d3_radians, 0);
-      var rings = [ [] ];
-      context = bufferContext(rings);
-      d3_geo_circleInterpolateCircle(interpolate, context);
-      context.closePath();
+      var ring = [];
+      d3_geo_circleInterpolateCircle(interpolate, {
+        lineTo: function(λ, φ) {
+          var point = rotate.invert(λ, φ);
+          point[0] *= d3_degrees;
+          point[1] *= d3_degrees;
+          ring.push(point);
+        }
+      });
       return {
         type: "Polygon",
-        coordinates: rings
+        coordinates: [ ring ]
       };
     }
-    circle.clip = function(d) {
-      var o = typeof origin === "function" ? origin.apply(this, arguments) : origin;
-      rotate = d3_geo_rotation(-o[0] * d3_radians, -o[1] * d3_radians, 0);
-      clip = d3_geo_circleClip(degrees, function(coordinates) {
-        return rotate(coordinates[0] * d3_radians, coordinates[1] * d3_radians);
-      });
-      return clipType.object(d) || null;
-    };
-    var clipType = d3_geo_type({
-      FeatureCollection: function(o) {
-        var features = o.features.map(clipType.Feature, clipType).filter(d3_identity);
-        return features && (o = Object.create(o), o.features = features, o);
-      },
-      Feature: function(o) {
-        var geometry = clipType.geometry(o.geometry);
-        return geometry && (o = Object.create(o), o.geometry = geometry, o);
-      },
-      Point: function(o) {
-        var d = [];
-        clip.point(o.coordinates, bufferContext(d));
-        return d.length && o;
-      },
-      MultiPoint: function(o) {
-        var coordinates = [], context = bufferContext(coordinates);
-        o.coordinates.forEach(function(coordinates) {
-          clip.point(coordinates, context);
-        });
-        return coordinates.length && (o = Object.create(o), o.coordinates = coordinates, 
-        o);
-      },
-      LineString: function(o) {
-        var lineStrings = [], context = bufferContext(lineStrings);
-        clip.line(o.coordinates, context);
-        return lineStrings.length && (o = Object.create(o), o.type = "MultiLineString", 
-        o.coordinates = lineStrings, o);
-      },
-      MultiLineString: function(o) {
-        var lineStrings = [], context = bufferContext(lineStrings);
-        o.coordinates.forEach(function(coordinates) {
-          clip.line(coordinates, context);
-        });
-        return lineStrings.length && (o = Object.create(o), o.coordinates = lineStrings, 
-        o);
-      },
-      Polygon: function(o) {
-        var lineStrings = [];
-        clip.polygon(o.coordinates, bufferContext(lineStrings));
-        var polygons = lineStrings.map(function(lineString) {
-          return [ lineString ];
-        });
-        return polygons.length && (o = Object.create(o), o.type = "MultiPolygon", o.coordinates = polygons, 
-        o);
-      },
-      MultiPolygon: function(o) {
-        var lineStrings = [], context = bufferContext(lineStrings);
-        o.coordinates.forEach(function(coordinates) {
-          clip.polygon(coordinates, context);
-        });
-        var polygons = lineStrings.map(function(lineString) {
-          return [ lineString ];
-        });
-        return polygons.length && (o = Object.create(o), o.coordinates = polygons, o);
-      },
-      GeometryCollection: function(o) {
-        var geometries = o.geometries.map(clipType.geometry, clipType).filter(d3_identity);
-        return geometries.length && (o = Object.create(o), o.geometries = geometries, o);
-      }
-    });
     circle.origin = function(x) {
       if (!arguments.length) return origin;
       origin = x;
       return circle;
     };
     circle.angle = function(x) {
-      if (!arguments.length) return degrees;
-      interpolate = d3_geo_circleInterpolate((degrees = +x) * d3_radians, precision * d3_radians);
+      if (!arguments.length) return angle;
+      interpolate = d3_geo_circleInterpolate((angle = +x) * d3_radians, precision * d3_radians);
       return circle;
     };
     circle.precision = function(_) {
@@ -5588,32 +5525,6 @@
       return circle;
     };
     return circle.angle(90);
-    function bufferContext(lineStrings) {
-      var lineString = lineStrings[0];
-      return {
-        point: function(λ, φ) {
-          var point = rotate.invert(λ, φ);
-          point[0] *= d3_degrees;
-          point[1] *= d3_degrees;
-          lineStrings.push(point);
-        },
-        moveTo: function(λ, φ) {
-          var point = rotate.invert(λ, φ);
-          point[0] *= d3_degrees;
-          point[1] *= d3_degrees;
-          lineStrings.push(lineString = [ point ]);
-        },
-        lineTo: function(λ, φ) {
-          var point = rotate.invert(λ, φ);
-          point[0] *= d3_degrees;
-          point[1] *= d3_degrees;
-          lineString.push(point);
-        },
-        closePath: function() {
-          if (lineString.length) lineString.push(lineString[0]);
-        }
-      };
-    }
   };
   function d3_geo_circleClip(degrees, rotate) {
     var radians = degrees * d3_radians, cr = Math.cos(radians), center = [ cr, 0, 0 ], angle = d3_geo_circleAngle(center), interpolate = d3_geo_circleInterpolate(radians, 6 * d3_radians);
@@ -5669,18 +5580,19 @@
   }
   function d3_geo_circleInterpolate(radians, precision) {
     var cr = Math.cos(radians), sr = Math.sin(radians);
-    return function(from, to, context) {
+    return function(from, to, direction, context) {
+      var step = direction * precision;
       from = from.angle;
       to = to.angle;
       if (from < to) from += 2 * Math.PI;
-      for (var step = precision, t = from; t > to; t -= step) {
+      for (var step = precision, t = from; direction > 0 ? t > to : t < to; t -= step) {
         var c = Math.cos(t), s = Math.sin(t), point = d3_geo_circleSpherical([ cr, -sr * c, -sr * s ]);
         context.lineTo(point[0], point[1]);
       }
     };
   }
   function d3_geo_circleClipPolygon(coordinates, context, clipLine, interpolate, angle) {
-    var unvisited = 0, intersections = [], segments = [], buffer = d3_geo_circleBufferSegments(clipLine), winding = 0;
+    var subject = [], clip = [], segments = [], buffer = d3_geo_circleBufferSegments(clipLine), winding = 0;
     coordinates.forEach(function(ring) {
       var x = buffer(ring, context), ringSegments = x[1];
       winding += x[0];
@@ -5706,21 +5618,48 @@
       winding.push(winding[0]);
     }
     segments.forEach(function(segment) {
-      var p0 = segment[0], p1 = segment[segment.length - 1];
+      var p0 = segment[0], p1 = segment[segment.length - 1], a, b;
       if (p0[0] !== p1[0] || p0[1] !== p1[1]) {
-        var b = {
-          point: p1,
-          angle: angle(p1),
-          points: [],
-          other: null
-        }, a = {
+        a = {
+          point: p0,
+          points: segment,
+          other: null,
+          visited: false,
+          entry: true,
+          subject: true
+        };
+        b = {
           point: p0,
           angle: angle(p0),
-          points: segment,
-          other: b
+          points: [ p0 ],
+          other: a,
+          visited: false,
+          entry: false,
+          subject: false
         };
-        intersections.push(a, b);
-        unvisited++;
+        a.other = b;
+        subject.push(a);
+        clip.push(b);
+        a = {
+          point: p1,
+          points: [ p1 ],
+          other: null,
+          visited: false,
+          entry: false,
+          subject: true
+        };
+        b = {
+          point: p1,
+          angle: angle(p1),
+          points: [ p1 ],
+          other: a,
+          visited: false,
+          entry: true,
+          subject: false
+        };
+        a.other = b;
+        subject.push(a);
+        clip.push(b);
       } else {
         var point = segment[0], n = segment.length - 1, i = 0;
         context.moveTo(point[0], point[1]);
@@ -5728,39 +5667,45 @@
         context.closePath();
       }
     });
-    if (!unvisited) return;
-    var start = intersections[0], tmp = null;
-    intersections.sort(function(a, b) {
+    clip.sort(function(a, b) {
       return b.angle - a.angle;
     });
-    for (var i = 0; i < intersections.length; ) {
-      intersections[i].next = intersections[++i % intersections.length];
-    }
-    while (unvisited) {
-      while (start.visited || !start.other) {
-        if (start === tmp) return;
-        start = start.next;
+    [ subject, clip ].forEach(function(intersections) {
+      for (var i = 0, a = intersections[0], b; i < intersections.length; ) {
+        a.next = b = intersections[++i % intersections.length];
+        b.prev = a;
+        a = b;
       }
-      var intersection = start, moved = false, points, point;
+    });
+    if (!subject.length) return;
+    var start = subject[0], current, points, point;
+    while (1) {
+      current = start;
+      while (current.visited) if ((current = current.next) === start) return;
+      points = current.points;
+      context.moveTo((point = points.shift())[0], point[1]);
       do {
-        if (!intersection.other) {
-          unvisited--;
-          break;
+        current.visited = current.other.visited = true;
+        if (current.entry) {
+          if (current.subject) {
+            for (var i = 0; i < points.length; i++) context.lineTo((point = points[i])[0], point[1]);
+          } else {
+            interpolate(current, current.next, 1, context);
+          }
+          current = current.next;
+        } else {
+          if (current.subject) {
+            points = current.prev.points;
+            for (var i = points.length; --i >= 0; ) context.lineTo((point = points[i])[0], point[1]);
+          } else {
+            interpolate(current, current.prev, -1, context);
+          }
+          current = current.prev;
         }
-        intersection.visited = true;
-        point = (points = intersection.points)[0];
-        if (moved) context.lineTo(point[0], point[1]); else context.moveTo(point[0], point[1]), 
-        moved = true;
-        for (var i = 1; i < points.length; i++) context.lineTo((point = points[i])[0], point[1]);
-        interpolate(intersection = intersection.other, intersection = intersection.next, context);
-        unvisited--;
-      } while (intersection !== start);
-      if (moved) {
-        context.closePath();
-        moved = false;
-      }
-      tmp = start;
-      start = start.next;
+        current = current.other;
+        points = current.points;
+      } while (!current.visited);
+      context.closePath();
     }
   }
   function d3_geo_circleAngle(center) {
@@ -5830,7 +5775,7 @@
         angle: -i * π / 2
       }, {
         angle: -(i + 1) * π / 2
-      }, context);
+      }, 1, context);
     }
   }
   function d3_geo_compose(a, b) {
@@ -6190,34 +6135,37 @@
       return projection;
     };
     function resample(context) {
-      var λ00, φ00, λ0, φ0, x0, y0, maxDepth = δ2 > 0 && 16;
+      var λ00, φ00, λ0, sinφ0, cosφ0, x0, y0, maxDepth = δ2 > 0 && 16;
       function point(λ, φ) {
         var p = projectPoint(λ, φ);
         context.point(p[0], p[1]);
       }
       function moveTo(λ, φ) {
-        var p = projectPoint(λ00 = λ0 = λ, φ00 = φ0 = φ);
+        var p = projectPoint(λ00 = λ0 = λ, φ00 = φ);
+        sinφ0 = Math.sin(φ);
+        cosφ0 = Math.cos(φ);
         context.moveTo(x0 = p[0], y0 = p[1]);
       }
       function lineTo(λ, φ) {
         var p = projectPoint(λ, φ);
-        resampleLineTo(x0, y0, λ0, φ0, x0 = p[0], y0 = p[1], λ0 = λ, φ0 = φ, maxDepth);
+        resampleLineTo(x0, y0, λ0, sinφ0, cosφ0, x0 = p[0], y0 = p[1], λ0 = λ, sinφ0 = Math.sin(φ), cosφ0 = Math.cos(φ), maxDepth);
         context.lineTo(x0, y0);
       }
-      function resampleLineTo(x0, y0, λ0, φ0, x1, y1, λ1, φ1, depth) {
+      function resampleLineTo(x0, y0, λ0, sinφ0, cosφ0, x1, y1, λ1, sinφ1, cosφ1, depth) {
         var dx = x1 - x0, dy = y1 - y0, distance2 = dx * dx + dy * dy;
         if (distance2 > 4 * δ2 && depth--) {
-          var sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1), cosΩ = sinφ0 * sinφ1 + cosφ0 * cosφ1 * Math.cos(λ1 - λ0), k = 1 / (Math.SQRT2 * Math.sqrt(1 + cosΩ)), x = k * (cosφ0 * Math.cos(λ0) + cosφ1 * Math.cos(λ1)), y = k * (cosφ0 * Math.sin(λ0) + cosφ1 * Math.sin(λ1)), z = k * (sinφ0 + sinφ1), φ2 = Math.asin(Math.max(-1, Math.min(1, z))), λ2 = (z = Math.abs(Math.abs(z) - 1)) < ε || z < εε && (Math.abs(cosφ0) < εε || Math.abs(cosφ1) < εε) ? (λ0 + λ1) / 2 : Math.atan2(y, x), p = projectPoint(λ2, φ2), x2 = p[0], y2 = p[1], dx2 = x0 - x2, dy2 = y0 - y2, dz = dx * dy2 - dy * dx2;
+          var cosΩ = sinφ0 * sinφ1 + cosφ0 * cosφ1 * Math.cos(λ1 - λ0), k = 1 / (Math.SQRT2 * Math.sqrt(1 + cosΩ)), x = k * (cosφ0 * Math.cos(λ0) + cosφ1 * Math.cos(λ1)), y = k * (cosφ0 * Math.sin(λ0) + cosφ1 * Math.sin(λ1)), z = Math.max(-1, Math.min(1, k * (sinφ0 + sinφ1))), φ2 = Math.asin(z), zε = Math.abs(Math.abs(z) - 1), λ2 = zε < ε || zε < εε && (Math.abs(cosφ0) < εε || Math.abs(cosφ1) < εε) ? (λ0 + λ1) / 2 : Math.atan2(y, x), p = projectPoint(λ2, φ2), x2 = p[0], y2 = p[1], dx2 = x0 - x2, dy2 = y0 - y2, dz = dx * dy2 - dy * dx2;
           if (dz * dz / distance2 > δ2) {
-            resampleLineTo(x0, y0, λ0, φ0, x2, y2, λ2, φ2, depth);
+            var cosφ2 = Math.cos(φ2);
+            resampleLineTo(x0, y0, λ0, sinφ0, cosφ0, x2, y2, λ2, z, cosφ2, depth);
             context.lineTo(x2, y2);
-            resampleLineTo(x2, y2, λ2, φ2, x1, y1, λ1, φ1, depth);
+            resampleLineTo(x2, y2, λ2, z, cosφ2, x1, y1, λ1, sinφ1, cosφ1, depth);
           }
         }
       }
       function closePath() {
         var p = projectPoint(λ00, φ00);
-        resampleLineTo(x0, y0, λ0, φ0, p[0], p[1], λ00, φ00, maxDepth);
+        resampleLineTo(x0, y0, λ0, sinφ0, cosφ0, p[0], p[1], λ00, Math.sin(φ00), Math.cos(φ00), maxDepth);
         context.closePath();
       }
       return {
@@ -6321,11 +6269,11 @@
   function d3_geo_antemeridianAngle(point) {
     return -(point[0] < 0 ? point[1] - π / 2 : π / 2 - point[1]);
   }
-  function d3_geo_antemeridianInterpolate(from, to, context) {
+  function d3_geo_antemeridianInterpolate(from, to, direction, context) {
     from = from.point;
     to = to.point;
     if (Math.abs(from[0] - to[0]) > ε) {
-      var s = from[0] < to[0] ? π : -π, φ = s / 2;
+      var s = (from[0] < to[0] ? 1 : -1) * direction * π, φ = s / 2;
       context.lineTo(-s, φ);
       context.lineTo(0, φ);
       context.lineTo(s, φ);
