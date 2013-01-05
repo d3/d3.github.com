@@ -2,6 +2,8 @@
   var ε = 1e-6,
       π = Math.PI,
       sqrtπ = Math.sqrt(π),
+      radians = π / 180,
+      degrees = 180 / π,
       sinumollφ = 0.7109889596207567;
 
   var robinsonConstants = [
@@ -106,6 +108,34 @@
     }
 
     return forward;
+  }
+
+  function armadilloProjection() {
+    var φ0 = π / 9, // 20°
+        tanφ0 = Math.tan(φ0),
+        m = projectionMutator(armadillo),
+        p = m(φ0),
+        wrappedStream = p.stream;
+
+    p.parallel = function(_) {
+      if (!arguments.length) return φ0 / π * 180;
+      return m(φ0 = _ * π / 180);
+    };
+
+    p.stream = function(stream) {
+      stream = wrappedStream(stream);
+      stream.sphere = function() {
+        stream.polygonStart(), stream.lineStart();
+        for (var λ = -180; λ < 180; λ += 90) stream.point(λ, 90);
+        while (--λ >= -180) { // TODO precision?
+          stream.point(λ, -Math.atan2(Math.cos(λ * radians / 2), tanφ0) * degrees);
+        }
+        stream.lineEnd(), stream.polygonEnd();
+      };
+      return stream;
+    };
+
+    return p;
   }
 
   function winkel3(λ, φ) {
@@ -253,7 +283,9 @@
     var φ0 = 0,
         m = projectionMutator(hammerRetroazimuthal),
         p = m(φ0),
-        rotate = p.rotate;
+        wrappedRotate = p.rotate,
+        wrappedStream = p.stream,
+        outlineCircle = d3.geo.circle();
 
     p.parallel = function(_) {
       if (!arguments.length) return φ0 / π * 180;
@@ -262,9 +294,32 @@
     };
 
     p.rotate = function(_) {
-      if (!arguments.length) return (_ = rotate.call(p), _[1] += φ0 / π * 180, _);
-      rotate.call(p, [_[0], _[1] - φ0 / π * 180]);
+      if (!arguments.length) return (_ = wrappedRotate.call(p), _[1] += φ0 / π * 180, _);
+      wrappedRotate.call(p, [_[0], _[1] - φ0 / π * 180]);
+      outlineCircle.origin([-_[0], -_[1]]);
       return p;
+    };
+
+    p.stream = function(stream) {
+      stream = wrappedStream(stream);
+      stream.sphere = function() {
+        stream.polygonStart();
+        var ε = 1e-2,
+            ring = outlineCircle.angle(90 - ε)().coordinates[0],
+            n = ring.length - 1,
+            i = -1,
+            p;
+        stream.lineStart();
+        while (++i < n) stream.point((p = ring[i])[0], p[1]);
+        stream.lineEnd();
+        ring = outlineCircle.angle(90 + ε)().coordinates[0];
+        n = ring.length - 1;
+        stream.lineStart();
+        while (--i >= 0) stream.point((p = ring[i])[0], p[1]);
+        stream.lineEnd();
+        stream.polygonEnd();
+      };
+      return stream;
     };
 
     return p;
@@ -479,13 +534,34 @@
   }
 
   function berghausProjection() {
-    var lobes = 5,
+    var n = 5,
         m = projectionMutator(berghaus),
-        p = m(lobes);
+        p = m(n),
+        wrappedStream = p.stream;
 
     p.lobes = function(_) {
-      if (!arguments.length) return lobes;
-      return m(lobes = +_);
+      if (!arguments.length) return n;
+      return m(n = +_);
+    };
+
+    p.stream = function(stream) {
+      stream = wrappedStream(stream);
+      stream.sphere = function() {
+        stream.polygonStart(), stream.lineStart();
+        var ε = 1e-4;
+        for (var i = 0, δ = 360 / n, φ = 90 - 180 / n; i < n; ++i, φ -= δ) {
+          stream.point(180, 0);
+          if (φ < -90) {
+            stream.point(-90, 180 - φ - ε);
+            stream.point(-90, 180 - φ + ε);
+          } else {
+            stream.point(90, φ + ε);
+            stream.point(90, φ - ε);
+          }
+        }
+        stream.lineEnd(), stream.polygonEnd();
+      };
+      return stream;
     };
 
     return p;
@@ -1050,7 +1126,7 @@
       projectionMutator = d3.geo.projectionMutator;
 
   (d3.geo.aitoff = function() { return projection(aitoff); }).raw = aitoff;
-  (d3.geo.armadillo = function() { return singleParallelProjection(armadillo).parallel(20); }).raw = armadillo;
+  (d3.geo.armadillo = armadilloProjection).raw = armadillo;
   (d3.geo.august = function() { return projection(august); }).raw = august;
   (d3.geo.berghaus = berghausProjection).raw = berghaus;
   (d3.geo.bonne = function() { return singleParallelProjection(bonne).parallel(45); }).raw = bonne;

@@ -66,15 +66,14 @@ d3.geo.polyhedron = function(root, face) {
 
   // Naive inverse!  A faster solution would use bounding boxes, or even a
   // polygonal quadtree.
-  forward.invert = function(x, y) {
+  if (hasInverse(root)) forward.invert = function(x, y) {
     var coordinates = faceInvert(root, [x, -y]);
-    return coordinates
-        ? (coordinates[0] *= radians, coordinates[1] *= radians, coordinates)
-        : [NaN, NaN];
+    return coordinates && (coordinates[0] *= radians, coordinates[1] *= radians, coordinates);
   };
 
   function faceInvert(node, coordinates) {
-    var t = node.transform,
+    var invert = node.project.invert,
+        t = node.transform,
         point = coordinates;
     if (t) {
       t = inverseTransform(t);
@@ -83,7 +82,7 @@ d3.geo.polyhedron = function(root, face) {
         (t[3] * point[0] + t[4] * point[1] + t[5])
       ];
     }
-    if (node === faceDegrees(p = node.project.invert(point))) return p;
+    if (invert && node === faceDegrees(p = invert(point))) return p;
     var p,
         children = node.children;
     for (var i = 0, n = children && children.length; i < n; ++i) {
@@ -95,12 +94,19 @@ d3.geo.polyhedron = function(root, face) {
     return face(coordinates[0] * radians, coordinates[1] * radians);
   }
 
-  var projection = d3.geo.projection(forward);
+  var projection = d3.geo.projection(forward),
+      wrappedStream = projection.stream;
 
-  projection.outline = function() {
-    var ring = outline(root);
-    ring.push(ring[0]);
-    return {type: "Polygon", coordinates: [ring]};
+  projection.stream = function(stream) {
+    stream = wrappedStream(stream);
+    stream.sphere = function() {
+      stream.polygonStart();
+      stream.lineStart();
+      outline(stream, root);
+      stream.lineEnd();
+      stream.polygonEnd();
+    };
+    return stream;
   };
 
   return projection;
@@ -217,8 +223,8 @@ d3.geo.polyhedron.waterman = function(faceProjection) {
   }
 };
 
-function outline(node, parent) {
-  var result = [],
+function outline(stream, node, parent) {
+  var point,
       edges = node.edges,
       n = edges.length,
       edge,
@@ -234,16 +240,15 @@ function outline(node, parent) {
     edge = edges[(i + j) % n];
     if (Array.isArray(edge)) {
       if (!inside) {
-        result.push(d3.geo.interpolate(edge[0], centroid)(ε));
+        stream.point((point = d3.geo.interpolate(edge[0], centroid)(ε))[0], point[1]);
         inside = true;
       }
-      result.push(d3.geo.interpolate(edge[1], centroid)(ε));
+      stream.point((point = d3.geo.interpolate(edge[1], centroid)(ε))[0], point[1]);
     } else {
       inside = false;
-      if (edge !== parent) result = result.concat(outline(edge, node));
+      if (edge !== parent) outline(stream, edge, node);
     }
   }
-  return result;
 }
 
 // TODO generate on-the-fly to avoid external modification.
@@ -410,6 +415,10 @@ function faceEdges(face) {
       edges = [];
   for (var a = face[n - 1], i = 0; i < n; ++i) edges.push([a, a = face[i]]);
   return edges;
+}
+
+function hasInverse(node) {
+  return node.project.invert || node.children && node.children.some(hasInverse);
 }
 
 })();
