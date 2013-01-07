@@ -1,5 +1,6 @@
 (function() {
   var ε = 1e-6,
+      ε2 = ε * ε,
       π = Math.PI,
       sqrtπ = Math.sqrt(π),
       radians = π / 180,
@@ -157,6 +158,35 @@
       (coordinates[1] + φ) / 2
     ];
   }
+
+  winkel3.invert = function(x, y) {
+    var λ = x, φ = y, i = 25;
+    do {
+      var cosφ = Math.cos(φ),
+          sinφ = Math.sin(φ),
+          sin_2φ = Math.sin(2 * φ),
+          sin2φ = sinφ * sinφ,
+          cos2φ = cosφ * cosφ,
+          sinλ = Math.sin(λ),
+          cosλ_2 = Math.cos(λ / 2),
+          sinλ_2 = Math.sin(λ / 2),
+          C = 1 - cos2φ * cosλ_2 * cosλ_2,
+          D = acos(cosφ * cosλ_2),
+          E = C ? D / Math.sqrt(C) : 0,
+          F = C ? 1 / C : 0,
+          f1 = .5 * (2 * E * cosφ * sinλ_2 + λ * 2 / π) - x,
+          f2 = .5 * (E * sinφ + φ) - y,
+          δf1δφ = F * (sinλ * sin_2φ / 4 - E * sinφ * sinλ_2),
+          δf1δλ = .5 * F * (cos2φ * sinλ_2 * sinλ_2 + E * cosφ * cosλ_2 * sin2φ) + .5 * 2 / π,
+          δf2δφ = .5 * F * (sin2φ * cosλ_2 + E * sinλ_2 * sinλ_2 * cosφ) + .5,
+          δf2δλ = .125 * F * (sin_2φ * sinλ_2 - E * sinφ * cos2φ * sinλ),
+          denominator = δf1δφ * δf2δλ - δf2δφ * δf1δλ,
+          δφ = (f1 * δf2δλ - f2 * δf1δλ) / denominator,
+          δλ = (f2 * δf1δφ - f1 * δf2δφ) / denominator;
+      λ -= δλ, φ -= δφ;
+    } while ((Math.abs(δλ) > ε2 || Math.abs(δφ) > ε2) && --i > 0);
+    return [λ, φ];
+  };
 
   function kavrayskiy7(λ, φ) {
     return [
