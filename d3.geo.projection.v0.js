@@ -1,6 +1,5 @@
 (function() {
   var ε = 1e-6,
-      ε2 = ε * ε,
       π = Math.PI,
       sqrtπ = Math.sqrt(π),
       radians = π / 180,
@@ -100,6 +99,36 @@
     ];
   }
 
+  aitoff.invert = function(x, y) {
+    var λ = x, φ = y, i = 25;
+    do {
+      var sinλ = Math.sin(λ),
+          sinλ_2 = Math.sin(λ / 2),
+          cosλ_2 = Math.cos(λ / 2),
+          sinφ = Math.sin(φ),
+          cosφ = Math.cos(φ),
+          sin_2φ = Math.sin(2 * φ),
+          sin2φ = sinφ * sinφ,
+          cos2φ = cosφ * cosφ,
+          sin2λ_2 = sinλ_2 * sinλ_2,
+          C = 1 - cos2φ * cosλ_2 * cosλ_2,
+          E = C ? acos(cosφ * cosλ_2) * Math.sqrt(F = 1 / C) : F = 0,
+          F,
+          fx = 2 * E * cosφ * sinλ_2 - x,
+          fy = E * sinφ - y,
+          δxδλ = F * (cos2φ * sin2λ_2 + E * cosφ * cosλ_2 * sin2φ),
+          δxδφ = F * (.5 * sinλ * sin_2φ - E * 2 * sinφ * sinλ_2),
+          δyδλ = F * .25 * (sin_2φ * sinλ_2 - E * sinφ * cos2φ * sinλ),
+          δyδφ = F * (sin2φ * cosλ_2 + E * sin2λ_2 * cosφ),
+          denominator = δxδφ * δyδλ - δyδφ * δxδλ;
+      if (!denominator) break;
+      var δλ = (fy * δxδφ - fx * δyδφ) / denominator,
+          δφ = (fx * δyδλ - fy * δxδλ) / denominator;
+      λ -= δλ, φ -= δφ;
+    } while ((Math.abs(δλ) > ε || Math.abs(δφ) > ε) && --i > 0);
+    return [λ, φ];
+  };
+
   function armadillo(φ0) {
     var sinφ0 = Math.sin(φ0),
         cosφ0 = Math.cos(φ0),
@@ -170,21 +199,21 @@
           sinλ = Math.sin(λ),
           cosλ_2 = Math.cos(λ / 2),
           sinλ_2 = Math.sin(λ / 2),
+          sin2λ_2 = sinλ_2 * sinλ_2,
           C = 1 - cos2φ * cosλ_2 * cosλ_2,
-          D = acos(cosφ * cosλ_2),
-          E = C ? D / Math.sqrt(C) : 0,
-          F = C ? 1 / C : 0,
-          f1 = .5 * (2 * E * cosφ * sinλ_2 + λ * 2 / π) - x,
-          f2 = .5 * (E * sinφ + φ) - y,
-          δf1δφ = F * (sinλ * sin_2φ / 4 - E * sinφ * sinλ_2),
-          δf1δλ = .5 * F * (cos2φ * sinλ_2 * sinλ_2 + E * cosφ * cosλ_2 * sin2φ) + .5 * 2 / π,
-          δf2δφ = .5 * F * (sin2φ * cosλ_2 + E * sinλ_2 * sinλ_2 * cosφ) + .5,
-          δf2δλ = .125 * F * (sin_2φ * sinλ_2 - E * sinφ * cos2φ * sinλ),
-          denominator = δf1δφ * δf2δλ - δf2δφ * δf1δλ,
-          δφ = (f1 * δf2δλ - f2 * δf1δλ) / denominator,
-          δλ = (f2 * δf1δφ - f1 * δf2δφ) / denominator;
+          E = C ? acos(cosφ * cosλ_2) * Math.sqrt(F = 1 / C) : F = 0,
+          F,
+          fx = .5 * (2 * E * cosφ * sinλ_2 + λ * 2 / π) - x,
+          fy = .5 * (E * sinφ + φ) - y,
+          δxδλ = .5 * F * (cos2φ * sin2λ_2 + E * cosφ * cosλ_2 * sin2φ) + .5 * 2 / π,
+          δxδφ = F * (sinλ * sin_2φ / 4 - E * sinφ * sinλ_2),
+          δyδλ = .125 * F * (sin_2φ * sinλ_2 - E * sinφ * cos2φ * sinλ),
+          δyδφ = .5 * F * (sin2φ * cosλ_2 + E * sin2λ_2 * cosφ) + .5,
+          denominator = δxδφ * δyδλ - δyδφ * δxδλ,
+          δλ = (fy * δxδφ - fx * δyδφ) / denominator,
+          δφ = (fx * δyδλ - fy * δxδλ) / denominator;
       λ -= δλ, φ -= δφ;
-    } while ((Math.abs(δλ) > ε2 || Math.abs(δφ) > ε2) && --i > 0);
+    } while ((Math.abs(δλ) > ε || Math.abs(δφ) > ε) && --i > 0);
     return [λ, φ];
   };
 
@@ -542,6 +571,20 @@
         : sinusoidal.invert(x, y);
   }
 
+  function toblerSquare(λ, φ) {
+    return [
+      λ / sqrtπ,
+      sqrtπ * Math.sin(φ)
+    ];
+  }
+
+  toblerSquare.invert = function(x, y) {
+    return [
+      x * sqrtπ,
+      asin(y / sqrtπ)
+    ];
+  };
+
   function hatano(λ, φ) {
     var c = Math.sin(φ) * (φ < 0 ? 2.43763 : 2.67595);
     for (var i = 0, δ; i < 20; i++) {
@@ -578,6 +621,16 @@
       4 / 3 * x * (3 + x2 - 3 * y2),
       4 / 3 * y * (3 + 3 * x2 - y2)
     ];
+  }
+
+  function baker(λ, φ) {
+    var φ0 = Math.abs(φ);
+    return φ0 < π / 4
+        ? [λ, Math.log(Math.tan(π / 4 + φ / 2))]
+        : [
+          λ * Math.cos(φ0) * (2 * Math.SQRT2 - 1 / Math.sin(φ0)),
+          sgn(φ) * (2 * Math.SQRT2 * (φ0 - π / 4) - Math.log(Math.tan(φ0 / 2)))
+        ];
   }
 
   var azimuthalEquidistant = d3.geo.azimuthalEquidistant.raw;
@@ -1346,6 +1399,7 @@
   (d3.geo.aitoff = function() { return projection(aitoff); }).raw = aitoff;
   (d3.geo.armadillo = armadilloProjection).raw = armadillo;
   (d3.geo.august = function() { return projection(august); }).raw = august;
+  (d3.geo.baker = function() { return projection(baker); }).raw = baker;
   (d3.geo.berghaus = berghausProjection).raw = berghaus;
   (d3.geo.bonne = function() { return singleParallelProjection(bonne).parallel(45); }).raw = bonne;
   (d3.geo.collignon = function() { return projection(collignon); }).raw = collignon;
@@ -1386,6 +1440,7 @@
   (d3.geo.satellite = satelliteProjection).raw = satellite;
   (d3.geo.sinusoidal = function() { return projection(sinusoidal); }).raw = sinusoidal;
   (d3.geo.sinuMollweide = function() { return projection(sinuMollweide).rotate([-20, -55]); }).raw = sinuMollweide;
+  (d3.geo.toblerSquare = function() { return projection(toblerSquare); }).raw = toblerSquare;
   (d3.geo.vanDerGrinten = function() { return projection(vanDerGrinten); }).raw = vanDerGrinten;
   (d3.geo.wagner6 = function() { return projection(wagner6); }).raw = wagner6;
   (d3.geo.wagner7 = function() { return projection(wagner7); }).raw = wagner7;
