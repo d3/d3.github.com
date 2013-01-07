@@ -1,5 +1,6 @@
 (function() {
   var ε = 1e-6,
+      ε2 = ε * ε,
       π = Math.PI,
       sqrtπ = Math.sqrt(π),
       radians = π / 180,
@@ -28,6 +29,10 @@
     [0.5722, 0.9761],
     [0.5322, 1.0000]
   ];
+
+  robinsonConstants.forEach(function(d) {
+    d[1] *= 1.0144;
+  });
 
   function sinci(x) {
     return x ? x / Math.sin(x) : 1;
@@ -547,6 +552,27 @@
     ];
   };
 
+  function naturalEarth(λ, φ) {
+    var φ2 = φ * φ, φ4 = φ2 * φ2;
+    return [
+      λ * (.8707 - .131979 * φ2 + φ4 * (-.013791 + φ4 * (.003971 * φ2 - .001529 * φ4))),
+      φ * (1.007226 + φ2 * (.015085 + φ4 * (-.044475 + .028874 * φ2 - .005916 * φ4)))
+    ];
+  }
+
+  naturalEarth.invert = function(x, y) {
+    var φ = y, i = 25, δ;
+    do {
+      var φ2 = φ * φ, φ4 = φ2 * φ2;
+      φ -= δ = (φ * (1.007226 + φ2 * (.015085 + φ4 * (-.044475 + .028874 * φ2 - .005916 * φ4))) - y) /
+          (1.007226 + φ2 * (.015085 * 3 + φ4 * (-.044475 * 7 + .028874 * 9 * φ2 - .005916 * 11 * φ4)));
+    } while (Math.abs(δ) > ε && --i > 0);
+    return [
+      x / (.8707 + (φ2 = φ * φ) * (-.131979 + φ2 * (-.013791 + φ2 * φ2 * φ2 * (.003971 - .001529 * φ2)))),
+      φ
+    ];
+  };
+
   function homolosine(λ, φ) {
     return Math.abs(φ) > sinumollφ
         ? (λ = mollweide(λ, φ), λ[1] -= φ > 0 ? sinumolly : -sinumolly, λ)
@@ -570,20 +596,6 @@
         ? mollweide.invert(x, y - sinumolly)
         : sinusoidal.invert(x, y);
   }
-
-  function toblerSquare(λ, φ) {
-    return [
-      λ / sqrtπ,
-      sqrtπ * Math.sin(φ)
-    ];
-  }
-
-  toblerSquare.invert = function(x, y) {
-    return [
-      x * sqrtπ,
-      asin(y / sqrtπ)
-    ];
-  };
 
   function hatano(λ, φ) {
     var c = Math.sin(φ) * (φ < 0 ? 2.43763 : 2.67595);
@@ -751,6 +763,69 @@
         ]
       };
     }
+
+    return p;
+  }
+
+  function hill(K) {
+    var L = 1 + K,
+        sinβ = Math.sin(1 / L),
+        β = asin(sinβ),
+        A = 2 * Math.sqrt(π / (B = π + 4 * β * L)),
+        B,
+        ρ0 = .5 * A * (L + Math.sqrt(K * (2 + K))),
+        K2 = K * K,
+        L2 = L * L;
+
+    function forward(λ, φ) {
+      var t = 1 - Math.sin(φ),
+          ρ,
+          ω;
+      if (t && t < 2) {
+        var θ = π / 2 - φ, i = 25, δ;
+        do {
+          var sinθ = Math.sin(θ),
+              cosθ = Math.cos(θ),
+              β_β1 = β + Math.atan2(sinθ, L - cosθ),
+              C = 1 + L2 - 2 * L * cosθ;
+          θ -= δ = (θ - K2 * β - L * sinθ + C * β_β1 - .5 * t * B) / (2 * L * sinθ * β_β1);
+        } while (Math.abs(δ) > ε2 && --i > 0);
+        ρ = A * Math.sqrt(C);
+        ω = λ * β_β1 / π;
+      } else {
+        ρ = A * (K + t);
+        ω = λ * β / π;
+      }
+      return [
+        ρ * Math.sin(ω),
+        ρ0 - ρ * Math.cos(ω)
+      ];
+    };
+
+    forward.invert = function(x, y) {
+      var ρ2 = x * x + (y -= ρ0) * y,
+          cosθ = (1 + L2 - ρ2 / (A * A)) / (2 * L),
+          θ = acos(cosθ),
+          sinθ = Math.sin(θ),
+          β_β1 = β + Math.atan2(sinθ, L - cosθ);
+      return [
+        asin(x / Math.sqrt(ρ2)) * π / β_β1,
+        asin(1 - 2 * (θ - K2 * β - L * sinθ + (1 + L2 - 2 * L * cosθ) * β_β1) / B)
+      ];
+    };
+
+    return forward;
+  }
+
+  function hillProjection() {
+    var K = 1,
+        m = projectionMutator(hill),
+        p = m(K);
+
+    p.ratio = function(_) {
+      if (!arguments.length) return K;
+      return m(K = +_);
+    };
 
     return p;
   }
@@ -1420,6 +1495,7 @@
   (d3.geo.hammer = function() { return projection(hammer); }).raw = hammer;
   (d3.geo.hammerRetroazimuthal = hammerRetroazimuthalProjection).raw = hammerRetroazimuthal;
   (d3.geo.healpix = healpixProjection).raw = healpix;
+  (d3.geo.hill = hillProjection).raw = hill;
   (d3.geo.homolosine = function() { return projection(homolosine); }).raw = homolosine;
   (d3.geo.hatano = function() { return projection(hatano); }).raw = hatano;
   (d3.geo.kavrayskiy7 = function() { return projection(kavrayskiy7); }).raw = kavrayskiy7;
@@ -1432,6 +1508,7 @@
   (d3.geo.mtFlatPolarSinusoidal = function() { return projection(mtFlatPolarSinusoidal); }).raw = mtFlatPolarSinusoidal;
   (d3.geo.miller = function() { return projection(miller); }).raw = miller;
   (d3.geo.mollweide = function() { return projection(mollweide); }).raw = mollweide;
+  (d3.geo.naturalEarth = function() { return projection(naturalEarth); }).raw = naturalEarth;
   (d3.geo.nellHammer = function() { return projection(nellHammer); }).raw = nellHammer;
   (d3.geo.peirceQuincuncial = function() { return projection(peirceQuincuncial).rotate([-90, -90, 45]).clipAngle(180 - 1e-6); }).raw = peirceQuincuncial;
   (d3.geo.polyconic = function() { return projection(polyconic); }).raw = polyconic;
@@ -1440,7 +1517,6 @@
   (d3.geo.satellite = satelliteProjection).raw = satellite;
   (d3.geo.sinusoidal = function() { return projection(sinusoidal); }).raw = sinusoidal;
   (d3.geo.sinuMollweide = function() { return projection(sinuMollweide).rotate([-20, -55]); }).raw = sinuMollweide;
-  (d3.geo.toblerSquare = function() { return projection(toblerSquare); }).raw = toblerSquare;
   (d3.geo.vanDerGrinten = function() { return projection(vanDerGrinten); }).raw = vanDerGrinten;
   (d3.geo.wagner6 = function() { return projection(wagner6); }).raw = wagner6;
   (d3.geo.wagner7 = function() { return projection(wagner7); }).raw = wagner7;
