@@ -6,7 +6,8 @@
       radians = π / 180,
       degrees = 180 / π,
       sinumollφ = .7109889596207567,
-      sinumolly = .0528035274542;
+      sinumolly = .0528035274542,
+      bakerφ = Math.log(1 + Math.SQRT2);
 
   var robinsonConstants = [
     [1.0000, 0.0000],
@@ -573,6 +574,15 @@
     ];
   };
 
+  function boggs(λ, φ) {
+    var s = sinusoidal(λ, φ),
+        m = mollweide(λ, φ);
+    return [
+      (s[0] + m[0]) / 2,
+      (s[1] + m[1]) / 2
+    ];
+  }
+
   function homolosine(λ, φ) {
     return Math.abs(φ) > sinumollφ
         ? (λ = mollweide(λ, φ), λ[1] -= φ > 0 ? sinumolly : -sinumolly, λ)
@@ -644,6 +654,21 @@
           sgn(φ) * (2 * Math.SQRT2 * (φ0 - π / 4) - Math.log(Math.tan(φ0 / 2)))
         ];
   }
+
+  baker.invert = function(x, y) {
+    if ((y0 = Math.abs(y)) < bakerφ) return [x, 2 * Math.atan(Math.exp(y)) - π / 2];
+    var sqrt8 = Math.sqrt(8),
+        φ = π / 4, i = 25, δ, y0;
+    do {
+      var cosφ_2 = Math.cos(φ / 2),
+          tanφ_2 = Math.tan(φ / 2);
+      φ -= δ = (sqrt8 * (φ - π / 4) - Math.log(tanφ_2) - y0) / (sqrt8 - .5 * cosφ_2 * cosφ_2 / tanφ_2);
+    } while (Math.abs(δ) > ε2 && --i > 0);
+    return [
+      x / (Math.cos(φ) * (sqrt8 - 1 / Math.sin(φ))),
+      sgn(y) * φ
+    ];
+  };
 
   var azimuthalEquidistant = d3.geo.azimuthalEquidistant.raw;
 
@@ -1476,6 +1501,7 @@
   (d3.geo.august = function() { return projection(august); }).raw = august;
   (d3.geo.baker = function() { return projection(baker); }).raw = baker;
   (d3.geo.berghaus = berghausProjection).raw = berghaus;
+  (d3.geo.boggs = function() { return projection(boggs); }).raw = boggs;
   (d3.geo.bonne = function() { return singleParallelProjection(bonne).parallel(45); }).raw = bonne;
   (d3.geo.collignon = function() { return projection(collignon); }).raw = collignon;
   (d3.geo.conicConformal = function() { return doubleParallelProjection(conicConformal); }).raw = conicConformal;
