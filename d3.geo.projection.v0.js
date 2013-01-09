@@ -983,6 +983,14 @@
     return [x < 0 ? -λ : λ, y < 0 ? -φ : φ];
   };
 
+  function laskowski(λ, φ) {
+    var λ2 = λ * λ, φ2 = φ * φ;
+    return [
+      λ * (.975534 + φ2 * (-.119161 + λ2 * -.0143059 + φ2 * -.0547009)),
+      φ * (1.00384 + λ2 * (.0802894 + φ2 * -.02855 + λ2 * .000199025) + φ2 * (.0998909 + φ2 * -.0491032))
+    ];
+  }
+
   function littrow(λ, φ) {
     return [
       Math.sin(λ) / Math.cos(φ),
@@ -1029,6 +1037,27 @@
       sgn(y) * π * (-m1 * Math.cos(θ1 + π / 3) - c2 / (3 * c3))
     ];
   };
+
+  function vanDerGrinten4(λ, φ) {
+    if (!φ) return [λ, 0];
+    var φ0 = Math.abs(φ);
+    if (!λ || φ0 === π / 2) return [0, φ];
+    var t,
+        B = 2 * φ0 / π,
+        B2 = B * B,
+        C = (8 * B - B2 * (B2 + 2) - 5) / (2 * B2 * (B - 1)),
+        C2 = C * C,
+        BC = B * C,
+        B_C2 = B2 + C2 + 2 * BC,
+        D = sgn(Math.abs(λ) - π / 2) * Math.sqrt((t = (t = 2 * λ / π) + 1 / t) * t - 4),
+        D2 = D * D,
+        F = B_C2 * (B2 + C2 * D2 - 1) + (1 - B2) * (B2 * ((t = B + 3 * C) * t + 4 * C2) + 12 * BC * C2 + 4 * C2 * C2),
+        x1 = (D * (B_C2 + C2 - 1) + 2 * Math.sqrt(F)) / (4 * B_C2 + D2);
+    return [
+      sgn(λ) * π * x1 / 2,
+      sgn(φ) * π / 2 * Math.sqrt(1 + D * Math.abs(x1) - x1 * x1)
+    ];
+  }
 
   function loximuthal(φ0) {
     var cosφ0 = Math.cos(φ0),
@@ -1562,6 +1591,7 @@
   (d3.geo.kavrayskiy7 = function() { return projection(kavrayskiy7); }).raw = kavrayskiy7;
   (d3.geo.lagrange = lagrangeProjection).raw = lagrange;
   (d3.geo.larrivee = function() { return projection(larrivee); }).raw = larrivee;
+  (d3.geo.laskowski = function() { return projection(laskowski); }).raw = laskowski;
   (d3.geo.littrow = function() { return projection(littrow); }).raw = littrow;
   (d3.geo.loximuthal = function() { return singleParallelProjection(loximuthal).parallel(40); }).raw = loximuthal;
   (d3.geo.mtFlatPolarParabolic = function() { return projection(mtFlatPolarParabolic); }).raw = mtFlatPolarParabolic;
@@ -1579,6 +1609,7 @@
   (d3.geo.sinusoidal = function() { return projection(sinusoidal); }).raw = sinusoidal;
   (d3.geo.sinuMollweide = function() { return projection(sinuMollweide).rotate([-20, -55]); }).raw = sinuMollweide;
   (d3.geo.vanDerGrinten = function() { return projection(vanDerGrinten); }).raw = vanDerGrinten;
+  (d3.geo.vanDerGrinten4 = function() { return projection(vanDerGrinten4); }).raw = vanDerGrinten4;
   (d3.geo.wagner4 = function() { return projection(wagner4); }).raw = wagner4;
   (d3.geo.wagner6 = function() { return projection(wagner6); }).raw = wagner6;
   (d3.geo.wagner7 = function() { return projection(wagner7); }).raw = wagner7;
