@@ -10,6 +10,7 @@
       bakerφ = Math.log(1 + Math.SQRT2);
 
   var robinsonConstants = [
+    [0.9986, -0.062],
     [1.0000, 0.0000],
     [0.9986, 0.0620],
     [0.9954, 0.1240],
@@ -289,17 +290,56 @@
     var i = Math.min(18, Math.abs(φ) * 36 / π),
         i0 = Math.floor(i),
         di = i - i0,
-        k0 = robinsonConstants[i0],
-        k1 = robinsonConstants[Math.ceil(i)],
-        ax = k0[0],
-        ay = k0[1],
-        dx = k1[0] - ax,
-        dy = k1[1] - ay;
+        ax = (k = robinsonConstants[i0])[0],
+        ay = k[1],
+        bx = (k = robinsonConstants[++i0])[0],
+        by = k[1],
+        cx = (k = robinsonConstants[Math.min(19, ++i0)])[0],
+        cy = k[1],
+        k;
     return [
-      λ * (ax + dx * di),
-      (φ > 0 ? π : -π) / 2 * (ay + dy * di)
+      λ * (bx + di * (cx - ax) / 2 + di * di * (cx - 2 * bx + ax) / 2),
+      (φ > 0 ? π : -π) / 2 * (by + di * (cy - ay) / 2 + di * di * (cy - 2 * by + ay) / 2)
     ];
   }
+
+  robinson.invert = function(x, y) {
+    var yy = 2 * y / π,
+        φ = yy * 90,
+        i = Math.min(18, Math.abs(φ / 5)),
+        i0 = Math.max(0, Math.floor(i));
+    do {
+      var ay = robinsonConstants[i0][1],
+          by = robinsonConstants[i0 + 1][1],
+          cy = robinsonConstants[Math.min(19, i0 + 2)][1],
+          u = cy - ay,
+          v = cy - 2 * by + ay,
+          t = 2 * (Math.abs(yy) - by) / u,
+          c = v / u,
+          di = t * (1 - c * t * (1 - 2 * c * t));
+      if (di >= 0 || i0 === 1) {
+        φ = (y >= 0 ? 5 : -5) * (di + i);
+        var j = 50, δ;
+        do {
+          i = Math.min(18, Math.abs(φ) / 5);
+          i0 = Math.floor(i);
+          di = i - i0;
+          ay = robinsonConstants[i0][1];
+          by = robinsonConstants[i0 + 1][1];
+          cy = robinsonConstants[Math.min(19, i0 + 2)][1];
+          φ -= (δ = (y >= 0 ? π : -π) / 2 * (by + di * (cy - ay) / 2 + di * di * (cy - 2 * by + ay) / 2) - y) * degrees;
+        } while (Math.abs(δ) > ε2 && --j > 0);
+        break;
+      }
+    } while (--i0 >= 0);
+    var ax = robinsonConstants[i0][0],
+        bx = robinsonConstants[i0 + 1][0],
+        cx = robinsonConstants[Math.min(19, i0 + 2)][0];
+    return [
+      x / (bx + di * (cx - ax) / 2 + di * di * (cx - 2 * bx + ax) / 2),
+      φ * radians
+    ];
+  };
 
   function cylindricalEqualArea(φ0) {
     var cosφ0 = Math.cos(φ0);
@@ -337,17 +377,37 @@
 
   var azimuthalEqualArea = d3.geo.azimuthalEqualArea.raw;
 
-  function hammer(λ, φ) {
-    var coordinates = azimuthalEqualArea(λ / 2, φ);
-    coordinates[0] *= 2;
-    return coordinates;
+  function hammer(B) {
+    if (B === 1) return azimuthalEqualArea;
+    if (B === Infinity) return quarticAuthalic;
+
+    function forward(λ, φ) {
+      var coordinates = azimuthalEqualArea(λ / B, φ);
+      coordinates[0] *= B;
+      return coordinates;
+    }
+
+    forward.invert = function(x, y) {
+      var coordinates = azimuthalEqualArea.invert(x / B, y);
+      coordinates[0] *= B;
+      return coordinates;
+    };
+
+    return forward;
   }
 
-  hammer.invert = function(x, y) {
-    var coordinates = azimuthalEqualArea.invert(x / 2, y);
-    coordinates[0] *= 2;
-    return coordinates;
-  };
+  function hammerProjection() {
+    var B = 2,
+        m = projectionMutator(hammer),
+        p = m(B);
+
+    p.coefficient = function(_) {
+      if (!arguments.length) return B;
+      return m(B = +_);
+    };
+
+    return p;
+  }
 
   function hammerRetroazimuthal(φ0) {
     var sinφ0 = Math.sin(φ0),
@@ -1582,7 +1642,7 @@
   (d3.geo.eisenlohr = function() { return projection(eisenlohr); }).raw = eisenlohr;
   (d3.geo.gringorten = gringortenProjection).raw = gringorten;
   (d3.geo.guyou = function() { return projection(guyou); }).raw = guyou;
-  (d3.geo.hammer = function() { return projection(hammer); }).raw = hammer;
+  (d3.geo.hammer = hammerProjection).raw = hammer;
   (d3.geo.hammerRetroazimuthal = hammerRetroazimuthalProjection).raw = hammerRetroazimuthal;
   (d3.geo.healpix = healpixProjection).raw = healpix;
   (d3.geo.hill = hillProjection).raw = hill;
@@ -1603,7 +1663,6 @@
   (d3.geo.nellHammer = function() { return projection(nellHammer); }).raw = nellHammer;
   (d3.geo.peirceQuincuncial = function() { return projection(peirceQuincuncial).rotate([-90, -90, 45]).clipAngle(180 - 1e-6); }).raw = peirceQuincuncial;
   (d3.geo.polyconic = function() { return projection(polyconic); }).raw = polyconic;
-  (d3.geo.quarticAuthalic = function() { return projection(quarticAuthalic); }).raw = quarticAuthalic;
   (d3.geo.robinson = function() { return projection(robinson); }).raw = robinson;
   (d3.geo.satellite = satelliteProjection).raw = satellite;
   (d3.geo.sinusoidal = function() { return projection(sinusoidal); }).raw = sinusoidal;
