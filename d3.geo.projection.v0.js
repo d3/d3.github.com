@@ -624,10 +624,6 @@
     return [ x * Math.cos(φ / 2) / Math.cos(φ), φ ];
   };
   (d3.geo.hammer = hammerProjection).raw = hammer;
-  var briesemeister = hammer(1.75, 2);
-  (d3.geo.briesemeister = function() {
-    return projection(briesemeister);
-  }).raw = briesemeister;
   function hatano(λ, φ) {
     var c = Math.sin(φ) * (φ < 0 ? 2.43763 : 2.67595);
     for (var i = 0, δ; i < 20; i++) {
