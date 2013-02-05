@@ -991,13 +991,11 @@
   (d3.geo.satellite = satelliteProjection).raw = satellite;
   function twoPointEquidistant(z0) {
     if (!z0) return d3.geo.azimuthalEquidistant.raw;
-    var sqrt = function(x) {
-      return x > 0 ? Math.sqrt(x) : 0;
-    }, λa = -z0 / 2, λb = -λa, z02 = z0 * z0;
+    var λa = -z0 / 2, λb = -λa, z02 = z0 * z0;
     return function(λ, φ) {
-      var za = Math.acos(Math.cos(φ) * Math.cos(λ - λa)), zb = Math.acos(Math.cos(φ) * Math.cos(λ - λb)), ys = φ < 0 ? -1 : 1;
+      var za = acos(Math.cos(φ) * Math.cos(λ - λa)), zb = acos(Math.cos(φ) * Math.cos(λ - λb)), ys = φ < 0 ? -1 : 1;
       za *= za, zb *= zb;
-      return [ (za - zb) / (2 * z0), ys * sqrt(4 * z02 * zb - (z02 - za + zb) * (z02 - za + zb)) / (2 * z0) ];
+      return [ (za - zb) / (2 * z0), ys * asqrt(4 * z02 * zb - (z02 - za + zb) * (z02 - za + zb)) / (2 * z0) ];
     };
   }
   function twoPointEquidistantProjection() {
@@ -1006,7 +1004,7 @@
     p.points = function(_) {
       if (!arguments.length) return points;
       points = _;
-      var origin = d3.geo.interpolate(_[0], _[1])(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = Math.acos(Math.max(-1, Math.min(1, Math.cos(p[1]) * Math.cos(p[0])))), c = (p[0] < 0 ? -1 : +1) * p[1], γ = Math.asin(Math.sin(c) / Math.sin(b));
+      var origin = d3.geo.interpolate(_[0], _[1])(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = acos(Math.cos(p[1]) * Math.cos(p[0])), c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
       rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
       return m(b * 2);
     };
@@ -1014,7 +1012,7 @@
   }
   function twoPointEquidistant_rotate(δλ, δφ, λ, φ) {
     var cosδφ = Math.cos(δφ), sinδφ = Math.sin(δφ), cosφ = Math.cos(φ), x = Math.cos(λ += δλ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(φ);
-    return [ Math.atan2(y, x * cosδφ - z * sinδφ), Math.asin(Math.max(-1, Math.min(1, z * cosδφ + x * sinδφ))) ];
+    return [ Math.atan2(y, x * cosδφ - z * sinδφ), asin(z * cosδφ + x * sinδφ) ];
   }
   (d3.geo.twoPointEquidistant = twoPointEquidistantProjection).raw = twoPointEquidistant;
   function vanDerGrinten(λ, φ) {
@@ -1038,7 +1036,7 @@
     var φ0 = Math.abs(φ);
     if (!λ || φ0 === π / 2) return [ 0, φ ];
     var t, B = 2 * φ0 / π, B2 = B * B, C = (8 * B - B2 * (B2 + 2) - 5) / (2 * B2 * (B - 1)), C2 = C * C, BC = B * C, B_C2 = B2 + C2 + 2 * BC, D = sgn(Math.abs(λ) - π / 2) * Math.sqrt((t = (t = 2 * λ / π) + 1 / t) * t - 4), D2 = D * D, F = B_C2 * (B2 + C2 * D2 - 1) + (1 - B2) * (B2 * ((t = B + 3 * C) * t + 4 * C2) + 12 * BC * C2 + 4 * C2 * C2), x1 = (D * (B_C2 + C2 - 1) + 2 * Math.sqrt(F)) / (4 * B_C2 + D2);
-    return [ sgn(λ) * π * x1 / 2, sgn(φ) * π / 2 * Math.sqrt(1 + D * Math.abs(x1) - x1 * x1) ];
+    return [ sgn(λ) * π * x1 / 2, sgn(φ) * π / 2 * asqrt(1 + D * Math.abs(x1) - x1 * x1) ];
   }
   (d3.geo.vanDerGrinten4 = function() {
     return projection(vanDerGrinten4);
