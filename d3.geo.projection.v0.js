@@ -338,7 +338,8 @@
   function conicConformal(φ0, φ1) {
     var cosφ0 = Math.cos(φ0), t = function(φ) {
       return Math.tan(π / 4 + φ / 2);
-    }, n = Math.log(cosφ0 / Math.cos(φ1)) / Math.log(t(φ1) / t(φ0)), F = cosφ0 * Math.pow(t(φ0), n) / n;
+    }, n = φ0 === φ1 ? Math.sin(φ0) : Math.log(cosφ0 / Math.cos(φ1)) / Math.log(t(φ1) / t(φ0)), F = cosφ0 * Math.pow(t(φ0), n) / n;
+    if (!n) return conicConformalMercator;
     function forward(λ, φ) {
       var ρ = Math.abs(Math.abs(φ) - π / 2) < ε ? 0 : F / Math.pow(t(φ), n);
       return [ ρ * Math.sin(n * λ), F - ρ * Math.cos(n * λ) ];
@@ -349,11 +350,18 @@
     };
     return forward;
   }
+  function conicConformalMercator(λ, φ) {
+    return [ λ, Math.log(Math.tan(π / 4 + φ / 2)) ];
+  }
+  conicConformalMercator.invert = function(x, y) {
+    return [ x, 2 * Math.atan(Math.exp(y)) - π / 2 ];
+  };
   (d3.geo.conicConformal = function() {
     return parallel2Projection(conicConformal);
   }).raw = conicConformal;
   function conicEquidistant(φ0, φ1) {
-    var cosφ0 = Math.cos(φ0), n = (cosφ0 - Math.cos(φ1)) / (φ1 - φ0), G = cosφ0 / n + φ0;
+    var cosφ0 = Math.cos(φ0), n = φ0 === φ1 ? Math.sin(φ0) : (cosφ0 - Math.cos(φ1)) / (φ1 - φ0), G = cosφ0 / n + φ0;
+    if (!n) return d3.geo.equirectangular.raw;
     function forward(λ, φ) {
       var ρ = G - φ;
       return [ ρ * Math.sin(n * λ), G - ρ * Math.cos(n * λ) ];
@@ -482,6 +490,18 @@
   (d3.geo.eisenlohr = function() {
     return projection(eisenlohr);
   }).raw = eisenlohr;
+  function fahey(λ, φ) {
+    var t = Math.tan(φ / 2);
+    return [ λ * faheyK * asqrt(1 - t * t), (1 + faheyK) * t ];
+  }
+  fahey.invert = function(x, y) {
+    var t = y / (1 + faheyK);
+    return [ x ? x / (faheyK * asqrt(1 - t * t)) : 0, 2 * Math.atan(t) ];
+  };
+  var faheyK = Math.cos(35 * radians);
+  (d3.geo.fahey = function() {
+    return projection(fahey);
+  }).raw = fahey;
   function gringortenProjection() {
     var quincuncial = false, m = projectionMutator(gringorten), p = m(quincuncial);
     p.quincuncial = function(_) {
