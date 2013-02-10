@@ -308,7 +308,7 @@
     if (!φ0) return sinusoidal;
     var cotφ0 = 1 / Math.tan(φ0);
     function forward(λ, φ) {
-      var ρ = cotφ0 + φ0 - φ, E = λ * Math.cos(φ) / ρ;
+      var ρ = cotφ0 + φ0 - φ, E = ρ ? λ * Math.cos(φ) / ρ : ρ;
       return [ ρ * Math.sin(E), cotφ0 - ρ * Math.cos(E) ];
     }
     forward.invert = function(x, y) {
@@ -361,7 +361,7 @@
   }).raw = conicConformal;
   function conicEquidistant(φ0, φ1) {
     var cosφ0 = Math.cos(φ0), n = φ0 === φ1 ? Math.sin(φ0) : (cosφ0 - Math.cos(φ1)) / (φ1 - φ0), G = cosφ0 / n + φ0;
-    if (!n) return d3.geo.equirectangular.raw;
+    if (Math.abs(n) < ε) return d3.geo.equirectangular.raw;
     function forward(λ, φ) {
       var ρ = G - φ;
       return [ ρ * Math.sin(n * λ), G - ρ * Math.cos(n * λ) ];
@@ -841,6 +841,61 @@
   (d3.geo.miller = function() {
     return projection(miller);
   }).raw = miller;
+  function modifiedStereographic(C) {
+    var m = C.length - 1;
+    function forward(λ, φ) {
+      var cosφ = Math.cos(φ), k = 2 / (1 + cosφ * Math.cos(λ)), zr = k * cosφ * Math.sin(λ), zi = k * Math.sin(φ), i = m, w = C[i], ar = w[0], ai = w[1], t;
+      while (--i >= 0) {
+        w = C[i];
+        ar = w[0] + zr * (t = ar) - zi * ai;
+        ai = w[1] + zr * ai + zi * t;
+      }
+      ar = zr * (t = ar) - zi * ai;
+      ai = zr * ai + zi * t;
+      return [ ar, ai ];
+    }
+    forward.invert = function(x, y) {
+      var i = 20, zr = x, zi = y;
+      do {
+        var j = m, w = C[j], ar = w[0], ai = w[1], br = 0, bi = 0, t;
+        while (--j >= 0) {
+          w = C[j];
+          br = ar + zr * (t = br) - zi * bi;
+          bi = ai + zr * bi + zi * t;
+          ar = w[0] + zr * (t = ar) - zi * ai;
+          ai = w[1] + zr * ai + zi * t;
+        }
+        br = ar + zr * (t = br) - zi * bi;
+        bi = ai + zr * bi + zi * t;
+        ar = zr * (t = ar) - zi * ai - x;
+        ai = zr * ai + zi * t - y;
+        var denominator = br * br + bi * bi, δr, δi;
+        zr -= δr = (ar * br + ai * bi) / denominator;
+        zi -= δi = (ai * br - ar * bi) / denominator;
+      } while (Math.abs(δr) + Math.abs(δi) > ε * ε && --i > 0);
+      if (i) {
+        var ρ = Math.sqrt(zr * zr + zi * zi), c = 2 * Math.atan(ρ * .5), sinc = Math.sin(c);
+        return [ Math.atan2(zr * sinc, ρ * Math.cos(c)), ρ ? asin(zi * sinc / ρ) : 0 ];
+      }
+    };
+    return forward;
+  }
+  var modifiedStereographicCoefficients = {
+    alaska: [ [ .9972523, 0 ], [ .0052513, -.0041175 ], [ .0074606, .0048125 ], [ -.0153783, -.1968253 ], [ .0636871, -.1408027 ], [ .3660976, -.2937382 ] ],
+    gs48: [ [ .98879, 0 ], [ 0, 0 ], [ -.050909, 0 ], [ 0, 0 ], [ .075528, 0 ] ],
+    gs50: [ [ .984299, 0 ], [ .0211642, .0037608 ], [ -.1036018, -.0575102 ], [ -.0329095, -.0320119 ], [ .0499471, .1223335 ], [ .026046, .0899805 ], [ 7388e-7, -.1435792 ], [ .0075848, -.1334108 ], [ -.0216473, .0776645 ], [ -.0225161, .0853673 ] ],
+    miller: [ [ .9245, 0 ], [ 0, 0 ], [ .01943, 0 ] ],
+    lee: [ [ .721316, 0 ], [ 0, 0 ], [ -.00881625, -.00617325 ] ]
+  };
+  function modifiedStereographicProjection() {
+    var coefficients = modifiedStereographicCoefficients.miller, m = projectionMutator(modifiedStereographic), p = m(coefficients);
+    p.coefficients = function(_) {
+      if (!arguments.length) return coefficients;
+      return m(coefficients = typeof _ === "string" ? modifiedStereographicCoefficients[_] : _);
+    };
+    return p;
+  }
+  (d3.geo.modifiedStereographic = modifiedStereographicProjection).raw = modifiedStereographic;
   function mtFlatPolarParabolic(λ, φ) {
     var sqrt6 = Math.sqrt(6), sqrt7 = Math.sqrt(7), θ = Math.asin(7 * Math.sin(φ) / (3 * sqrt6));
     return [ sqrt6 * λ * (2 * Math.cos(2 * θ / 3) - 1) / sqrt7, 9 * Math.sin(θ / 3) / sqrt7 ];
@@ -938,6 +993,19 @@
   (d3.geo.polyconic = function() {
     return projection(polyconic);
   }).raw = polyconic;
+  function rectangularPolyconic(φ0) {
+    var sinφ0 = Math.sin(φ0);
+    function forward(λ, φ) {
+      var A = sinφ0 ? Math.tan(λ * sinφ0 / 2) / sinφ0 : λ / 2;
+      if (!φ) return [ 2 * A, -φ0 ];
+      var E = 2 * Math.atan(A * Math.sin(φ)), cotφ = 1 / Math.tan(φ);
+      return [ cotφ * Math.sin(E), φ - φ0 + cotφ * (1 - Math.cos(E)) ];
+    }
+    return forward;
+  }
+  (d3.geo.rectangularPolyconic = function() {
+    return parallel1Projection(rectangularPolyconic);
+  }).raw = rectangularPolyconic;
   var robinsonConstants = [ [ .9986, -.062 ], [ 1, 0 ], [ .9986, .062 ], [ .9954, .124 ], [ .99, .186 ], [ .9822, .248 ], [ .973, .31 ], [ .96, .372 ], [ .9427, .434 ], [ .9216, .4958 ], [ .8962, .5571 ], [ .8679, .6176 ], [ .835, .6769 ], [ .7986, .7346 ], [ .7597, .7903 ], [ .7186, .8435 ], [ .6732, .8936 ], [ .6213, .9394 ], [ .5722, .9761 ], [ .5322, 1 ] ];
   robinsonConstants.forEach(function(d) {
     d[1] *= 1.0144;
@@ -1009,14 +1077,55 @@
     return p;
   }
   (d3.geo.satellite = satelliteProjection).raw = satellite;
+  function times(λ, φ) {
+    var t = Math.tan(φ / 2), s = Math.sin(π / 4 * t);
+    return [ λ * (.74482 - .34588 * s * s), 1.70711 * t ];
+  }
+  times.invert = function(x, y) {
+    var t = y / 1.70711, s = Math.sin(π / 4 * t);
+    return [ x / (.74482 - .34588 * s * s), 2 * Math.atan(t) ];
+  };
+  (d3.geo.times = function() {
+    return projection(times);
+  }).raw = times;
+  function twoPointAzimuthal(d) {
+    var cosd = Math.cos(d);
+    function forward(λ, φ) {
+      var coordinates = d3.geo.gnomonic.raw(λ, φ);
+      coordinates[0] *= cosd;
+      return coordinates;
+    }
+    forward.invert = function(x, y) {
+      return d3.geo.gnomonic.raw.invert(x / cosd, y);
+    };
+    return forward;
+  }
+  function twoPointAzimuthalProjection() {
+    var points = [ [ 0, 0 ], [ 0, 0 ] ], m = projectionMutator(twoPointAzimuthal), p = m(0), rotate = p.rotate;
+    delete p.rotate;
+    p.points = function(_) {
+      if (!arguments.length) return points;
+      points = _;
+      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
+      rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
+      return m(b);
+    };
+    return p;
+  }
+  (d3.geo.twoPointAzimuthal = twoPointAzimuthalProjection).raw = twoPointAzimuthal;
   function twoPointEquidistant(z0) {
     if (!z0) return d3.geo.azimuthalEquidistant.raw;
-    var λa = -z0 / 2, λb = -λa, z02 = z0 * z0;
-    return function(λ, φ) {
+    var λa = -z0 / 2, λb = -λa, z02 = z0 * z0, tanλ0 = Math.tan(λb), S = .5 / Math.sin(λb);
+    function forward(λ, φ) {
       var za = acos(Math.cos(φ) * Math.cos(λ - λa)), zb = acos(Math.cos(φ) * Math.cos(λ - λb)), ys = φ < 0 ? -1 : 1;
       za *= za, zb *= zb;
       return [ (za - zb) / (2 * z0), ys * asqrt(4 * z02 * zb - (z02 - za + zb) * (z02 - za + zb)) / (2 * z0) ];
+    }
+    forward.invert = function(x, y) {
+      var y2 = y * y, cosza = Math.cos(Math.sqrt(y2 + (t = x + λa) * t)), coszb = Math.cos(Math.sqrt(y2 + (t = x + λb) * t)), t, d;
+      return [ Math.atan2(d = cosza - coszb, t = (cosza + coszb) * tanλ0), (y < 0 ? -1 : 1) * acos(Math.sqrt(t * t + d * d) * S) ];
     };
+    return forward;
   }
   function twoPointEquidistantProjection() {
     var points = [ [ 0, 0 ], [ 0, 0 ] ], m = projectionMutator(twoPointEquidistant), p = m(0), rotate = p.rotate;
@@ -1024,7 +1133,7 @@
     p.points = function(_) {
       if (!arguments.length) return points;
       points = _;
-      var origin = d3.geo.interpolate(_[0], _[1])(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = acos(Math.cos(p[1]) * Math.cos(p[0])), c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
+      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
       rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
       return m(b * 2);
     };
@@ -1051,6 +1160,26 @@
   (d3.geo.vanDerGrinten = function() {
     return projection(vanDerGrinten);
   }).raw = vanDerGrinten;
+  function vanDerGrinten2(λ, φ) {
+    if (Math.abs(φ) < ε) return [ λ, 0 ];
+    var sinθ = Math.abs(2 * φ / π), θ = asin(sinθ);
+    if (Math.abs(λ) < ε || Math.abs(Math.abs(φ) - π / 2) < ε) return [ 0, sgn(φ) * π * Math.tan(θ / 2) ];
+    var cosθ = Math.cos(θ), A = Math.abs(π / λ - λ / π) / 2, A2 = A * A, x1 = cosθ * (Math.sqrt(1 + A2) - A * cosθ) / (1 + A2 * sinθ * sinθ);
+    return [ sgn(λ) * π * x1, sgn(φ) * π * asqrt(1 - x1 * (2 * A + x1)) ];
+  }
+  (d3.geo.vanDerGrinten2 = function() {
+    return projection(vanDerGrinten2);
+  }).raw = vanDerGrinten2;
+  function vanDerGrinten3(λ, φ) {
+    if (Math.abs(φ) < ε) return [ λ, 0 ];
+    var sinθ = Math.abs(2 * φ / π), θ = asin(sinθ);
+    if (Math.abs(λ) < ε || Math.abs(Math.abs(φ) - π / 2) < ε) return [ 0, sgn(φ) * π * Math.tan(θ / 2) ];
+    var cosθ = Math.cos(θ), A = Math.abs(π / λ - λ / π) / 2, y1 = sinθ / (1 + cosθ);
+    return [ sgn(λ) * π * (asqrt(A * A + 1 - y1 * y1) - A), sgn(φ) * π * y1 ];
+  }
+  (d3.geo.vanDerGrinten3 = function() {
+    return projection(vanDerGrinten3);
+  }).raw = vanDerGrinten3;
   function vanDerGrinten4(λ, φ) {
     if (!φ) return [ λ, 0 ];
     var φ0 = Math.abs(φ);
