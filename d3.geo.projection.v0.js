@@ -16,6 +16,18 @@
   function acos(x) {
     return x > 1 ? 0 : x < -1 ? π : Math.acos(x);
   }
+  function cosh(x) {
+    return (1 - Math.exp(-2 * x)) / (2 * Math.exp(-x));
+  }
+  function sinh(x) {
+    return (1 + Math.exp(-2 * x)) / (2 * Math.exp(-x));
+  }
+  function arcosh(z) {
+    return Math.log(z + Math.sqrt(z * z - 1));
+  }
+  function arsinh(z) {
+    return Math.log(z + Math.sqrt(z * z + 1));
+  }
   function parallel1Projection(projectAt) {
     var φ0 = 0, m = projectionMutator(projectAt), p = m(φ0);
     p.parallel = function(_) {
@@ -220,9 +232,15 @@
   }
   (d3.geo.armadillo = armadilloProjection).raw = armadillo;
   function august(λ, φ) {
-    var tanφ = Math.tan(φ / 2), k = 1 - tanφ * tanφ, c = 1 + k * Math.cos(λ /= 2), x = Math.sin(λ) * k / c, y = tanφ / c, x2 = x * x, y2 = y * y;
+    var tanφ = Math.tan(φ / 2), k = asqrt(1 - tanφ * tanφ), c = 1 + k * Math.cos(λ /= 2), x = Math.sin(λ) * k / c, y = tanφ / c, x2 = x * x, y2 = y * y;
     return [ 4 / 3 * x * (3 + x2 - 3 * y2), 4 / 3 * y * (3 + 3 * x2 - y2) ];
   }
+  august.invert = function(x, y) {
+    x *= 3 / 8, y *= 3 / 8;
+    if (!x && Math.abs(y) > 1) return null;
+    var x2 = x * x, y2 = y * y, s = 1 + x2 + y2, sin3η = Math.sqrt(.5 * (s - Math.sqrt(s * s - 4 * y * y))), η = asin(sin3η) / 3, ξ = sin3η ? arcosh(Math.abs(y / sin3η)) / 3 : arsinh(Math.abs(x)) / 3, cosη = Math.cos(η), coshξ = cosh(ξ), d = coshξ * coshξ - cosη * cosη;
+    return [ sgn(x) * 2 * Math.atan2(sinh(ξ) * cosη, .25 - d), sgn(y) * 2 * Math.atan2(coshξ * Math.sin(η), .25 + d) ];
+  };
   (d3.geo.august = function() {
     return projection(august);
   }).raw = august;
@@ -380,6 +398,13 @@
     function forward(λ, φ) {
       return [ λ, (λ ? λ / Math.sin(λ) : 1) * (Math.sin(φ) * Math.cos(λ) - tanφ0 * Math.cos(φ)) ];
     }
+    forward.invert = tanφ0 ? function(x, y) {
+      if (x) y *= Math.sin(x) / x;
+      var cosλ = Math.cos(x);
+      return [ x, 2 * Math.atan2(Math.sqrt(cosλ * cosλ + tanφ0 * tanφ0 - y * y) - cosλ, tanφ0 - y) ];
+    } : function(x, y) {
+      return [ x, asin(y * (x ? Math.tan(x) / x : 1)) ];
+    };
     return forward;
   }
   (d3.geo.craig = function() {
@@ -484,9 +509,23 @@
     return projection(eckert6);
   }).raw = eckert6;
   function eisenlohr(λ, φ) {
-    var f = 3 + Math.sqrt(8), s1 = Math.sin(λ /= 2), c1 = Math.cos(λ), k = Math.sqrt(Math.cos(φ) / 2), cosφ2 = Math.cos(φ /= 2), t = Math.sin(φ) / (cosφ2 + 2 * c1 * k), c = Math.sqrt(2 / (1 + t * t)), v = Math.sqrt((cosφ2 + (c1 + s1) * k) / (cosφ2 + (c1 - s1) * k));
-    return [ f * (c * (v - 1 / v) - 2 * Math.log(v)), f * (c * t * (v + 1 / v) - 2 * Math.atan(t)) ];
+    var s0 = Math.sin(λ /= 2), c0 = Math.cos(λ), k = Math.sqrt(Math.cos(φ)), c1 = Math.cos(φ /= 2), t = Math.sin(φ) / (c1 + Math.SQRT2 * c0 * k), c = Math.sqrt(2 / (1 + t * t)), v = Math.sqrt((Math.SQRT2 * c1 + (c0 + s0) * k) / (Math.SQRT2 * c1 + (c0 - s0) * k));
+    return [ eisenlohrK * (c * (v - 1 / v) - 2 * Math.log(v)), eisenlohrK * (c * t * (v + 1 / v) - 2 * Math.atan(t)) ];
   }
+  eisenlohr.invert = function(x, y) {
+    var p = d3.geo.august.raw.invert(x, y);
+    if (!p) return null;
+    var λ = p[0], φ = p[1], i = 50, sqrt2 = Math.SQRT2;
+    if (Math.abs(φ) > 89 * radians) λ = sgn(λ) * π;
+    x /= eisenlohrK, y /= eisenlohrK;
+    do {
+      var _0 = λ / 2, _1 = φ / 2, s0 = Math.sin(_0), c0 = Math.cos(_0), s1 = Math.sin(_1), c1 = Math.cos(_1), sin1 = Math.sin(φ), cos1 = Math.cos(φ), k = Math.sqrt(cos1), t = s1 / (c1 + sqrt2 * c0 * k), t2 = t * t, c = Math.sqrt(2 / (1 + t2)), v0 = Math.SQRT2 * c1 + (c0 + s0) * k, v1 = Math.SQRT2 * c1 + (c0 - s0) * k, v = Math.sqrt(v0 / v1), fx = c * (v - 1 / v) - 2 * Math.log(v) - x, fy = c * t * (v + 1 / v) - 2 * Math.atan(t) - y, x0 = c0 + s0, x1 = t2 + 1, x2 = c0 - s0, x3 = v + 1 / v, x4 = c0 * k * sqrt2 + c1, x5 = c1 * sqrt2 + k * x0, x6 = c0 * sin1 * sqrt2 / k + s1, x7 = c1 * sqrt2 + k * x2, x8 = s1 * sqrt2 + sin1 * x0 / k, x9 = x7 * x7, x10 = s1 * sqrt2 + sin1 * x2 / k, x11 = 2 * cos1 * t + t2 * x6, x12 = -x10 * x5 / x9 + x8 / x7, x13 = 2 * cos1, x14 = k / 2, x15 = -s0, x16 = s1 * sqrt2, x17 = -1 / v, x18 = sin1 / k, x19 = k * x0, x20 = c * x3, x21 = k * x2, x22 = k * x3, x23 = t2 / x1 * Math.sqrt(t2 / x1), x24 = -1 / x1, x25 = 2 / x4, x26 = 2 * x25, x27 = t * x6, x28 = -1 / x7, x29 = (v - 1 / v) / x4, x30 = x5 / x9, x31 = -x28 * x5, x32 = c * x7 / x5, x33 = v * (x19 * x30 - x21 * x28), δxδλ = k * x15 * x23 * x29 - x14 * (x0 * x31 + x2) / x5 + x32 * (-x17 * (x19 * x30 - x21 * x28) + x33) / 4, δxδφ = c * x11 * x24 * x29 / 2 + x32 * (-v * x12 + x12 * x17) / 4 - (x10 * x31 - x8) / (2 * x5), δyδλ = t * (-k * sqrt2 * x15 * x24 * x26 + x15 * x22 * x23 * x26 + x32 * (-4 * x17 * (k * x28 * (c0 / 4 + x15 / 4) - x14 * x30 * (c0 / 2 - x15 / 2)) + x33) - x15 * x22 * x26 / Math.sqrt(x1)) / 4, δyδφ = t * x11 * x20 * x24 * x25 / 4 + t * x32 * (4 * v * (x28 * (x0 * x18 / 4 + x16 / 4) + x30 * (x16 / 2 + x18 * x2 / 2) / 2) - x12 * x17) / 4 + x13 * x20 * x25 / 4 + x20 * x25 * x27 / 4 - x24 * (-4 * x13 - 4 * x27) / (4 * x4), denominator = δxδφ * δyδλ - δyδφ * δxδλ, δλ = (fy * δxδφ - fx * δyδφ) / denominator, δφ = (fx * δyδλ - fy * δxδλ) / denominator;
+      λ = Math.max(-π, Math.min(π, λ - δλ));
+      φ = Math.max(-π / 2, Math.min(π / 2, φ - δφ));
+    } while ((Math.abs(δλ) > ε || Math.abs(δφ) > ε2) && --i > 0);
+    return Math.abs(Math.abs(φ) - π / 2) < ε ? [ 0, φ ] : i && [ λ, φ ];
+  };
+  var eisenlohrK = 3 + 2 * Math.SQRT2;
   (d3.geo.eisenlohr = function() {
     return projection(eisenlohr);
   }).raw = eisenlohr;
@@ -760,11 +799,21 @@
     return projection(kavrayskiy7);
   }).raw = kavrayskiy7;
   function lagrange(n) {
-    return function(λ, φ) {
+    function forward(λ, φ) {
       if (Math.abs(Math.abs(φ) - π / 2) < ε) return [ 0, φ < 0 ? -2 : 2 ];
       var sinφ = Math.sin(φ), v = Math.pow((1 + sinφ) / (1 - sinφ), n / 2), c = .5 * (v + 1 / v) + Math.cos(λ *= n);
       return [ 2 * Math.sin(λ) / c, (v - 1 / v) / c ];
+    }
+    forward.invert = function(x, y) {
+      var y0 = Math.abs(y);
+      if (Math.abs(y0 - 2) < ε) return x ? null : [ 0, sgn(y) * π / 2 ];
+      if (y0 > 2) return null;
+      x /= 2, y /= 2;
+      var x2 = x * x, y2 = y * y, t = 2 * y / (1 + x2 + y2);
+      t = Math.pow((1 + t) / (1 - t), 1 / n);
+      return [ Math.atan2(2 * x, 1 - x2 - y2) / n, asin((t - 1) / (t + 1)) ];
     };
+    return forward;
   }
   function lagrangeProjection() {
     var n = .5, m = projectionMutator(lagrange), p = m(n);
@@ -797,12 +846,12 @@
     return [ λ * (.975534 + φ2 * (-.119161 + λ2 * -.0143059 + φ2 * -.0547009)), φ * (1.00384 + λ2 * (.0802894 + φ2 * -.02855 + λ2 * 199025e-9) + φ2 * (.0998909 + φ2 * -.0491032)) ];
   }
   laskowski.invert = function(x, y) {
-    var λ = x, φ = y, i = 50;
+    var λ = sgn(x) * π, φ = y / 2, i = 50;
     do {
       var λ2 = λ * λ, φ2 = φ * φ, λφ = λ * φ, fx = λ * (.975534 + φ2 * (-.119161 + λ2 * -.0143059 + φ2 * -.0547009)) - x, fy = φ * (1.00384 + λ2 * (.0802894 + φ2 * -.02855 + λ2 * 199025e-9) + φ2 * (.0998909 + φ2 * -.0491032)) - y, δxδλ = .975534 - φ2 * (.119161 + 3 * λ2 * .0143059 + φ2 * .0547009), δxδφ = -λφ * (2 * .119161 + 4 * .0547009 * φ2 + 2 * .0143059 * λ2), δyδλ = λφ * (2 * .0802894 + 4 * 199025e-9 * λ2 + 2 * -.02855 * φ2), δyδφ = 1.00384 + λ2 * (.0802894 + 199025e-9 * λ2) + φ2 * (3 * (.0998909 - .02855 * λ2) - 5 * .0491032 * φ2), denominator = δxδφ * δyδλ - δyδφ * δxδλ, δλ = (fy * δxδφ - fx * δyδφ) / denominator, δφ = (fx * δyδλ - fy * δxδλ) / denominator;
       λ -= δλ, φ -= δφ;
     } while ((Math.abs(δλ) > ε || Math.abs(δφ) > ε) && --i > 0);
-    return [ λ, φ ];
+    return i && [ λ, φ ];
   };
   (d3.geo.laskowski = function() {
     return projection(laskowski);
@@ -1167,16 +1216,26 @@
     var cosθ = Math.cos(θ), A = Math.abs(π / λ - λ / π) / 2, A2 = A * A, x1 = cosθ * (Math.sqrt(1 + A2) - A * cosθ) / (1 + A2 * sinθ * sinθ);
     return [ sgn(λ) * π * x1, sgn(φ) * π * asqrt(1 - x1 * (2 * A + x1)) ];
   }
+  vanDerGrinten2.invert = function(x, y) {
+    if (!x) return [ 0, π / 2 * Math.sin(2 * Math.atan(y / π)) ];
+    var x1 = Math.abs(x / π), A = (1 - x1 * x1 - (y /= π) * y) / (2 * x1), A2 = A * A, B = Math.sqrt(A2 + 1);
+    return [ sgn(x) * π * (B - A), sgn(y) * π / 2 * Math.sin(2 * Math.atan2(Math.sqrt((1 - 2 * A * x1) * (A + B) - x1), Math.sqrt(B + A + x1))) ];
+  };
   (d3.geo.vanDerGrinten2 = function() {
     return projection(vanDerGrinten2);
   }).raw = vanDerGrinten2;
   function vanDerGrinten3(λ, φ) {
     if (Math.abs(φ) < ε) return [ λ, 0 ];
-    var sinθ = Math.abs(2 * φ / π), θ = asin(sinθ);
-    if (Math.abs(λ) < ε || Math.abs(Math.abs(φ) - π / 2) < ε) return [ 0, sgn(φ) * π * Math.tan(θ / 2) ];
-    var cosθ = Math.cos(θ), A = Math.abs(π / λ - λ / π) / 2, y1 = sinθ / (1 + cosθ);
-    return [ sgn(λ) * π * (asqrt(A * A + 1 - y1 * y1) - A), sgn(φ) * π * y1 ];
+    var sinθ = 2 * φ / π, θ = asin(sinθ);
+    if (Math.abs(λ) < ε || Math.abs(Math.abs(φ) - π / 2) < ε) return [ 0, π * Math.tan(θ / 2) ];
+    var A = (π / λ - λ / π) / 2, y1 = sinθ / (1 + Math.cos(θ));
+    return [ π * (sgn(λ) * asqrt(A * A + 1 - y1 * y1) - A), π * y1 ];
   }
+  vanDerGrinten3.invert = function(x, y) {
+    if (!y) return [ x, 0 ];
+    var y1 = y / π, A = (π * π * (1 - y1 * y1) - x * x) / (2 * π * x);
+    return [ x ? π * (sgn(x) * Math.sqrt(A * A + 1) - A) : 0, π / 2 * Math.sin(2 * Math.atan(y1)) ];
+  };
   (d3.geo.vanDerGrinten3 = function() {
     return projection(vanDerGrinten3);
   }).raw = vanDerGrinten3;
