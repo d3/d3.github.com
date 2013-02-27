@@ -48,6 +48,49 @@
     };
     return p;
   }
+  function quincuncialProjection(projectHemisphere) {
+    var dx = projectHemisphere(π / 2, 0)[0] - projectHemisphere(-π / 2, 0)[0];
+    function projection() {
+      var quincuncial = false, m = projectionMutator(projectAt), p = m(quincuncial);
+      p.quincuncial = function(_) {
+        if (!arguments.length) return quincuncial;
+        return m(quincuncial = !!_);
+      };
+      return p;
+    }
+    function projectAt(quincuncial) {
+      var forward = quincuncial ? function(λ, φ) {
+        var t = Math.abs(λ) < π / 2, p = projectHemisphere(t ? λ : λ > 0 ? λ - π : λ + π, φ);
+        var x = (p[0] - p[1]) * Math.SQRT1_2, y = (p[0] + p[1]) * Math.SQRT1_2;
+        if (t) return [ x, y ];
+        var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1;
+        return [ s * x - sgn(y) * d, s * y - sgn(x) * d ];
+      } : function(λ, φ) {
+        var s = λ > 0 ? -.5 : .5, point = projectHemisphere(λ + s * π, φ);
+        point[0] -= s * dx;
+        return point;
+      };
+      if (projectHemisphere.invert) forward.invert = quincuncial ? function(x0, y0) {
+        var x = (x0 + y0) * Math.SQRT1_2, y = (y0 - x0) * Math.SQRT1_2, t = Math.abs(x) < .5 * dx && Math.abs(y) < .5 * dx;
+        if (!t) {
+          var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1, x1 = -s * (x0 + (y > 0 ? 1 : -1) * d), y1 = -s * (y0 + (x > 0 ? 1 : -1) * d);
+          x = (-x1 - y1) * Math.SQRT1_2;
+          y = (x1 - y1) * Math.SQRT1_2;
+        }
+        var p = projectHemisphere.invert(x, y);
+        if (!t) p[0] += x > 0 ? π : -π;
+        return p;
+      } : function(x, y) {
+        var s = x > 0 ? -.5 : .5, location = projectHemisphere.invert(x + s * dx, y), λ = location[0] - s * π;
+        if (λ < -π) λ += 2 * π; else if (λ > π) λ -= 2 * π;
+        location[0] = λ;
+        return location;
+      };
+      return forward;
+    }
+    projection.raw = projectAt;
+    return projection;
+  }
   d3.geo.interrupt = function(project) {
     var lobes = [ [ [ [ -π, 0 ], [ 0, π / 2 ], [ π, 0 ] ] ], [ [ [ -π, 0 ], [ 0, -π / 2 ], [ π, 0 ] ] ] ];
     var projection = d3.geo.projection(function(λ, φ) {
@@ -195,10 +238,8 @@
   }).raw = aitoff;
   function guyou(λ, φ) {
     var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
-    var s = λ > 0 ? -1 : 1;
-    λ += s * π / 2;
     var ψ = Math.log(Math.tan(π / 4 + Math.abs(φ) / 2)), r = Math.exp(f * ψ) / Math.sqrt(k_), at = guyouComplexAtan(r * Math.cos(f * λ), r * Math.sin(f * λ)), t = ellipticFi(at[0], at[1], k * k);
-    return [ -s * .5 * K - t[1], sgn(φ) * (.5 * K - t[0]) ];
+    return [ -t[1], sgn(φ) * (.5 * K - t[0]) ];
   }
   function guyouComplexAtan(x, y) {
     var x2 = x * x, y_1 = y + 1, t = 1 - x2 - y * y;
@@ -210,14 +251,10 @@
   }
   guyou.invert = function(x, y) {
     var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
-    var s = x > 0 ? -1 : 1;
-    var j = ellipticJi(.5 * K - y, -s * .5 * K - x, k * k), tn = guyouComplexDivide(j[0], j[1]), λ = Math.atan2(tn[1], tn[0]) / f - s * π / 2;
-    if (λ < -π) λ += 2 * π; else if (λ > π) λ -= 2 * π;
+    var j = ellipticJi(.5 * K - y, -x, k * k), tn = guyouComplexDivide(j[0], j[1]), λ = Math.atan2(tn[1], tn[0]) / f;
     return [ λ, 2 * Math.atan(Math.exp(.5 / f * Math.log(k_ * tn[0] * tn[0] + k_ * tn[1] * tn[1]))) - π / 2 ];
   };
-  (d3.geo.guyou = function() {
-    return projection(guyou);
-  }).raw = guyou;
+  d3.geo.guyou = quincuncialProjection(guyou);
   function mollweideBromleyθ(Cp) {
     return function(θ) {
       var Cpsinθ = Cp * Math.sin(θ), i = 30, δ;
@@ -620,47 +657,16 @@
   (d3.geo.fahey = function() {
     return projection(fahey);
   }).raw = fahey;
-  function gringortenProjection() {
-    var quincuncial = false, m = projectionMutator(gringorten), p = m(quincuncial);
-    p.quincuncial = function(_) {
-      if (!arguments.length) return quincuncial;
-      return m(quincuncial = !!_);
-    };
-    return p;
-  }
-  function gringorten(quincuncial) {
-    return function(λ, φ) {
-      var cosφ = Math.cos(φ), x = Math.cos(λ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(φ);
-      if (quincuncial) {
-        λ = Math.atan2(y, -z) - π / 4;
-        φ = asin(x);
-      } else {
-        λ = Math.atan2(z, x) + π / 2;
-        φ = asin(-y);
-      }
-      while (λ < 0) λ += 2 * π;
-      var nφ = φ < 0, df = ~~(λ / (π / 4));
-      λ %= π / 2;
-      var point = gringortenHexadecant(df & 1 ? π / 2 - λ : λ, Math.abs(φ)), x = point[0], y = point[1], t;
-      if (quincuncial && nφ) y = -2 - y;
-      if (df > 3) x = -x, y = -y;
-      switch (df % 4) {
-       case 1:
-        x = -x;
-
-       case 2:
-        t = x;
-        x = -y;
-        y = t;
-        break;
-
-       case 3:
-        y = -y;
-        break;
-      }
-      if (!quincuncial && nφ) x = 2 - x;
-      return quincuncial ? [ (x - y) / Math.SQRT2, (x + y) / Math.SQRT2 ] : [ x, y ];
-    };
+  function gringorten(λ, φ) {
+    var sλ = sgn(λ), sφ = sgn(φ), cosφ = Math.cos(φ), x = Math.cos(λ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(sφ * φ);
+    λ = Math.abs(Math.atan2(y, z));
+    φ = asin(-x);
+    if (Math.abs(λ - π / 2) > ε) λ %= π / 2;
+    var point = gringortenHexadecant(λ > π / 4 ? π / 2 - λ : λ, Math.abs(φ)), t;
+    x = point[0];
+    y = point[1];
+    if (λ > π / 4) t = x, x = -y, y = -t;
+    return [ sλ * x, -sφ * y ];
   }
   function gringortenHexadecant(λ, φ) {
     if (φ === π / 2) return [ 0, 0 ];
@@ -670,24 +676,24 @@
     if (λ > .222 * π || φ < π / 4 && λ > .175 * π) {
       var x = (h + r * asqrt(a2 * (1 + r2) - h * h)) / (1 + r2);
       if (λ > π / 4) return [ x, x ];
-      var x1 = x, x0 = .5 * x, i = -1;
+      var x1 = x, x0 = .5 * x, i = 50;
       x = .5 * (x0 + x1);
       do {
         var g = Math.sqrt(a2 - x * x), f = x * (ζ + μ * g) + ν * asin(x / a) - Λ;
         if (!f) break;
         if (f < 0) x0 = x; else x1 = x;
         x = .5 * (x0 + x1);
-      } while (++i < 50 && Math.abs(x1 - x0) > ε);
+      } while (Math.abs(x1 - x0) > ε && --i > 0);
     } else {
-      for (var x = ε, i = 0; i < 25; i++) {
-        var x2 = x * x, g = asqrt(a2 - x2), ζμg = ζ + μ * g, f = x * ζμg + ν * asin(x / a) - Λ, df = ζμg + (ν - μ * x2) / g, dx = g ? -f / df : 0;
-        x += dx;
-        if (Math.abs(dx) < ε) break;
-      }
+      var x = ε, i = 25, δ;
+      do {
+        var x2 = x * x, g = asqrt(a2 - x2), ζμg = ζ + μ * g, f = x * ζμg + ν * asin(x / a) - Λ, df = ζμg + (ν - μ * x2) / g;
+        x -= δ = g ? f / df : 0;
+      } while (Math.abs(δ) > ε && --i > 0);
     }
     return [ x, -h - r * asqrt(a2 - x * x) ];
   }
-  (d3.geo.gringorten = gringortenProjection).raw = gringorten;
+  d3.geo.gringorten = quincuncialProjection(gringorten);
   function hammerRetroazimuthal(φ0) {
     var sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), rotate = hammerRetroazimuthalRotation(φ0);
     rotate.invert = hammerRetroazimuthalRotation(-φ0);
@@ -1123,32 +1129,10 @@
   (d3.geo.nellHammer = function() {
     return projection(nellHammer);
   }).raw = nellHammer;
-  function peirceQuincuncial(λ, φ) {
-    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k);
-    var t = Math.abs(λ) < π / 2, p = guyou(λ + (λ < -π / 2 ? 1.5 : -.5) * π, φ);
-    p[0] += (t ? .5 : -.5) * K;
-    var x = (p[0] - p[1]) * Math.SQRT1_2, y = (p[0] + p[1]) * Math.SQRT1_2;
-    if (t) return [ x, y ];
-    var d = K * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1;
-    return [ s * x - sgn(y) * d, s * y - sgn(x) * d ];
-  }
-  peirceQuincuncial.invert = function(x0, y0) {
-    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k);
-    var x = (x0 + y0) * Math.SQRT1_2, y = (y0 - x0) * Math.SQRT1_2;
-    var t = Math.abs(x) < .5 * K && Math.abs(y) < .5 * K;
-    if (!t) {
-      var d = K * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1, x1 = -s * (x0 + (y > 0 ? 1 : -1) * d), y1 = -s * (y0 + (x > 0 ? 1 : -1) * d);
-      x = (-x1 - y1) * Math.SQRT1_2;
-      y = (x1 - y1) * Math.SQRT1_2;
-    }
-    x -= (t ? .5 : -.5) * K;
-    var p = guyou.invert(x, y);
-    p[0] += .5 * π;
-    return p;
-  };
+  var peirceQuincuncialProjection = quincuncialProjection(guyou);
   (d3.geo.peirceQuincuncial = function() {
-    return projection(peirceQuincuncial).rotate([ -90, -90, 45 ]).clipAngle(180 - 1e-6);
-  }).raw = peirceQuincuncial;
+    return peirceQuincuncialProjection().quincuncial(true).rotate([ -90, -90, 45 ]).clipAngle(180 - 1e-6);
+  }).raw = peirceQuincuncialProjection.raw;
   function polyconic(λ, φ) {
     if (Math.abs(φ) < ε) return [ λ, 0 ];
     var tanφ = Math.tan(φ), k = λ * Math.sin(φ);
