@@ -1,14 +1,10 @@
 (function() {
   var ε = 1e-6, ε2 = ε * ε, π = Math.PI, sqrtπ = Math.sqrt(π), radians = π / 180, degrees = 180 / π;
-  var projection = d3.geo.projection, projectionMutator = d3.geo.projectionMutator;
   function sinci(x) {
     return x ? x / Math.sin(x) : 1;
   }
   function sgn(x) {
     return x > 0 ? 1 : x < 0 ? -1 : 0;
-  }
-  function asqrt(x) {
-    return x > 0 ? Math.sqrt(x) : 0;
   }
   function asin(x) {
     return x > 1 ? π / 2 : x < -1 ? -π / 2 : Math.asin(x);
@@ -16,81 +12,10 @@
   function acos(x) {
     return x > 1 ? 0 : x < -1 ? π : Math.acos(x);
   }
-  function tanh(x) {
-    x = Math.exp(2 * x);
-    return (x - 1) / (x + 1);
+  function asqrt(x) {
+    return x > 0 ? Math.sqrt(x) : 0;
   }
-  function sinh(x) {
-    return .5 * (Math.exp(x) - Math.exp(-x));
-  }
-  function cosh(x) {
-    return .5 * (Math.exp(x) + Math.exp(-x));
-  }
-  function arsinh(x) {
-    return Math.log(x + asqrt(x * x + 1));
-  }
-  function arcosh(x) {
-    return Math.log(x + asqrt(x * x - 1));
-  }
-  function parallel1Projection(projectAt) {
-    var φ0 = 0, m = projectionMutator(projectAt), p = m(φ0);
-    p.parallel = function(_) {
-      if (!arguments.length) return φ0 / π * 180;
-      return m(φ0 = _ * π / 180);
-    };
-    return p;
-  }
-  function parallel2Projection(projectAt) {
-    var φ0 = 0, φ1 = π / 3, m = projectionMutator(projectAt), p = m(φ0, φ1);
-    p.parallels = function(_) {
-      if (!arguments.length) return [ φ0 / π * 180, φ1 / π * 180 ];
-      return m(φ0 = _[0] * π / 180, φ1 = _[1] * π / 180);
-    };
-    return p;
-  }
-  function quincuncialProjection(projectHemisphere) {
-    var dx = projectHemisphere(π / 2, 0)[0] - projectHemisphere(-π / 2, 0)[0];
-    function projection() {
-      var quincuncial = false, m = projectionMutator(projectAt), p = m(quincuncial);
-      p.quincuncial = function(_) {
-        if (!arguments.length) return quincuncial;
-        return m(quincuncial = !!_);
-      };
-      return p;
-    }
-    function projectAt(quincuncial) {
-      var forward = quincuncial ? function(λ, φ) {
-        var t = Math.abs(λ) < π / 2, p = projectHemisphere(t ? λ : λ > 0 ? λ - π : λ + π, φ);
-        var x = (p[0] - p[1]) * Math.SQRT1_2, y = (p[0] + p[1]) * Math.SQRT1_2;
-        if (t) return [ x, y ];
-        var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1;
-        return [ s * x - sgn(y) * d, s * y - sgn(x) * d ];
-      } : function(λ, φ) {
-        var s = λ > 0 ? -.5 : .5, point = projectHemisphere(λ + s * π, φ);
-        point[0] -= s * dx;
-        return point;
-      };
-      if (projectHemisphere.invert) forward.invert = quincuncial ? function(x0, y0) {
-        var x = (x0 + y0) * Math.SQRT1_2, y = (y0 - x0) * Math.SQRT1_2, t = Math.abs(x) < .5 * dx && Math.abs(y) < .5 * dx;
-        if (!t) {
-          var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1, x1 = -s * (x0 + (y > 0 ? 1 : -1) * d), y1 = -s * (y0 + (x > 0 ? 1 : -1) * d);
-          x = (-x1 - y1) * Math.SQRT1_2;
-          y = (x1 - y1) * Math.SQRT1_2;
-        }
-        var p = projectHemisphere.invert(x, y);
-        if (!t) p[0] += x > 0 ? π : -π;
-        return p;
-      } : function(x, y) {
-        var s = x > 0 ? -.5 : .5, location = projectHemisphere.invert(x + s * dx, y), λ = location[0] - s * π;
-        if (λ < -π) λ += 2 * π; else if (λ > π) λ -= 2 * π;
-        location[0] = λ;
-        return location;
-      };
-      return forward;
-    }
-    projection.raw = projectAt;
-    return projection;
-  }
+  var projection = d3.geo.projection, projectionMutator = d3.geo.projectionMutator;
   d3.geo.interrupt = function(project) {
     var lobes = [ [ [ [ -π, 0 ], [ 0, π / 2 ], [ π, 0 ] ] ], [ [ [ -π, 0 ], [ 0, -π / 2 ], [ π, 0 ] ] ] ];
     var projection = d3.geo.projection(function(λ, φ) {
@@ -152,73 +77,6 @@
     }
     return projection;
   };
-  function ellipticJi(u, v, m) {
-    if (!u) {
-      var b = ellipticJ(v, 1 - m);
-      return [ [ 0, b[0] / b[1] ], [ 1 / b[1], 0 ], [ b[2] / b[1], 0 ] ];
-    }
-    var a = ellipticJ(u, m);
-    if (!v) return [ [ a[0], 0 ], [ a[1], 0 ], [ a[2], 0 ] ];
-    var b = ellipticJ(v, 1 - m), denominator = b[1] * b[1] + m * a[0] * a[0] * b[0] * b[0];
-    return [ [ a[0] * b[2] / denominator, a[1] * a[2] * b[0] * b[1] / denominator ], [ a[1] * b[1] / denominator, -a[0] * a[2] * b[0] * b[2] / denominator ], [ a[2] * b[1] * b[2] / denominator, -m * a[0] * a[1] * b[0] / denominator ] ];
-  }
-  function ellipticJ(u, m) {
-    var ai, b, φ, t, twon;
-    if (m < ε) {
-      t = Math.sin(u);
-      b = Math.cos(u);
-      ai = .25 * m * (u - t * b);
-      return [ t - ai * b, b + ai * t, 1 - .5 * m * t * t, u - ai ];
-    }
-    if (m >= 1 - ε) {
-      ai = .25 * (1 - m);
-      b = cosh(u);
-      t = tanh(u);
-      φ = 1 / b;
-      twon = b * sinh(u);
-      return [ t + ai * (twon - u) / (b * b), φ - ai * t * φ * (twon - u), φ + ai * t * φ * (twon + u), 2 * Math.atan(Math.exp(u)) - π / 2 + ai * (twon - u) / b ];
-    }
-    var a = [ 1, 0, 0, 0, 0, 0, 0, 0, 0 ], c = [ Math.sqrt(m), 0, 0, 0, 0, 0, 0, 0, 0 ], i = 0;
-    b = Math.sqrt(1 - m);
-    twon = 1;
-    while (Math.abs(c[i] / a[i]) > ε && i < 8) {
-      ai = a[i++];
-      c[i] = .5 * (ai - b);
-      a[i] = .5 * (ai + b);
-      b = asqrt(ai * b);
-      twon *= 2;
-    }
-    φ = twon * a[i] * u;
-    do {
-      t = c[i] * Math.sin(b = φ) / a[i];
-      φ = .5 * (asin(t) + φ);
-    } while (--i);
-    return [ Math.sin(φ), t = Math.cos(φ), t / Math.cos(φ - b), φ ];
-  }
-  function ellipticFi(φ, ψ, m) {
-    var r = Math.abs(φ), i = Math.abs(ψ), sinhψ = sinh(i);
-    if (r) {
-      var cscφ = 1 / Math.sin(r), cotφ2 = 1 / (Math.tan(r) * Math.tan(r)), b = -(cotφ2 + m * sinhψ * sinhψ * cscφ * cscφ - 1 + m), c = (m - 1) * cotφ2, cotλ2 = .5 * (-b + Math.sqrt(b * b - 4 * c));
-      return [ ellipticF(Math.atan(1 / Math.sqrt(cotλ2)), m) * sgn(φ), ellipticF(Math.atan(asqrt((cotλ2 / cotφ2 - 1) / m)), 1 - m) * sgn(ψ) ];
-    }
-    return [ 0, ellipticF(Math.atan(sinhψ), 1 - m) * sgn(ψ) ];
-  }
-  function ellipticF(φ, m) {
-    if (!m) return φ;
-    if (m === 1) return Math.log(Math.tan(φ / 2 + π / 4));
-    var a = 1, b = Math.sqrt(1 - m), c = Math.sqrt(m);
-    for (var i = 0; Math.abs(c) > ε; i++) {
-      if (φ % π) {
-        var dφ = Math.atan(b * Math.tan(φ) / a);
-        if (dφ < 0) dφ += π;
-        φ += dφ + ~~(φ / π) * π;
-      } else φ += φ;
-      c = (a + b) / 2;
-      b = Math.sqrt(a * b);
-      c = ((a = c) - b) / 2;
-    }
-    return φ / (Math.pow(2, i) * a);
-  }
   function aitoff(λ, φ) {
     var cosφ = Math.cos(φ), sinciα = sinci(acos(cosφ * Math.cos(λ /= 2)));
     return [ 2 * cosφ * Math.sin(λ) * sinciα, Math.sin(φ) * sinciα ];
@@ -236,66 +94,6 @@
   (d3.geo.aitoff = function() {
     return projection(aitoff);
   }).raw = aitoff;
-  function guyou(λ, φ) {
-    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
-    var ψ = Math.log(Math.tan(π / 4 + Math.abs(φ) / 2)), r = Math.exp(f * ψ) / Math.sqrt(k_), at = guyouComplexAtan(r * Math.cos(f * λ), r * Math.sin(f * λ)), t = ellipticFi(at[0], at[1], k * k);
-    return [ -t[1], sgn(φ) * (.5 * K - t[0]) ];
-  }
-  function guyouComplexAtan(x, y) {
-    var x2 = x * x, y_1 = y + 1, t = 1 - x2 - y * y;
-    return [ sgn(x) * π / 4 - .5 * Math.atan2(t, 2 * x), -.25 * Math.log(t * t + 4 * x2) + .5 * Math.log(y_1 * y_1 + x2) ];
-  }
-  function guyouComplexDivide(a, b) {
-    var denominator = b[0] * b[0] + b[1] * b[1];
-    return [ (a[0] * b[0] + a[1] * b[1]) / denominator, (a[1] * b[0] - a[0] * b[1]) / denominator ];
-  }
-  guyou.invert = function(x, y) {
-    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
-    var j = ellipticJi(.5 * K - y, -x, k * k), tn = guyouComplexDivide(j[0], j[1]), λ = Math.atan2(tn[1], tn[0]) / f;
-    return [ λ, 2 * Math.atan(Math.exp(.5 / f * Math.log(k_ * tn[0] * tn[0] + k_ * tn[1] * tn[1]))) - π / 2 ];
-  };
-  d3.geo.guyou = quincuncialProjection(guyou);
-  function mollweideBromleyθ(Cp) {
-    return function(θ) {
-      var Cpsinθ = Cp * Math.sin(θ), i = 30, δ;
-      do θ -= δ = (θ + Math.sin(θ) - Cpsinθ) / (1 + Math.cos(θ)); while (Math.abs(δ) > ε && --i > 0);
-      return θ / 2;
-    };
-  }
-  function mollweideBromley(Cx, Cy, Cp) {
-    var θ = mollweideBromleyθ(Cp);
-    function forward(λ, φ) {
-      return [ Cx * λ * Math.cos(φ = θ(φ)), Cy * Math.sin(φ) ];
-    }
-    forward.invert = function(x, y) {
-      var θ = asin(y / Cy);
-      return [ x / (Cx * Math.cos(θ)), asin((2 * θ + Math.sin(2 * θ)) / Cp) ];
-    };
-    return forward;
-  }
-  var mollweideθ = mollweideBromleyθ(π), mollweide = mollweideBromley(2 * Math.SQRT2 / π, Math.SQRT2, π);
-  (d3.geo.mollweide = function() {
-    return projection(mollweide);
-  }).raw = mollweide;
-  function sinusoidal(λ, φ) {
-    return [ λ * Math.cos(φ), φ ];
-  }
-  sinusoidal.invert = function(x, y) {
-    return [ x / Math.cos(y), y ];
-  };
-  (d3.geo.sinusoidal = function() {
-    return projection(sinusoidal);
-  }).raw = sinusoidal;
-  var sinuMollweideφ = .7109889596207567, sinuMollweideY = .0528035274542;
-  function sinuMollweide(λ, φ) {
-    return φ > -sinuMollweideφ ? (λ = mollweide(λ, φ), λ[1] += sinuMollweideY, λ) : sinusoidal(λ, φ);
-  }
-  sinuMollweide.invert = function(x, y) {
-    return y > -sinuMollweideφ ? mollweide.invert(x, y - sinuMollweideY) : sinusoidal.invert(x, y);
-  };
-  (d3.geo.sinuMollweide = function() {
-    return projection(sinuMollweide).rotate([ -20, -55 ]);
-  }).raw = sinuMollweide;
   function armadillo(φ0) {
     var sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), sφ0 = φ0 > 0 ? 1 : -1, tanφ0 = Math.tan(sφ0 * φ0), k = (1 + sinφ0 - cosφ0) / 2;
     function forward(λ, φ) {
@@ -336,6 +134,22 @@
     return p;
   }
   (d3.geo.armadillo = armadilloProjection).raw = armadillo;
+  function tanh(x) {
+    x = Math.exp(2 * x);
+    return (x - 1) / (x + 1);
+  }
+  function sinh(x) {
+    return .5 * (Math.exp(x) - Math.exp(-x));
+  }
+  function cosh(x) {
+    return .5 * (Math.exp(x) + Math.exp(-x));
+  }
+  function arsinh(x) {
+    return Math.log(x + asqrt(x * x + 1));
+  }
+  function arcosh(x) {
+    return Math.log(x + asqrt(x * x - 1));
+  }
   function august(λ, φ) {
     var tanφ = Math.tan(φ / 2), k = asqrt(1 - tanφ * tanφ), c = 1 + k * Math.cos(λ /= 2), x = Math.sin(λ) * k / c, y = tanφ / c, x2 = x * x, y2 = y * y;
     return [ 4 / 3 * x * (3 + x2 - 3 * y2), 4 / 3 * y * (3 + 3 * x2 - y2) ];
@@ -421,6 +235,28 @@
     return p;
   }
   (d3.geo.berghaus = berghausProjection).raw = berghaus;
+  function mollweideBromleyθ(Cp) {
+    return function(θ) {
+      var Cpsinθ = Cp * Math.sin(θ), i = 30, δ;
+      do θ -= δ = (θ + Math.sin(θ) - Cpsinθ) / (1 + Math.cos(θ)); while (Math.abs(δ) > ε && --i > 0);
+      return θ / 2;
+    };
+  }
+  function mollweideBromley(Cx, Cy, Cp) {
+    var θ = mollweideBromleyθ(Cp);
+    function forward(λ, φ) {
+      return [ Cx * λ * Math.cos(φ = θ(φ)), Cy * Math.sin(φ) ];
+    }
+    forward.invert = function(x, y) {
+      var θ = asin(y / Cy);
+      return [ x / (Cx * Math.cos(θ)), asin((2 * θ + Math.sin(2 * θ)) / Cp) ];
+    };
+    return forward;
+  }
+  var mollweideθ = mollweideBromleyθ(π), mollweide = mollweideBromley(2 * Math.SQRT2 / π, Math.SQRT2, π);
+  (d3.geo.mollweide = function() {
+    return projection(mollweide);
+  }).raw = mollweide;
   function boggs(λ, φ) {
     var k = 2.00276, θ = mollweideθ(φ);
     return [ k * λ / (1 / Math.cos(φ) + 1.11072 / Math.cos(θ)), (φ + Math.SQRT2 * Math.sin(θ)) / k ];
@@ -437,6 +273,23 @@
   (d3.geo.boggs = function() {
     return projection(boggs);
   }).raw = boggs;
+  function parallel1Projection(projectAt) {
+    var φ0 = 0, m = projectionMutator(projectAt), p = m(φ0);
+    p.parallel = function(_) {
+      if (!arguments.length) return φ0 / π * 180;
+      return m(φ0 = _ * π / 180);
+    };
+    return p;
+  }
+  function sinusoidal(λ, φ) {
+    return [ λ * Math.cos(φ), φ ];
+  }
+  sinusoidal.invert = function(x, y) {
+    return [ x / Math.cos(y), y ];
+  };
+  (d3.geo.sinusoidal = function() {
+    return projection(sinusoidal);
+  }).raw = sinusoidal;
   function bonne(φ0) {
     if (!φ0) return sinusoidal;
     var cotφ0 = 1 / Math.tan(φ0);
@@ -468,6 +321,14 @@
   (d3.geo.collignon = function() {
     return projection(collignon);
   }).raw = collignon;
+  function parallel2Projection(projectAt) {
+    var φ0 = 0, φ1 = π / 3, m = projectionMutator(projectAt), p = m(φ0, φ1);
+    p.parallels = function(_) {
+      if (!arguments.length) return [ φ0 / π * 180, φ1 / π * 180 ];
+      return m(φ0 = _[0] * π / 180, φ1 = _[1] * π / 180);
+    };
+    return p;
+  }
   function conicConformal(φ0, φ1) {
     var cosφ0 = Math.cos(φ0), t = function(φ) {
       return Math.tan(π / 4 + φ / 2);
@@ -492,6 +353,21 @@
   (d3.geo.conicConformal = function() {
     return parallel2Projection(conicConformal);
   }).raw = conicConformal;
+  function conicEqualArea(φ0, φ1) {
+    var sinφ0 = Math.sin(φ0), n = (sinφ0 + Math.sin(φ1)) / 2, C = 1 + sinφ0 * (2 * n - sinφ0), ρ0 = Math.sqrt(C) / n;
+    function conicEqualArea(λ, φ) {
+      var ρ = Math.sqrt(C - 2 * n * Math.sin(φ)) / n;
+      return [ ρ * Math.sin(λ *= n), ρ0 - ρ * Math.cos(λ) ];
+    }
+    conicEqualArea.invert = function(x, y) {
+      var ρ0_y = ρ0 - y;
+      return [ Math.atan2(x, ρ0_y) / n, Math.asin((C - (x * x + ρ0_y * ρ0_y) * n * n) / (2 * n)) ];
+    };
+    return albers;
+  }
+  (d3.geo.conicEqualArea = function() {
+    return parallel2Projection(conicEqualArea);
+  }).raw = conicEqualArea;
   function conicEquidistant(φ0, φ1) {
     var cosφ0 = Math.cos(φ0), n = φ0 === φ1 ? Math.sin(φ0) : (cosφ0 - Math.cos(φ1)) / (φ1 - φ0), G = cosφ0 / n + φ0;
     if (Math.abs(n) < ε) return d3.geo.equirectangular.raw;
@@ -657,6 +533,49 @@
   (d3.geo.fahey = function() {
     return projection(fahey);
   }).raw = fahey;
+  function quincuncialProjection(projectHemisphere) {
+    var dx = projectHemisphere(π / 2, 0)[0] - projectHemisphere(-π / 2, 0)[0];
+    function projection() {
+      var quincuncial = false, m = projectionMutator(projectAt), p = m(quincuncial);
+      p.quincuncial = function(_) {
+        if (!arguments.length) return quincuncial;
+        return m(quincuncial = !!_);
+      };
+      return p;
+    }
+    function projectAt(quincuncial) {
+      var forward = quincuncial ? function(λ, φ) {
+        var t = Math.abs(λ) < π / 2, p = projectHemisphere(t ? λ : λ > 0 ? λ - π : λ + π, φ);
+        var x = (p[0] - p[1]) * Math.SQRT1_2, y = (p[0] + p[1]) * Math.SQRT1_2;
+        if (t) return [ x, y ];
+        var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1;
+        return [ s * x - sgn(y) * d, s * y - sgn(x) * d ];
+      } : function(λ, φ) {
+        var s = λ > 0 ? -.5 : .5, point = projectHemisphere(λ + s * π, φ);
+        point[0] -= s * dx;
+        return point;
+      };
+      if (projectHemisphere.invert) forward.invert = quincuncial ? function(x0, y0) {
+        var x = (x0 + y0) * Math.SQRT1_2, y = (y0 - x0) * Math.SQRT1_2, t = Math.abs(x) < .5 * dx && Math.abs(y) < .5 * dx;
+        if (!t) {
+          var d = dx * Math.SQRT1_2, s = x > 0 ^ y > 0 ? -1 : 1, x1 = -s * (x0 + (y > 0 ? 1 : -1) * d), y1 = -s * (y0 + (x > 0 ? 1 : -1) * d);
+          x = (-x1 - y1) * Math.SQRT1_2;
+          y = (x1 - y1) * Math.SQRT1_2;
+        }
+        var p = projectHemisphere.invert(x, y);
+        if (!t) p[0] += x > 0 ? π : -π;
+        return p;
+      } : function(x, y) {
+        var s = x > 0 ? -.5 : .5, location = projectHemisphere.invert(x + s * dx, y), λ = location[0] - s * π;
+        if (λ < -π) λ += 2 * π; else if (λ > π) λ -= 2 * π;
+        location[0] = λ;
+        return location;
+      };
+      return forward;
+    }
+    projection.raw = projectAt;
+    return projection;
+  }
   function gringorten(λ, φ) {
     var sλ = sgn(λ), sφ = sgn(φ), cosφ = Math.cos(φ), x = Math.cos(λ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(sφ * φ);
     λ = Math.abs(Math.atan2(y, z));
@@ -710,6 +629,92 @@
     return [ π / 4 * (x * (ζ + μ * g) + ν * Math.asin(x / Math.sqrt(a2))), φ ];
   }
   d3.geo.gringorten = quincuncialProjection(gringorten);
+  function ellipticJi(u, v, m) {
+    if (!u) {
+      var b = ellipticJ(v, 1 - m);
+      return [ [ 0, b[0] / b[1] ], [ 1 / b[1], 0 ], [ b[2] / b[1], 0 ] ];
+    }
+    var a = ellipticJ(u, m);
+    if (!v) return [ [ a[0], 0 ], [ a[1], 0 ], [ a[2], 0 ] ];
+    var b = ellipticJ(v, 1 - m), denominator = b[1] * b[1] + m * a[0] * a[0] * b[0] * b[0];
+    return [ [ a[0] * b[2] / denominator, a[1] * a[2] * b[0] * b[1] / denominator ], [ a[1] * b[1] / denominator, -a[0] * a[2] * b[0] * b[2] / denominator ], [ a[2] * b[1] * b[2] / denominator, -m * a[0] * a[1] * b[0] / denominator ] ];
+  }
+  function ellipticJ(u, m) {
+    var ai, b, φ, t, twon;
+    if (m < ε) {
+      t = Math.sin(u);
+      b = Math.cos(u);
+      ai = .25 * m * (u - t * b);
+      return [ t - ai * b, b + ai * t, 1 - .5 * m * t * t, u - ai ];
+    }
+    if (m >= 1 - ε) {
+      ai = .25 * (1 - m);
+      b = cosh(u);
+      t = tanh(u);
+      φ = 1 / b;
+      twon = b * sinh(u);
+      return [ t + ai * (twon - u) / (b * b), φ - ai * t * φ * (twon - u), φ + ai * t * φ * (twon + u), 2 * Math.atan(Math.exp(u)) - π / 2 + ai * (twon - u) / b ];
+    }
+    var a = [ 1, 0, 0, 0, 0, 0, 0, 0, 0 ], c = [ Math.sqrt(m), 0, 0, 0, 0, 0, 0, 0, 0 ], i = 0;
+    b = Math.sqrt(1 - m);
+    twon = 1;
+    while (Math.abs(c[i] / a[i]) > ε && i < 8) {
+      ai = a[i++];
+      c[i] = .5 * (ai - b);
+      a[i] = .5 * (ai + b);
+      b = asqrt(ai * b);
+      twon *= 2;
+    }
+    φ = twon * a[i] * u;
+    do {
+      t = c[i] * Math.sin(b = φ) / a[i];
+      φ = .5 * (asin(t) + φ);
+    } while (--i);
+    return [ Math.sin(φ), t = Math.cos(φ), t / Math.cos(φ - b), φ ];
+  }
+  function ellipticFi(φ, ψ, m) {
+    var r = Math.abs(φ), i = Math.abs(ψ), sinhψ = sinh(i);
+    if (r) {
+      var cscφ = 1 / Math.sin(r), cotφ2 = 1 / (Math.tan(r) * Math.tan(r)), b = -(cotφ2 + m * sinhψ * sinhψ * cscφ * cscφ - 1 + m), c = (m - 1) * cotφ2, cotλ2 = .5 * (-b + Math.sqrt(b * b - 4 * c));
+      return [ ellipticF(Math.atan(1 / Math.sqrt(cotλ2)), m) * sgn(φ), ellipticF(Math.atan(asqrt((cotλ2 / cotφ2 - 1) / m)), 1 - m) * sgn(ψ) ];
+    }
+    return [ 0, ellipticF(Math.atan(sinhψ), 1 - m) * sgn(ψ) ];
+  }
+  function ellipticF(φ, m) {
+    if (!m) return φ;
+    if (m === 1) return Math.log(Math.tan(φ / 2 + π / 4));
+    var a = 1, b = Math.sqrt(1 - m), c = Math.sqrt(m);
+    for (var i = 0; Math.abs(c) > ε; i++) {
+      if (φ % π) {
+        var dφ = Math.atan(b * Math.tan(φ) / a);
+        if (dφ < 0) dφ += π;
+        φ += dφ + ~~(φ / π) * π;
+      } else φ += φ;
+      c = (a + b) / 2;
+      b = Math.sqrt(a * b);
+      c = ((a = c) - b) / 2;
+    }
+    return φ / (Math.pow(2, i) * a);
+  }
+  function guyou(λ, φ) {
+    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
+    var ψ = Math.log(Math.tan(π / 4 + Math.abs(φ) / 2)), r = Math.exp(f * ψ) / Math.sqrt(k_), at = guyouComplexAtan(r * Math.cos(f * λ), r * Math.sin(f * λ)), t = ellipticFi(at[0], at[1], k * k);
+    return [ -t[1], sgn(φ) * (.5 * K - t[0]) ];
+  }
+  function guyouComplexAtan(x, y) {
+    var x2 = x * x, y_1 = y + 1, t = 1 - x2 - y * y;
+    return [ sgn(x) * π / 4 - .5 * Math.atan2(t, 2 * x), -.25 * Math.log(t * t + 4 * x2) + .5 * Math.log(y_1 * y_1 + x2) ];
+  }
+  function guyouComplexDivide(a, b) {
+    var denominator = b[0] * b[0] + b[1] * b[1];
+    return [ (a[0] * b[0] + a[1] * b[1]) / denominator, (a[1] * b[0] - a[0] * b[1]) / denominator ];
+  }
+  guyou.invert = function(x, y) {
+    var k_ = (Math.SQRT2 - 1) / (Math.SQRT2 + 1), k = Math.sqrt(1 - k_ * k_), K = ellipticF(π / 2, k * k), f = -1;
+    var j = ellipticJi(.5 * K - y, -x, k * k), tn = guyouComplexDivide(j[0], j[1]), λ = Math.atan2(tn[1], tn[0]) / f;
+    return [ λ, 2 * Math.atan(Math.exp(.5 / f * Math.log(k_ * tn[0] * tn[0] + k_ * tn[1] * tn[1]))) - π / 2 ];
+  };
+  d3.geo.guyou = quincuncialProjection(guyou);
   function hammerRetroazimuthal(φ0) {
     var sinφ0 = Math.sin(φ0), cosφ0 = Math.cos(φ0), rotate = hammerRetroazimuthalRotation(φ0);
     rotate.invert = hammerRetroazimuthalRotation(-φ0);
@@ -908,6 +913,16 @@
     return p;
   }
   (d3.geo.hill = hillProjection).raw = hill;
+  var sinuMollweideφ = .7109889596207567, sinuMollweideY = .0528035274542;
+  function sinuMollweide(λ, φ) {
+    return φ > -sinuMollweideφ ? (λ = mollweide(λ, φ), λ[1] += sinuMollweideY, λ) : sinusoidal(λ, φ);
+  }
+  sinuMollweide.invert = function(x, y) {
+    return y > -sinuMollweideφ ? mollweide.invert(x, y - sinuMollweideY) : sinusoidal.invert(x, y);
+  };
+  (d3.geo.sinuMollweide = function() {
+    return projection(sinuMollweide).rotate([ -20, -55 ]);
+  }).raw = sinuMollweide;
   function homolosine(λ, φ) {
     return Math.abs(φ) > sinuMollweideφ ? (λ = mollweide(λ, φ), λ[1] -= φ > 0 ? sinuMollweideY : -sinuMollweideY, 
     λ) : sinusoidal(λ, φ);
@@ -1272,31 +1287,16 @@
   (d3.geo.times = function() {
     return projection(times);
   }).raw = times;
-  function twoPointAzimuthal(d) {
-    var cosd = Math.cos(d);
-    function forward(λ, φ) {
-      var coordinates = d3.geo.gnomonic.raw(λ, φ);
-      coordinates[0] *= cosd;
-      return coordinates;
-    }
-    forward.invert = function(x, y) {
-      return d3.geo.gnomonic.raw.invert(x / cosd, y);
-    };
-    return forward;
+  function transverseMercator(λ, φ) {
+    var B = Math.cos(φ) * Math.sin(λ);
+    return [ .5 * Math.log((1 + B) / (1 - B)), Math.atan2(Math.tan(φ), Math.cos(λ)) ];
   }
-  function twoPointAzimuthalProjection() {
-    var points = [ [ 0, 0 ], [ 0, 0 ] ], m = projectionMutator(twoPointAzimuthal), p = m(0), rotate = p.rotate;
-    delete p.rotate;
-    p.points = function(_) {
-      if (!arguments.length) return points;
-      points = _;
-      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
-      rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
-      return m(b);
-    };
-    return p;
-  }
-  (d3.geo.twoPointAzimuthal = twoPointAzimuthalProjection).raw = twoPointAzimuthal;
+  transverseMercator.invert = function(x, y) {
+    return [ Math.atan2(sinh(x), Math.cos(y)), asin(Math.sin(y) / cosh(x)) ];
+  };
+  (d3.geo.transverseMercator = function() {
+    return projection(transverseMercator);
+  }).raw = transverseMercator;
   function twoPointEquidistant(z0) {
     if (!z0) return d3.geo.azimuthalEquidistant.raw;
     var λa = -z0 / 2, λb = -λa, z02 = z0 * z0, tanλ0 = Math.tan(λb), S = .5 / Math.sin(λb);
@@ -1328,6 +1328,31 @@
     return [ Math.atan2(y, x * cosδφ - z * sinδφ), asin(z * cosδφ + x * sinδφ) ];
   }
   (d3.geo.twoPointEquidistant = twoPointEquidistantProjection).raw = twoPointEquidistant;
+  function twoPointAzimuthal(d) {
+    var cosd = Math.cos(d);
+    function forward(λ, φ) {
+      var coordinates = d3.geo.gnomonic.raw(λ, φ);
+      coordinates[0] *= cosd;
+      return coordinates;
+    }
+    forward.invert = function(x, y) {
+      return d3.geo.gnomonic.raw.invert(x / cosd, y);
+    };
+    return forward;
+  }
+  function twoPointAzimuthalProjection() {
+    var points = [ [ 0, 0 ], [ 0, 0 ] ], m = projectionMutator(twoPointAzimuthal), p = m(0), rotate = p.rotate;
+    delete p.rotate;
+    p.points = function(_) {
+      if (!arguments.length) return points;
+      points = _;
+      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
+      rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
+      return m(b);
+    };
+    return p;
+  }
+  (d3.geo.twoPointAzimuthal = twoPointAzimuthalProjection).raw = twoPointAzimuthal;
   function vanDerGrinten(λ, φ) {
     if (Math.abs(φ) < ε) return [ λ, 0 ];
     var sinθ = Math.abs(2 * φ / π), θ = asin(sinθ);
