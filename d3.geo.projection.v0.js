@@ -469,6 +469,15 @@
   (d3.geo.fahey = function() {
     return projection(fahey);
   }).raw = fahey;
+  function gallStereographic(λ, φ) {
+    return [ λ / Math.SQRT2, (1 + Math.SQRT2 / 2) * Math.tan(φ / 2) ];
+  }
+  gallStereographic.invert = function(x, y) {
+    return [ x * Math.SQRT2, Math.atan(y / (1 + Math.SQRT2 / 2)) * 2 ];
+  };
+  (d3.geo.gallStereographic = function() {
+    return projection(gallStereographic);
+  }).raw = gallStereographic;
   function quincuncialProjection(projectHemisphere) {
     var dx = projectHemisphere(π / 2, 0)[0] - projectHemisphere(-π / 2, 0)[0];
     function projection() {
