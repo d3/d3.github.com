@@ -470,10 +470,10 @@
     return projection(fahey);
   }).raw = fahey;
   function gallStereographic(λ, φ) {
-    return [ λ / Math.SQRT2, (1 + Math.SQRT2 / 2) * Math.tan(φ / 2) ];
+    return [ λ * Math.SQRT1_2, (1 + Math.SQRT1_2) * Math.tan(φ / 2) ];
   }
   gallStereographic.invert = function(x, y) {
-    return [ x * Math.SQRT2, Math.atan(y / (1 + Math.SQRT2 / 2)) * 2 ];
+    return [ x * Math.SQRT2, Math.atan(y / (1 + Math.SQRT1_2)) * 2 ];
   };
   (d3.geo.gallStereographic = function() {
     return projection(gallStereographic);
@@ -1232,16 +1232,6 @@
   (d3.geo.times = function() {
     return projection(times);
   }).raw = times;
-  function transverseMercator(λ, φ) {
-    var B = Math.cos(φ) * Math.sin(λ);
-    return [ .5 * Math.log((1 + B) / (1 - B)), Math.atan2(Math.tan(φ), Math.cos(λ)) ];
-  }
-  transverseMercator.invert = function(x, y) {
-    return [ Math.atan2(sinh(x), Math.cos(y)), asin(Math.sin(y) / cosh(x)) ];
-  };
-  (d3.geo.transverseMercator = function() {
-    return projection(transverseMercator);
-  }).raw = transverseMercator;
   function twoPointEquidistant(z0) {
     if (!z0) return d3.geo.azimuthalEquidistant.raw;
     var λa = -z0 / 2, λb = -λa, z02 = z0 * z0, tanλ0 = Math.tan(λb), S = .5 / Math.sin(λb);
