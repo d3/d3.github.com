@@ -404,8 +404,8 @@
     return [ 2 / Math.sqrt(π * (4 + π)) * λ * (1 + Math.cos(φ)), 2 * Math.sqrt(π / (4 + π)) * Math.sin(φ) ];
   }
   eckert4.invert = function(x, y) {
-    var j = 2 * Math.sqrt(π / (4 + π)), k = asin(y / cy), c = Math.cos(k);
-    return [ x / (2 / Math.sqrt(π * (4 + π)) * (1 + c)), asin((k + y / j * (c + 2)) / (2 + π / 2)) ];
+    var A = .5 * y * Math.sqrt((4 + π) / π), k = asin(A), c = Math.cos(k);
+    return [ x / (2 / Math.sqrt(π * (4 + π)) * (1 + c)), asin((k + A * (c + 2)) / (2 + π / 2)) ];
   };
   (d3.geo.eckert4 = function() {
     return projection(eckert4);
