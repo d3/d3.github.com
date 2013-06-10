@@ -495,6 +495,19 @@
   (d3.geo.cylindricalEqualArea = function() {
     return parallel1Projection(cylindricalEqualArea);
   }).raw = cylindricalEqualArea;
+  function cylindricalStereographic(φ0) {
+    var cosφ0 = Math.cos(φ0);
+    function forward(λ, φ) {
+      return [ λ * cosφ0, (1 + cosφ0) * Math.tan(φ * .5) ];
+    }
+    forward.invert = function(x, y) {
+      return [ x / cosφ0, Math.atan(y / (1 + cosφ0)) * 2 ];
+    };
+    return forward;
+  }
+  (d3.geo.cylindricalStereographic = function() {
+    return parallel1Projection(cylindricalStereographic);
+  }).raw = cylindricalStereographic;
   function eckert1(λ, φ) {
     var α = Math.sqrt(8 / (3 * π));
     return [ α * λ * (1 - Math.abs(φ) / π), α * φ ];
@@ -603,28 +616,30 @@
   (d3.geo.fahey = function() {
     return projection(fahey);
   }).raw = fahey;
-  function gallStereographic(λ, φ) {
-    return [ λ * Math.SQRT1_2, (1 + Math.SQRT1_2) * Math.tan(φ / 2) ];
+  function foucaut(λ, φ) {
+    var k = φ / 2, cosk = Math.cos(k);
+    return [ 2 * λ / sqrtπ * Math.cos(φ) * cosk * cosk, sqrtπ * Math.tan(k) ];
   }
-  gallStereographic.invert = function(x, y) {
-    return [ x * Math.SQRT2, Math.atan(y / (1 + Math.SQRT1_2)) * 2 ];
+  foucaut.invert = function(x, y) {
+    var k = Math.atan(y / sqrtπ), cosk = Math.cos(k), φ = 2 * k;
+    return [ x * sqrtπ * .5 / (Math.cos(φ) * cosk * cosk), φ ];
   };
-  (d3.geo.gallStereographic = function() {
-    return projection(gallStereographic);
-  }).raw = gallStereographic;
-  function gilbert(λ, φ) {
-    return d3.geo.orthographic.raw(λ * .5, asin(Math.tan(φ * .5)));
-  }
-  gilbert.invert = function(x, y) {
-    var coordinates = d3.geo.orthographic.raw.invert(x, y);
-    coordinates[0] *= 2;
-    coordinates[1] = 2 * Math.atan(Math.sin(coordinates[1]));
-    return coordinates;
-  };
-  function gilbertProjection() {
-    var p = projection(gilbert), e = d3.geo.equirectangular().scale(degrees).translate([ 0, 0 ]), o = d3.geo.orthographic();
-    p.stream = function(stream) {
-      stream = o.stream(stream);
+  (d3.geo.foucaut = function() {
+    return projection(foucaut);
+  }).raw = foucaut;
+  d3.geo.gilbert = function(projection) {
+    var e = d3.geo.equirectangular().scale(degrees).translate([ 0, 0 ]);
+    function gilbert(coordinates) {
+      return projection([ coordinates[0] * .5, asin(Math.tan(coordinates[1] * .5 * radians)) * degrees ]);
+    }
+    if (projection.invert) gilbert.invert = function(coordinates) {
+      coordinates = projection.invert(coordinates);
+      coordinates[0] *= 2;
+      coordinates[1] = 2 * Math.atan(Math.sin(coordinates[1] * radians)) * degrees;
+      return coordinates;
+    };
+    gilbert.stream = function(stream) {
+      stream = projection.stream(stream);
       var s = e.stream({
         point: function(λ, φ) {
           stream.point(λ * .5, asin(Math.tan(-φ * .5 * radians)) * degrees);
@@ -645,11 +660,11 @@
       s.sphere = function() {
         stream.sphere();
       };
+      s.valid = false;
       return s;
     };
-    return d3.rebind(p, o, "rotate", "scale", "translate", "clipAngle", "precision");
-  }
-  (d3.geo.gilbert = gilbertProjection).raw = gilbert;
+    return gilbert;
+  };
   function ginzburgPolyconic(a, b, c, d, e, f, g, h) {
     if (arguments.length < 8) h = 0;
     function forward(λ, φ) {
@@ -1486,15 +1501,11 @@
     p.points = function(_) {
       if (!arguments.length) return points;
       points = _;
-      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
+      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = d3.geo.rotation([ -origin[0], -origin[1] ])(_[0]), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1] * radians, γ = asin(Math.sin(c) / Math.sin(b));
       rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
       return m(b * 2);
     };
     return p;
-  }
-  function twoPointEquidistant_rotate(δλ, δφ, λ, φ) {
-    var cosδφ = Math.cos(δφ), sinδφ = Math.sin(δφ), cosφ = Math.cos(φ), x = Math.cos(λ += δλ) * cosφ, y = Math.sin(λ) * cosφ, z = Math.sin(φ);
-    return [ Math.atan2(y, x * cosδφ - z * sinδφ), asin(z * cosδφ + x * sinδφ) ];
   }
   (d3.geo.twoPointEquidistant = twoPointEquidistantProjection).raw = twoPointEquidistant;
   function twoPointAzimuthal(d) {
