@@ -1,6 +1,6 @@
 d3 = function() {
   var d3 = {
-    version: "3.2.3"
+    version: "3.2.4"
   };
   if (!Date.now) Date.now = function() {
     return +new Date();
@@ -9,7 +9,13 @@ d3 = function() {
   try {
     d3_document.createElement("div").style.setProperty("opacity", 0, "");
   } catch (error) {
-    var d3_style_prototype = d3_window.CSSStyleDeclaration.prototype, d3_style_setProperty = d3_style_prototype.setProperty;
+    var d3_element_prototype = d3_window.Element.prototype, d3_element_setAttribute = d3_element_prototype.setAttribute, d3_element_setAttributeNS = d3_element_prototype.setAttributeNS, d3_style_prototype = d3_window.CSSStyleDeclaration.prototype, d3_style_setProperty = d3_style_prototype.setProperty;
+    d3_element_prototype.setAttribute = function(name, value) {
+      d3_element_setAttribute.call(this, name, value + "");
+    };
+    d3_element_prototype.setAttributeNS = function(space, local, value) {
+      d3_element_setAttributeNS.call(this, space, local, value + "");
+    };
     d3_style_prototype.setProperty = function(name, value, priority) {
       d3_style_setProperty.call(this, name, value + "", priority);
     };
@@ -490,7 +496,7 @@ d3 = function() {
       subgroup.parentNode = (group = this[j]).parentNode;
       for (var i = -1, n = group.length; ++i < n; ) {
         if (node = group[i]) {
-          subgroup.push(subnode = selector.call(node, node.__data__, i));
+          subgroup.push(subnode = selector.call(node, node.__data__, i, j));
           if (subnode && "__data__" in node) subnode.__data__ = node.__data__;
         } else {
           subgroup.push(null);
@@ -510,7 +516,7 @@ d3 = function() {
     for (var j = -1, m = this.length; ++j < m; ) {
       for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
         if (node = group[i]) {
-          subgroups.push(subgroup = d3_array(selector.call(node, node.__data__, i)));
+          subgroups.push(subgroup = d3_array(selector.call(node, node.__data__, i, j)));
           subgroup.parentNode = node;
         }
       }
@@ -897,7 +903,6 @@ d3 = function() {
   d3.selection.enter = d3_selection_enter;
   d3.selection.enter.prototype = d3_selection_enterPrototype;
   d3_selection_enterPrototype.append = d3_selectionPrototype.append;
-  d3_selection_enterPrototype.insert = d3_selectionPrototype.insert;
   d3_selection_enterPrototype.empty = d3_selectionPrototype.empty;
   d3_selection_enterPrototype.node = d3_selectionPrototype.node;
   d3_selection_enterPrototype.call = d3_selectionPrototype.call;
@@ -910,7 +915,7 @@ d3 = function() {
       subgroup.parentNode = group.parentNode;
       for (var i = -1, n = group.length; ++i < n; ) {
         if (node = group[i]) {
-          subgroup.push(upgroup[i] = subnode = selector.call(group.parentNode, node.__data__, i));
+          subgroup.push(upgroup[i] = subnode = selector.call(group.parentNode, node.__data__, i, j));
           subnode.__data__ = node.__data__;
         } else {
           subgroup.push(null);
@@ -919,6 +924,20 @@ d3 = function() {
     }
     return d3_selection(subgroups);
   };
+  d3_selection_enterPrototype.insert = function(name, before) {
+    if (arguments.length < 2) before = d3_selection_enterInsertBefore(this);
+    return d3_selectionPrototype.insert.call(this, name, before);
+  };
+  function d3_selection_enterInsertBefore(enter) {
+    var i0, j0;
+    return function(d, i, j) {
+      var group = enter[j].update, n = group.length, node;
+      if (j != j0) j0 = j, i0 = 0;
+      if (i >= i0) i0 = i + 1;
+      while (!(node = group[i0]) && ++i0 < n) ;
+      return node;
+    };
+  }
   d3_selectionPrototype.transition = function() {
     var id = d3_transitionInheritId || ++d3_transitionId, subgroups = [], subgroup, node, transition = Object.create(d3_transitionInherit);
     transition.time = Date.now();
@@ -1911,7 +1930,7 @@ d3 = function() {
   var d3_timer_frame = d3_window[d3_vendorSymbol(d3_window, "requestAnimationFrame")] || function(callback) {
     setTimeout(callback, 17);
   };
-  var d3_format_decimalPoint = ".", d3_format_thousandsSeparator = ",", d3_format_grouping = [ 3, 3 ];
+  var d3_format_decimalPoint = ".", d3_format_thousandsSeparator = ",", d3_format_grouping = [ 3, 3 ], d3_format_currencySymbol = "$";
   var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
   d3.formatPrefix = function(value, precision) {
     var i = 0;
@@ -1938,7 +1957,7 @@ d3 = function() {
     return n ? Math.round(x * (n = Math.pow(10, n))) / n : Math.round(x);
   };
   d3.format = function(specifier) {
-    var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "", basePrefix = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, suffix = "", integer = false;
+    var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "", base = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, suffix = "", integer = false;
     if (precision) precision = +precision.substring(1);
     if (zfill || fill === "0" && align === "=") {
       zfill = fill = "0";
@@ -1967,7 +1986,7 @@ d3 = function() {
      case "o":
      case "x":
      case "X":
-      if (basePrefix) basePrefix = "0" + type.toLowerCase();
+      if (base === "#") base = "0" + type.toLowerCase();
 
      case "c":
      case "d":
@@ -1980,7 +1999,7 @@ d3 = function() {
       type = "r";
       break;
     }
-    if (basePrefix === "#") basePrefix = "";
+    if (base === "#") base = ""; else if (base === "$") base = d3_format_currencySymbol;
     if (type == "r" && !precision) type = "g";
     if (precision != null) {
       if (type == "g") precision = Math.max(1, Math.min(21, precision)); else if (type == "e" || type == "f") precision = Math.max(0, Math.min(20, precision));
@@ -1999,14 +2018,14 @@ d3 = function() {
       }
       value = type(value, precision);
       if (!zfill && comma) value = d3_format_group(value);
-      var length = basePrefix.length + value.length + (zcomma ? 0 : negative.length), padding = length < width ? new Array(length = width - length + 1).join(fill) : "";
+      var length = base.length + value.length + (zcomma ? 0 : negative.length), padding = length < width ? new Array(length = width - length + 1).join(fill) : "";
       if (zcomma) value = d3_format_group(padding + value);
       if (d3_format_decimalPoint) value.replace(".", d3_format_decimalPoint);
-      negative += basePrefix;
+      negative += base;
       return (align === "<" ? negative + value + padding : align === ">" ? padding + negative + value : align === "^" ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length) : negative + (zcomma ? value : padding + value)) + suffix;
     };
   };
-  var d3_format_re = /(?:([^{])?([<>=^]))?([+\- ])?(#)?(0)?(\d+)?(,)?(\.-?\d+)?([a-z%])?/i;
+  var d3_format_re = /(?:([^{])?([<>=^]))?([+\- ])?([$#])?(0)?(\d+)?(,)?(\.-?\d+)?([a-z%])?/i;
   var d3_format_types = d3.map({
     b: function(x) {
       return x.toString(2);
@@ -4079,9 +4098,9 @@ d3 = function() {
   }
   function d3_svg_lineBasis(points) {
     if (points.length < 3) return d3_svg_lineLinear(points);
-    var i = 1, n = points.length, pi = points[0], x0 = pi[0], y0 = pi[1], px = [ x0, x0, x0, (pi = points[1])[0] ], py = [ y0, y0, y0, pi[1] ], path = [ x0, ",", y0 ];
-    d3_svg_lineBasisBezier(path, px, py);
-    while (++i < n) {
+    var i = 1, n = points.length, pi = points[0], x0 = pi[0], y0 = pi[1], px = [ x0, x0, x0, (pi = points[1])[0] ], py = [ y0, y0, y0, pi[1] ], path = [ x0, ",", y0, "L", d3_svg_lineDot4(d3_svg_lineBasisBezier3, px), ",", d3_svg_lineDot4(d3_svg_lineBasisBezier3, py) ];
+    points.push(points[n - 1]);
+    while (++i <= n) {
       pi = points[i];
       px.shift();
       px.push(pi[0]);
@@ -4089,14 +4108,8 @@ d3 = function() {
       py.push(pi[1]);
       d3_svg_lineBasisBezier(path, px, py);
     }
-    i = -1;
-    while (++i < 2) {
-      px.shift();
-      px.push(pi[0]);
-      py.shift();
-      py.push(pi[1]);
-      d3_svg_lineBasisBezier(path, px, py);
-    }
+    points.pop();
+    path.push("L", pi);
     return path.join("");
   }
   function d3_svg_lineBasisOpen(points) {
@@ -4896,7 +4909,10 @@ d3 = function() {
     b = d3.rgb(b);
     var ar = a.r, ag = a.g, ab = a.b, br = b.r - ar, bg = b.g - ag, bb = b.b - ab;
     return function(t) {
-      return "#" + d3_rgb_hex(Math.round(ar + br * t)) + d3_rgb_hex(Math.round(ag + bg * t)) + d3_rgb_hex(Math.round(ab + bb * t));
+      a.r = Math.round(ar + br * t);
+      a.g = Math.round(ag + bg * t);
+      a.b = Math.round(ab + bb * t);
+      return a;
     };
   }
   d3.interpolateObject = d3_interpolateObject;
@@ -5121,7 +5137,10 @@ d3 = function() {
     if (isNaN(bc)) bc = 0, ac = isNaN(ac) ? b.c : ac;
     if (isNaN(bh)) bh = 0, ah = isNaN(ah) ? b.h : ah; else if (bh > 180) bh -= 360; else if (bh < -180) bh += 360;
     return function(t) {
-      return d3_hcl_lab(ah + bh * t, ac + bc * t, al + bl * t) + "";
+      a.h = ah + bh * t;
+      a.c = ac + bc * t;
+      a.l = al + bl * t;
+      return a;
     };
   }
   d3.interpolateHsl = d3_interpolateHsl;
@@ -5132,7 +5151,10 @@ d3 = function() {
     if (isNaN(bs)) bs = 0, as = isNaN(as) ? b.s : as;
     if (isNaN(bh)) bh = 0, ah = isNaN(ah) ? b.h : ah; else if (bh > 180) bh -= 360; else if (bh < -180) bh += 360;
     return function(t) {
-      return d3_hsl_rgb(ah + bh * t, as + bs * t, al + bl * t) + "";
+      a.h = ah + bh * t;
+      a.s = as + bs * t;
+      a.l = al + bl * t;
+      return a;
     };
   }
   d3.interpolateLab = d3_interpolateLab;
@@ -5141,7 +5163,10 @@ d3 = function() {
     b = d3.lab(b);
     var al = a.l, aa = a.a, ab = a.b, bl = b.l - al, ba = b.a - aa, bb = b.b - ab;
     return function(t) {
-      return d3_lab_rgb(al + bl * t, aa + ba * t, ab + bb * t) + "";
+      a.l = al + bl * t;
+      a.a = aa + ba * t;
+      a.b = ab + bb * t;
+      return a;
     };
   }
   d3.interpolateRound = d3_interpolateRound;
@@ -7032,6 +7057,10 @@ d3 = function() {
     scale.quantiles = function() {
       return thresholds;
     };
+    scale.invertExtent = function(y) {
+      y = range.indexOf(y);
+      return y < 0 ? [ NaN, NaN ] : [ y > 0 ? thresholds[y - 1] : domain[0], y < thresholds.length ? thresholds[y] : domain[domain.length - 1] ];
+    };
     scale.copy = function() {
       return d3_scale_quantile(domain, range);
     };
@@ -7061,13 +7090,13 @@ d3 = function() {
       range = x;
       return rescale();
     };
-    scale.copy = function() {
-      return d3_scale_quantize(x0, x1, range);
-    };
     scale.invertExtent = function(y) {
       y = range.indexOf(y);
       y = y < 0 ? NaN : y / kx + x0;
       return [ y, y + 1 / kx ];
+    };
+    scale.copy = function() {
+      return d3_scale_quantize(x0, x1, range);
     };
     return rescale();
   }
@@ -7449,7 +7478,7 @@ d3 = function() {
     for (var j = -1, m = this.length; ++j < m; ) {
       subgroups.push(subgroup = []);
       for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
-        if ((node = group[i]) && (subnode = selector.call(node, node.__data__, i))) {
+        if ((node = group[i]) && (subnode = selector.call(node, node.__data__, i, j))) {
           if ("__data__" in node) subnode.__data__ = node.__data__;
           d3_transitionNode(subnode, i, id, node.__transition__[id]);
           subgroup.push(subnode);
@@ -7467,7 +7496,7 @@ d3 = function() {
       for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
         if (node = group[i]) {
           transition = node.__transition__[id];
-          subnodes = selector.call(node, node.__data__, i);
+          subnodes = selector.call(node, node.__data__, i, j);
           subgroups.push(subgroup = []);
           for (var k = -1, o = subnodes.length; ++k < o; ) {
             if (subnode = subnodes[k]) d3_transitionNode(subnode, k, id, transition);
@@ -7639,7 +7668,8 @@ d3 = function() {
       d3_transitionInheritId = inheritId;
     } else {
       d3_selection_each(this, function(node) {
-        node.__transition__[id].event.on(type, listener);
+        var transition = node.__transition__[id];
+        (transition.event || (transition.event = d3.dispatch("start", "end"))).on(type, listener);
       });
     }
     return this;
@@ -7668,7 +7698,6 @@ d3 = function() {
       var time = inherit.time;
       transition = lock[id] = {
         tween: new d3_Map(),
-        event: d3.dispatch("start", "end"),
         time: time,
         ease: inherit.ease,
         delay: inherit.delay,
@@ -7676,12 +7705,12 @@ d3 = function() {
       };
       ++lock.count;
       d3.timer(function(elapsed) {
-        var d = node.__data__, ease = transition.ease, event = transition.event, delay = transition.delay, duration = transition.duration, tweened = [];
+        var d = node.__data__, ease = transition.ease, delay = transition.delay, duration = transition.duration, tweened = [];
         return delay <= elapsed ? start(elapsed) : d3.timer(start, delay, time), 1;
         function start(elapsed) {
           if (lock.active > id) return stop();
           lock.active = id;
-          event.start.call(node, d, i);
+          transition.event && transition.event.start.call(node, d, i);
           transition.tween.forEach(function(key, value) {
             if (value = value.call(node, d, i)) {
               tweened.push(value);
@@ -7698,7 +7727,7 @@ d3 = function() {
           }
           if (t >= 1) {
             stop();
-            event.end.call(node, d, i);
+            transition.event && transition.event.end.call(node, d, i);
             return 1;
           }
         }
@@ -7782,19 +7811,19 @@ d3 = function() {
             break;
           }
         }
-        if (scale.ticks) {
+        if (scale.rangeBand) {
+          var dx = scale1.rangeBand() / 2, x = function(d) {
+            return scale1(d) + dx;
+          };
+          tickEnter.call(tickTransform, x);
+          tickUpdate.call(tickTransform, x);
+        } else {
           tickEnter.call(tickTransform, scale0);
           tickUpdate.call(tickTransform, scale1);
           tickExit.call(tickTransform, scale1);
           subtickEnter.call(tickTransform, scale0);
           subtickUpdate.call(tickTransform, scale1);
           subtickExit.call(tickTransform, scale1);
-        } else {
-          var dx = scale1.rangeBand() / 2, x = function(d) {
-            return scale1(d) + dx;
-          };
-          tickEnter.call(tickTransform, x);
-          tickUpdate.call(tickTransform, x);
         }
       });
     }
