@@ -36,7 +36,7 @@
       };
     }
   };
-  var d3_geo_projectPoints = [], d3_geo_projectLines = [], d3_geo_projectPolygons = [];
+  var d3_geo_projectPoints = [], d3_geo_projectLines = [];
   var d3_geo_projectPoint = {
     point: function(x, y) {
       d3_geo_projectPoints.push([ x, y ]);
@@ -87,20 +87,30 @@
         d3_geo_projectLines.push(d3_geo_projectPoints), d3_geo_projectPoints = [];
       }
     },
-    polygonEnd: function() {
-      if (d3_geo_projectLines.length) d3_geo_projectPolygons.push(d3_geo_projectLines), 
-      d3_geo_projectLines = [];
-    },
+    polygonEnd: d3_geo_projectNoop,
     result: function() {
-      var result = !d3_geo_projectPolygons.length ? null : d3_geo_projectPolygons.length < 2 ? {
-        type: "Polygon",
-        coordinates: d3_geo_projectPolygons[0]
-      } : {
+      if (!d3_geo_projectLines.length) return null;
+      var polygons = [], holes = [];
+      d3_geo_projectLines.forEach(function(ring) {
+        if (d3_geo_projectClockwise(ring)) polygons.push([ ring ]); else holes.push(ring);
+      });
+      holes.forEach(function(hole) {
+        var point = hole[0];
+        polygons.some(function(polygon) {
+          if (d3_geo_projectContains(polygon[0], point)) {
+            polygon.push(hole);
+            return true;
+          }
+        }) || polygons.push([ hole ]);
+      });
+      d3_geo_projectLines = [];
+      return !polygons.length ? null : polygons.length > 1 ? {
         type: "MultiPolygon",
-        coordinates: d3_geo_projectPolygons
+        coordinates: polygons
+      } : {
+        type: "Polygon",
+        coordinates: polygons[0]
       };
-      d3_geo_projectPolygons = [];
-      return result;
     }
   };
   var d3_geo_projectGeometryType = {
@@ -112,6 +122,20 @@
     MultiPolygon: d3_geo_projectPolygon
   };
   function d3_geo_projectNoop() {}
+  function d3_geo_projectClockwise(ring) {
+    if ((n = ring.length) < 4) return false;
+    var i = 0, n, area = ring[n - 1][1] * ring[0][0] - ring[n - 1][0] * ring[0][1];
+    while (++i < n) area += ring[i - 1][1] * ring[i][0] - ring[i - 1][0] * ring[i][1];
+    return area <= 0;
+  }
+  function d3_geo_projectContains(ring, point) {
+    var x = point[0], y = point[1], contains = false;
+    for (var i = 0, n = ring.length, j = n - 1; i < n; j = i++) {
+      var pi = ring[i], xi = pi[0], yi = pi[1], pj = ring[j], xj = pj[0], yj = pj[1];
+      if (yi > y ^ yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi) contains = !contains;
+    }
+    return contains;
+  }
   var ε = 1e-6, ε2 = ε * ε, π = Math.PI, sqrtπ = Math.sqrt(π), radians = π / 180, degrees = 180 / π;
   function sinci(x) {
     return x ? x / Math.sin(x) : 1;
@@ -1639,7 +1663,7 @@
     p.points = function(_) {
       if (!arguments.length) return points;
       points = _;
-      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = twoPointEquidistant_rotate(-origin[0] * radians, -origin[1] * radians, _[0][0] * radians, _[0][1] * radians), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1], γ = asin(Math.sin(c) / Math.sin(b));
+      var interpolate = d3.geo.interpolate(_[0], _[1]), origin = interpolate(.5), p = d3.geo.rotation([ -origin[0], -origin[1] ])(_[0]), b = interpolate.distance * .5, c = (p[0] < 0 ? -1 : +1) * p[1] * radians, γ = asin(Math.sin(c) / Math.sin(b));
       rotate.call(p, [ -origin[0], -origin[1], -γ * degrees ]);
       return m(b);
     };
