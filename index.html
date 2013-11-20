@@ -4,34 +4,156 @@
 <title>D3.js - Data-Driven Documents</title>
 <style>
 
-@import url(style.css);
+html {
+  min-width: 1040px;
+}
+
+body {
+  font: 16px/1.5em "Helvetica Neue", Helvetica, sans-serif;
+  margin: 1em auto 4em auto;
+}
 
 #examples {
-  width: 960px;
-  height: 378px;
-  margin-bottom: 2em;
-}
-
-.example img {
   float: left;
-  margin-bottom: 13px;
-  width: 226px;
-  height: 180px;
-  border: solid 2px #ccc;
 }
 
-.example:hover img {
-  border-color: steelblue;
+#examples-container {
+  height: 410px;
+  margin-bottom: 2em;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  border-top: solid 1px #fff;
+  border-bottom: solid 1px #fff;
 }
 
-.example:not(:nth-child(4n)) img {
-  margin-right: 13px;
+#examples-container:after,
+#examples-container:before {
+  content: "";
+  display: block;
+  width: 100%;
+  position: absolute;
+  background: red;
+  height: 16px;
+}
+
+#examples-container:before {
+  bottom: -16px;
+  box-shadow: 0px -8px 16px rgba(0,0,0,.3);
+}
+
+#examples-container:after {
+  top: -16px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,.3);
+}
+
+h1 {
+  font-size: 64px;
+  font-weight: 200;
+  letter-spacing: -2px;
+  white-space: nowrap;
+  margin-top: 20px;
+}
+
+h1,
+h2 {
+  text-rendering: optimizeLegibility;
+}
+
+h2 {
+  margin-top: 2em;
+}
+
+h2 a {
+  color: #ccc;
+  left: -20px;
+  position: absolute;
+  width: 740px;
+}
+
+footer {
+  font-size: small;
+  margin-top: 8em;
+}
+
+header aside {
+  margin-top: 82px;
+}
+
+header aside,
+footer aside {
+  color: #636363;
+  text-align: right;
+}
+
+aside {
+  font-size: small;
+  left: 780px;
+  position: absolute;
+  width: 180px;
+}
+
+.column {
+  margin: auto;
+  width: 720px;
+  padding-right: 240px;
+  position: relative;
+}
+
+a {
+  color: steelblue;
+}
+
+a:not(:hover) {
+  text-decoration: none;
+}
+
+pre,
+code {
+  font-family: "Menlo", monospace;
+}
+
+code {
+  line-height: 1em;
+}
+
+pre {
+  border-left: solid 2px #ccc;
+  padding-left: 18px;
+  margin: 2em 0 2em -20px;
+}
+
+.html .value,
+.javascript .string,
+.javascript .regexp {
+  color: #756bb1;
+}
+
+.html .tag,
+.css .tag,
+.javascript .keyword {
+  color: #3182bd;
+}
+
+.comment {
+  color: #636363;
+}
+
+.html .doctype,
+.javascript .number {
+  color: #31a354;
+}
+
+.html .attribute,
+.css .attribute,
+.javascript .class,
+.javascript .special {
+  color: #e6550d;
 }
 
 </style>
 
-<div id="body">
-
+<div class="column">
 <header>‍
   <b><a href="./">Overview</a></b>
   <a style="margin-left:1em;" href="https://github.com/mbostock/d3/wiki/Gallery">Examples</a>
@@ -39,117 +161,196 @@
   <a style="margin-left:1em;" href="https://github.com/mbostock/d3">Source</a>
 </header>
 
-<h1>Data-Driven Documents</h1>
+<h1>
+  <svg width="96" height="92" style="position:relative;top:22px;">
+    <defs>
+      <linearGradient id="logo-gradient-1" gradientUnits="userSpaceOnUse" x1="59.4458" y1="54.7964" x2="143.5818" y2="138.9324">
+        <stop offset="0" stop-color="#F26D58"/>
+        <stop offset="1" stop-color="#F9A03C"/>
+      </linearGradient>
+      <linearGradient id="logo-gradient-2" gradientUnits="userSpaceOnUse" x1="64.3594" y1="119.9092" x2="106.8445" y2="162.3943">
+        <stop offset="0" stop-color="#F9A03C"/>
+        <stop offset="1" stop-color="#F7974E"/>
+      </linearGradient>
+      <linearGradient id="logo-gradient-3" gradientUnits="userSpaceOnUse" x1="102.4692" y1="47.0034" x2="164.5054" y2="109.0396">
+        <stop offset="0" stop-color="#B84E51"/>
+        <stop offset="1" stop-color="#F68E48"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(-57,-55)">
+      <path fill="#F68E48" d="M103.084,126.146c4.759-7.121,7.54-15.67,7.54-24.857c0-24.736-20.126-44.86-44.864-44.86h-7.946v19.695 h7.946c13.876,0,25.168,11.288,25.168,25.165c0,3.776-0.842,7.358-2.338,10.576c-4.004,8.606-12.729,14.59-22.83,14.59h-7.946 v19.694h7.946C81.309,146.148,95.032,138.194,103.084,126.146z"/>
+      <path fill="#F68E48" d="M146.194,101.214c3.955-4.738,6.338-10.83,6.338-17.469c0-15.062-12.252-27.317-27.314-27.317H93.044 c7.859,4.798,14.365,11.601,18.798,19.695h13.375c4.201,0,7.621,3.418,7.621,7.622c0,4.203-3.42,7.621-7.621,7.621h-3.006h-4.885 c0.621,3.217,0.955,6.529,0.955,9.922c0,3.342-0.328,6.605-0.928,9.773h7.863c4.201,0,7.621,3.42,7.621,7.623 s-3.42,7.621-7.621,7.621h-13.287c-0.998,1.835-2.115,3.593-3.317,5.287c-4.093,5.767-9.308,10.684-15.339,14.409h29.963h1.98 c14.646,0,26.631-11.587,27.283-26.074c-0.02,0.402-0.048,0.802-0.084,1.2c0.072-0.806,0.115-1.619,0.115-2.443 C152.532,112.044,150.149,105.954,146.194,101.214z"/>
+      <path fill="url(#logo-gradient-1)" d="M152.501,119.928c-0.652,14.487-12.638,26.074-27.283,26.074h-1.98l-14.624-14.409 c1.202-1.694,2.319-3.452,3.317-5.287h13.287c4.201,0,7.621-3.418,7.621-7.621s-3.42-7.623-7.621-7.623h-7.863 c0.6-3.168,0.928-6.432,0.928-9.773c0-3.393-0.334-6.705-0.955-9.922h4.885l30.205,29.762 C152.453,120.729,152.481,120.33,152.501,119.928z M65.76,56.428h-7.946v19.695h7.946c13.876,0,25.168,11.288,25.168,25.165 c0,3.776-0.842,7.358-2.338,10.576l14.494,14.281c4.759-7.121,7.54-15.67,7.54-24.857C110.624,76.552,90.498,56.428,65.76,56.428 z"/>
+      <path fill="url(#logo-gradient-2)" d="M123.237,146.002H93.274c6.031-3.726,11.246-8.643,15.339-14.409L123.237,146.002z  M103.084,126.146L88.59,111.864c-4.004,8.606-12.729,14.59-22.83,14.59h-7.946v19.694h7.946 C81.309,146.148,95.032,138.194,103.084,126.146z"/>
+      <path fill="url(#logo-gradient-3)" d="M125.218,56.428H93.044c7.859,4.798,14.365,11.601,18.798,19.695h13.375 c4.201,0,7.621,3.418,7.621,7.622c0,4.203-3.42,7.621-7.621,7.621h-3.006l30.205,29.762c0.072-0.806,0.115-1.619,0.115-2.443     c0-6.641-2.383-12.73-6.338-17.471c3.955-4.738,6.338-10.83,6.338-17.469C152.532,68.683,140.28,56.428,125.218,56.428z"/>
+    </g>
+  </svg>
+    Data-Driven Documents
+  </h1>
+</div>
 
-<div id="examples"></div>
+<div id="examples-container">
+  <svg id="examples" height="410">
+    <defs>
+      <path id="hexagon">
+    </defs>
+    <clipPath id="hexagon-clip">
+      <use xlink:href="#hexagon">
+    </clipPath>
+  </svg>
+</div>
 
-<script src="d3.v3.min.js?3.0.0rc1"></script>
+<script src="d3.v3.min.js"></script>
+<script src="d3.hexbin.v0.min.js"></script>
 <script>
 
-var examples = [
-{name: "box", url: "http://mbostock.github.com/d3/ex/box.html"},
-{name: "bubble", url: "http://mbostock.github.com/d3/ex/bubble.html"},
-{name: "bullet", url: "http://mbostock.github.com/d3/ex/bullet.html"},
-{name: "calendar", url: "http://mbostock.github.com/d3/ex/calendar.html"},
-{name: "cartogram", url: "http://mbostock.github.com/d3/ex/cartogram.html"},
-{name: "chord", url: "http://mbostock.github.com/d3/ex/chord.html"},
-{name: "cluster", url: "http://mbostock.github.com/d3/ex/cluster.html"},
-{name: "force", url: "http://mbostock.github.com/d3/ex/force.html"},
-{name: "pack", url: "http://mbostock.github.com/d3/ex/pack.html"},
-{name: "population", url: "http://mbostock.github.com/d3/ex/population.html"},
-{name: "stack", url: "http://mbostock.github.com/d3/ex/stack.html"},
-{name: "stream", url: "http://mbostock.github.com/d3/ex/stream.html"},
-{name: "sunburst", url: "http://mbostock.github.com/d3/ex/sunburst.html"},
-{name: "tree", url: "http://mbostock.github.com/d3/ex/tree.html"},
-{name: "treemap", url: "http://mbostock.github.com/d3/ex/treemap.html"},
-{name: "voronoi", url: "http://mbostock.github.com/d3/ex/voronoi.html"},
-{name: "bundle", url: "http://mbostock.github.com/d3/talk/20111116/bundle.html"},
-{name: "airports-all", url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
-{name: "airports", url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
-{name: "iris-parallel", url: "http://mbostock.github.com/d3/talk/20111116/iris-parallel.html"},
-{name: "iris-splom", url: "http://mbostock.github.com/d3/talk/20111116/iris-splom.html"},
-{name: "pack-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
-{name: "bar-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/bar-hierarchy.html"},
-{name: "gears", url: "http://mbostock.github.com/d3/talk/20111116/gears.html"},
-{name: "force-collision", url: "http://mbostock.github.com/d3/talk/20111018/collision.html"},
-{name: "force-collapsible", url: "http://mbostock.github.com/d3/talk/20111116/force-collapsible.html"},
-{name: "force-states", url: "http://mbostock.github.com/d3/talk/20111018/force-states.html"},
-{name: "azimuthal", url: "http://mbostock.github.com/d3/talk/20111018/azimuthal.html"},
-{name: "choropleth", url: "http://mbostock.github.com/d3/talk/20111018/choropleth.html"},
-{name: "tree-zoom", url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
-{name: "treemap-zoom", url: "http://mbostock.github.com/d3/talk/20111018/treemap.html"},
-{name: "partition-zoom", url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
-{name: "area-gradient", url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
-{name: "flight-calendar", url: "http://mbostock.github.com/d3/talk/20111018/calendar.html"},
-{name: "cluster-radial", url: "http://mbostock.github.com/d3/talk/20111018/cluster.html"},
-{name: "sankey", url: "http://bost.ocks.org/mike/sankey/"},
-{name: "fisheye", url: "http://bost.ocks.org/mike/fisheye/"},
-{name: "hive", url: "http://bost.ocks.org/mike/hive/"},
-{name: "miserables", url: "http://bost.ocks.org/mike/miserables/"},
-{name: "nations", url: "http://bost.ocks.org/mike/nations/"},
-{name: "uber", url: "http://bost.ocks.org/mike/uberdata/"},
-{name: "bezier", url: "http://www.jasondavies.com/animated-bezier/"},
-{name: "coffee", url: "http://www.jasondavies.com/coffee-wheel/"},
-{name: "collatz", url: "http://www.jasondavies.com/collatz-graph/"},
-{name: "parsets", url: "http://www.jasondavies.com/parallel-sets/"},
-{name: "cloud", url: "http://www.jasondavies.com/wordcloud/"},
-{name: "facebook-ipo", url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
-{name: "budget", url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
-{name: "koalas", url: "http://www.koalastothemax.com/"},
-{name: "particles", url: "http://bl.ocks.org/1062544"},
-{name: "indented-tree", url: "http://bl.ocks.org/1093025"},
-{name: "ronded-rect", url: "http://bl.ocks.org/1123639"},
-{name: "sperm", url: "http://bl.ocks.org/1136236"},
-{name: "show-reel", url: "http://bl.ocks.org/1256572"},
-{name: "debt", url: "http://bl.ocks.org/1308257"},
-{name: "force-labels", url: "http://bl.ocks.org/1377729"},
-{name: "illusion", url: "http://bl.ocks.org/1386444"},
-{name: "voronoi-picker", url: "http://bl.ocks.org/1405439"},
-{name: "map-zoom", url: "http://bl.ocks.org/2206590"},
-{name: "rain", url: "http://bl.ocks.org/849853"},
-{name: "color", url: "http://color.method.ac/"},
-{name: "nutrient", url: "http://exposedata.com/parallel/"},
-{name: "hn", url: "http://hn.metamx.com/"},
-{name: "world", url: "http://projects.flowingdata.com/life-expectancy/"},
-{name: "slope", url: "http://skedasis.com/d3/slopegraph/"},
-{name: "ncaa", url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
-{name: "cubism", url: "http://square.github.com/cubism/"},
-{name: "crossfilter", url: "http://square.github.com/crossfilter/"},
-{name: "windhistory", url: "http://windhistory.com/"},
-{name: "lcf", url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
-{name: "force-voronoi", url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
-{name: "house-heatmap", url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
-{name: "house-map", url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
-{name: "open-budget", url: "http://marcinignac.com/projects/open-budget/"}
+var exampleData = [
+  {name: "box", url: "http://mbostock.github.com/d3/ex/box.html"},
+  {name: "bubble", url: "http://mbostock.github.com/d3/ex/bubble.html"},
+  {name: "bullet", url: "http://mbostock.github.com/d3/ex/bullet.html"},
+  {name: "calendar", url: "http://mbostock.github.com/d3/ex/calendar.html"},
+  {name: "cartogram", url: "http://mbostock.github.com/d3/ex/cartogram.html"},
+  {name: "chord", url: "http://mbostock.github.com/d3/ex/chord.html"},
+  {name: "cluster", url: "http://mbostock.github.com/d3/ex/cluster.html"},
+  {name: "force", url: "http://mbostock.github.com/d3/ex/force.html"},
+  {name: "pack", url: "http://mbostock.github.com/d3/ex/pack.html"},
+  {name: "population", url: "http://mbostock.github.com/d3/ex/population.html"},
+  {name: "stack", url: "http://mbostock.github.com/d3/ex/stack.html"},
+  {name: "stream", url: "http://mbostock.github.com/d3/ex/stream.html"},
+  {name: "sunburst", url: "http://mbostock.github.com/d3/ex/sunburst.html"},
+  {name: "tree", url: "http://mbostock.github.com/d3/ex/tree.html"},
+  {name: "treemap", url: "http://mbostock.github.com/d3/ex/treemap.html"},
+  {name: "voronoi", url: "http://mbostock.github.com/d3/ex/voronoi.html"},
+  {name: "bundle", url: "http://mbostock.github.com/d3/talk/20111116/bundle.html"},
+  {name: "airports-all", url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
+  {name: "airports", url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
+  {name: "iris-parallel", url: "http://mbostock.github.com/d3/talk/20111116/iris-parallel.html"},
+  {name: "iris-splom", url: "http://mbostock.github.com/d3/talk/20111116/iris-splom.html"},
+  {name: "pack-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
+  {name: "bar-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/bar-hierarchy.html"},
+  {name: "gears", url: "http://mbostock.github.com/d3/talk/20111116/gears.html"},
+  {name: "force-collision", url: "http://mbostock.github.com/d3/talk/20111018/collision.html"},
+  {name: "force-collapsible", url: "http://mbostock.github.com/d3/talk/20111116/force-collapsible.html"},
+  {name: "force-states", url: "http://mbostock.github.com/d3/talk/20111018/force-states.html"},
+  {name: "azimuthal", url: "http://mbostock.github.com/d3/talk/20111018/azimuthal.html"},
+  {name: "choropleth", url: "http://mbostock.github.com/d3/talk/20111018/choropleth.html"},
+  {name: "tree-zoom", url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
+  {name: "treemap-zoom", url: "http://mbostock.github.com/d3/talk/20111018/treemap.html"},
+  {name: "partition-zoom", url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
+  {name: "area-gradient", url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
+  {name: "flight-calendar", url: "http://mbostock.github.com/d3/talk/20111018/calendar.html"},
+  {name: "cluster-radial", url: "http://mbostock.github.com/d3/talk/20111018/cluster.html"},
+  {name: "sankey", url: "http://bost.ocks.org/mike/sankey/"},
+  {name: "fisheye", url: "http://bost.ocks.org/mike/fisheye/"},
+  {name: "hive", url: "http://bost.ocks.org/mike/hive/"},
+  {name: "miserables", url: "http://bost.ocks.org/mike/miserables/"},
+  {name: "nations", url: "http://bost.ocks.org/mike/nations/"},
+  {name: "uber", url: "http://bost.ocks.org/mike/uberdata/"},
+  {name: "bezier", url: "http://www.jasondavies.com/animated-bezier/"},
+  {name: "coffee", url: "http://www.jasondavies.com/coffee-wheel/"},
+  {name: "collatz", url: "http://www.jasondavies.com/collatz-graph/"},
+  {name: "parsets", url: "http://www.jasondavies.com/parallel-sets/"},
+  {name: "cloud", url: "http://www.jasondavies.com/wordcloud/"},
+  {name: "facebook-ipo", url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
+  {name: "budget", url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
+  {name: "koalas", url: "http://www.koalastothemax.com/"},
+  {name: "particles", url: "http://bl.ocks.org/1062544"},
+  {name: "indented-tree", url: "http://bl.ocks.org/1093025"},
+  {name: "ronded-rect", url: "http://bl.ocks.org/1123639"},
+  {name: "sperm", url: "http://bl.ocks.org/1136236"},
+  {name: "show-reel", url: "http://bl.ocks.org/1256572"},
+  {name: "debt", url: "http://bl.ocks.org/1308257"},
+  {name: "force-labels", url: "http://bl.ocks.org/1377729"},
+  {name: "illusion", url: "http://bl.ocks.org/1386444"},
+  {name: "voronoi-picker", url: "http://bl.ocks.org/1405439"},
+  {name: "map-zoom", url: "http://bl.ocks.org/2206590"},
+  {name: "rain", url: "http://bl.ocks.org/849853"},
+  {name: "color", url: "http://color.method.ac/"},
+  {name: "nutrient", url: "http://exposedata.com/parallel/"},
+  {name: "hn", url: "http://hn.metamx.com/"},
+  {name: "world", url: "http://projects.flowingdata.com/life-expectancy/"},
+  {name: "slope", url: "http://skedasis.com/d3/slopegraph/"},
+  {name: "ncaa", url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
+  {name: "cubism", url: "http://square.github.com/cubism/"},
+  {name: "crossfilter", url: "http://square.github.com/crossfilter/"},
+  {name: "windhistory", url: "http://windhistory.com/"},
+  {name: "lcf", url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
+  {name: "force-voronoi", url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
+  {name: "house-heatmap", url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
+  {name: "house-map", url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
+  {name: "open-budget", url: "http://marcinignac.com/projects/open-budget/"}
 ];
 
-function shuffle(array) {
-  var m = array.length, t, i;
+var examples = d3.select("#examples");
 
-  // While there remain elements to shuffle…
-  while (m) {
+var exampleScale = 1.5,
+    exampleRadius = 90 / exampleScale;
 
-    // Pick a remaining element…
-    i = Math.floor(Math.random() * m--);
+var exampleHexbin = d3.hexbin()
+    .radius(exampleRadius);
 
-    // And swap it with the current element.
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
-  }
+var example = examples.append("g")
+    .attr("class", "example")
+    .attr("transform", "translate(0," + exampleRadius * .5 + ")")
+  .selectAll("g");
 
-  return array;
+d3.select("#hexagon")
+    .attr("d", exampleHexbin.hexagon());
+
+resized();
+
+d3.select(window)
+    .on("resize", resized);
+
+function resized() {
+  var width = innerWidth,
+      height = +examples.attr("height");
+
+  exampleHexbin
+      .size([width, height]);
+
+  examples
+      .attr("width", width);
+
+  example = example.data(exampleHexbin.centers());
+  example.exit().remove();
+
+  var exampleEnter = example.enter().append("a")
+      .on("mouseover", mouseovered)
+      .on("mouseout", mouseouted);
+
+  exampleEnter.append("image")
+      .attr("clip-path", "url(#hexagon-clip)")
+      .attr("x", -113 / exampleScale)
+      .attr("y", -90 / exampleScale)
+      .attr("width", 226 / exampleScale)
+      .attr("height", 180 / exampleScale);
+
+  exampleEnter.append("use")
+      .attr("xlink:href", "#hexagon")
+      .style("fill", "none")
+      .style("stroke", "#fff")
+      .style("stroke-width", "4px");
+
+  example
+      .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
+      .attr("transform", function(d) { return "translate(" + d + ")"; })
+      .attr("xlink:href", function(d) { return d.example.url; })
+    .select("image")
+      .attr("xlink:href", function(d) { return "ex/" + d.example.name + ".png"; });
 }
 
-d3.select("#examples").selectAll(".example")
-    .data(shuffle(examples).slice(0, 8))
-  .enter().append("a")
-    .attr("class", "example")
-    .attr("href", function(d) { return d.url; })
-  .append("img")
-    .attr("src", function(d) { return "ex/" + d.name + ".png"; });
+function mouseovered(d) {
+  this.parentNode.appendChild(this);
+  d3.select(this).transition().attr("transform", "translate(" + d + ")scale(" + exampleScale + ")")}
+
+function mouseouted(d) {
+  d3.select(this).transition().attr("transform", "translate(" + d + ")");
+}
 
 </script>
+
+<div class="column">
 
 <p><aside>See <a href="https://github.com/mbostock/d3/wiki/Gallery">more examples</a>.</aside>
 
@@ -281,12 +482,11 @@ p.exit().remove();</code></pre>
 <p>Want to learn more? Read <a href="https://github.com/mbostock/d3/wiki/Tutorials">these tutorials</a>.
 
 <footer>
-  <aside>Released under <a href="http://opensource.org/licenses/BSD-3-Clause">BSD license</a>.</aside>
-  Copyright 2012 <a href="http://bost.ocks.org/mike/" rel="author">Michael Bostock</a>
+  Library released under <a href="http://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2013 <a href="http://bost.ocks.org/mike/" rel="author">Michael Bostock</a>.
 </footer>
 
 </div>
 
-<a href="https://github.com/mbostock/d3"><img style="position:absolute;top:0;right:0;border:0;" width="149" height="149" src="forkme.png" alt="Fork me on GitHub"></a>
+<a href="https://github.com/mbostock/d3"><img style="position:fixed;top:0;right:0;border:0;" width="149" height="149" src="forkme.png" alt="Fork me on GitHub"></a>
 
 <script src="highlight.v0.min.js"></script>
