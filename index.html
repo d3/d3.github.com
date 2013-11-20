@@ -20,6 +20,7 @@ body {
 }
 
 #examples-container {
+  background: #ddd;
   height: 410px;
   margin-bottom: 2em;
   overflow: hidden;
@@ -326,7 +327,9 @@ d3.select("#hexagon")
 
 var touching;
 
-resized();
+var exampleImage = new Image;
+exampleImage.src = "ex.jpg";
+exampleImage.onload = resized;
 
 d3.select(window)
     .on("resize", resized);
@@ -344,14 +347,17 @@ function resized() {
   example = example.data(exampleHexbin.centers());
   example.exit().remove();
 
+  var intro = example.empty();
+
   var exampleEnter = example.enter().append("a")
       .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
+      .attr("xlink:href", function(d) { return d.example.url; })
       .on("mouseenter", mouseentered)
       .on("mouseleave", mouseleaved);
 
   exampleEnter.append("image")
       .attr("clip-path", "url(#hexagon-clip)")
-      .attr("xlink:href", "ex.jpg")
+      .attr("xlink:href", exampleImage.src)
       .attr("x", function(d) { return -(d.example.i * 226 + 113) / exampleScale; })
       .attr("y", function(d) { return -(d.example.j * 180 + 270) / exampleScale; })
       .attr("width", 226 / exampleScale * 10)
@@ -360,10 +366,20 @@ function resized() {
   exampleEnter.append("use")
       .attr("xlink:href", "#hexagon");
 
-  example
-      .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
-      .attr("transform", function(d) { return "translate(" + d + ")"; })
-      .attr("xlink:href", function(d) { return d.example.url; });
+  if (intro && !/Firefox/.test(navigator.userAgent)) {
+    var delays = shuffle(d3.range(exampleEnter.size()));
+
+    exampleEnter
+        .attr("transform", function(d) { return "translate(" + d + ")scale(0)"; })
+      .transition()
+        .ease("cubic-out")
+        .delay(function(d, i) { return delays[i] * 6; })
+        .duration(250)
+        .attr("transform", function(d) { return "translate(" + d + ")"; });
+  }
+
+  else example
+      .attr("transform", function(d) { return "translate(" + d + ")"; });
 }
 
 function mouseentered(d) {
@@ -391,6 +407,15 @@ function touchmoved() {
 
 function touchended() {
   if (touching) location.href = touching.__data__.example.url;
+}
+
+function shuffle(array) {
+  var m = array.length, t, i;
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = array[m], array[m] = array[i], array[i] = t;
+  }
+  return array;
 }
 
 </script>
