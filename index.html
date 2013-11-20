@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta name="viewport" content="width=1040">
 <meta charset="utf-8">
 <link rel="canonical" href="http://d3js.org/">
 <title>D3.js - Data-Driven Documents</title>
@@ -6,11 +7,12 @@
 
 html {
   min-width: 1040px;
+  margin: 0;
 }
 
 body {
   font: 16px/1.5em "Helvetica Neue", Helvetica, sans-serif;
-  margin: 1em auto 4em auto;
+  margin: 1em 0 4em 0;
 }
 
 #examples {
@@ -112,6 +114,7 @@ a:not(:hover) {
 pre,
 code {
   font-family: "Menlo", monospace;
+  -webkit-text-size-adjust: 100%;
 }
 
 code {
@@ -293,10 +296,15 @@ var exampleHexbin = d3.hexbin()
 var example = examples.append("g")
     .attr("class", "example")
     .attr("transform", "translate(0," + exampleRadius * .5 + ")")
+    .on("touchstart", touchstarted)
+    .on("touchmove", touchmoved)
+    .on("touchend", touchended)
   .selectAll("g");
 
 d3.select("#hexagon")
     .attr("d", exampleHexbin.hexagon());
+
+var touching;
 
 resized();
 
@@ -347,6 +355,25 @@ function mouseovered(d) {
 
 function mouseouted(d) {
   d3.select(this).transition().attr("transform", "translate(" + d + ")");
+}
+
+function touchstarted() {
+  touchmoved();
+  d3.event.preventDefault();
+}
+
+function touchmoved() {
+  var t = document.elementFromPoint(d3.event.touches[0].clientX, d3.event.touches[0].clientY);
+  if (t.tagName !== "image") t = null;
+  else t = t.parentNode;
+  if (t !== touching) {
+    if (touching) mouseouted.call(touching, touching.__data__);
+    mouseovered.call(touching = t, t.__data__);
+  }
+}
+
+function touchended() {
+  if (touching) location.href = touching.__data__.example.url;
 }
 
 </script>
