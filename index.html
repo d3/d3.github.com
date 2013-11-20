@@ -49,6 +49,12 @@ body {
   box-shadow: 0px 8px 16px rgba(0,0,0,.3);
 }
 
+.example use {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
 h1 {
   color: #555;
   font-size: 64px;
@@ -345,10 +351,7 @@ function resized() {
       .attr("height", 180 / exampleScale);
 
   exampleEnter.append("use")
-      .attr("xlink:href", "#hexagon")
-      .style("fill", "none")
-      .style("stroke", "#fff")
-      .style("stroke-width", "4px");
+      .attr("xlink:href", "#hexagon");
 
   example
       .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
