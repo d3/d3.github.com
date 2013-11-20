@@ -334,8 +334,8 @@ function resized() {
   example.exit().remove();
 
   var exampleEnter = example.enter().append("a")
-      .on("mouseover", mouseovered)
-      .on("mouseout", mouseouted);
+      .on("mouseenter", mouseentered)
+      .on("mouseleave", mouseleaved);
 
   exampleEnter.append("image")
       .attr("clip-path", "url(#hexagon-clip)")
@@ -358,11 +358,11 @@ function resized() {
       .attr("xlink:href", function(d) { return "ex/" + d.example.name + ".png"; });
 }
 
-function mouseovered(d) {
+function mouseentered(d) {
   this.parentNode.appendChild(this);
   d3.select(this).transition().attr("transform", "translate(" + d + ")scale(" + exampleScale + ")")}
 
-function mouseouted(d) {
+function mouseleaved(d) {
   d3.select(this).transition().attr("transform", "translate(" + d + ")");
 }
 
