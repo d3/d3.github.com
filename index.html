@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=1040">
 <meta charset="utf-8">
+<meta name="viewport" content="width=1040">
 <link rel="canonical" href="http://d3js.org/">
 <title>D3.js - Data-Driven Documents</title>
 <style>
@@ -224,81 +224,86 @@ pre {
 <script>
 
 var exampleData = [
-  {name: "box", url: "http://mbostock.github.com/d3/ex/box.html"},
-  {name: "bubble", url: "http://mbostock.github.com/d3/ex/bubble.html"},
-  {name: "bullet", url: "http://mbostock.github.com/d3/ex/bullet.html"},
-  {name: "calendar", url: "http://mbostock.github.com/d3/ex/calendar.html"},
-  {name: "cartogram", url: "http://mbostock.github.com/d3/ex/cartogram.html"},
-  {name: "chord", url: "http://mbostock.github.com/d3/ex/chord.html"},
-  {name: "cluster", url: "http://mbostock.github.com/d3/ex/cluster.html"},
-  {name: "force", url: "http://mbostock.github.com/d3/ex/force.html"},
-  {name: "pack", url: "http://mbostock.github.com/d3/ex/pack.html"},
-  {name: "population", url: "http://mbostock.github.com/d3/ex/population.html"},
-  {name: "stack", url: "http://mbostock.github.com/d3/ex/stack.html"},
-  {name: "stream", url: "http://mbostock.github.com/d3/ex/stream.html"},
-  {name: "sunburst", url: "http://mbostock.github.com/d3/ex/sunburst.html"},
-  {name: "tree", url: "http://mbostock.github.com/d3/ex/tree.html"},
-  {name: "treemap", url: "http://mbostock.github.com/d3/ex/treemap.html"},
-  {name: "voronoi", url: "http://mbostock.github.com/d3/ex/voronoi.html"},
-  {name: "bundle", url: "http://mbostock.github.com/d3/talk/20111116/bundle.html"},
-  {name: "airports-all", url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
-  {name: "airports", url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
-  {name: "iris-parallel", url: "http://mbostock.github.com/d3/talk/20111116/iris-parallel.html"},
-  {name: "iris-splom", url: "http://mbostock.github.com/d3/talk/20111116/iris-splom.html"},
-  {name: "pack-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
-  {name: "bar-hierarchy", url: "http://mbostock.github.com/d3/talk/20111116/bar-hierarchy.html"},
-  {name: "gears", url: "http://mbostock.github.com/d3/talk/20111116/gears.html"},
-  {name: "force-collision", url: "http://mbostock.github.com/d3/talk/20111018/collision.html"},
+  {name: "box",               url: "http://mbostock.github.com/d3/ex/box.html"},
+  {name: "bubble",            url: "http://mbostock.github.com/d3/ex/bubble.html"},
+  {name: "bullet",            url: "http://mbostock.github.com/d3/ex/bullet.html"},
+  {name: "calendar",          url: "http://mbostock.github.com/d3/ex/calendar.html"},
+  {name: "cartogram",         url: "http://mbostock.github.com/d3/ex/cartogram.html"},
+  {name: "chord",             url: "http://mbostock.github.com/d3/ex/chord.html"},
+  {name: "cluster",           url: "http://mbostock.github.com/d3/ex/cluster.html"},
+  {name: "force",             url: "http://mbostock.github.com/d3/ex/force.html"},
+  {name: "pack",              url: "http://mbostock.github.com/d3/ex/pack.html"},
+  {name: "population",        url: "http://mbostock.github.com/d3/ex/population.html"},
+  {name: "stack",             url: "http://mbostock.github.com/d3/ex/stack.html"},
+  {name: "stream",            url: "http://mbostock.github.com/d3/ex/stream.html"},
+  {name: "sunburst",          url: "http://mbostock.github.com/d3/ex/sunburst.html"},
+  {name: "tree",              url: "http://mbostock.github.com/d3/ex/tree.html"},
+  {name: "treemap",           url: "http://mbostock.github.com/d3/ex/treemap.html"},
+  {name: "voronoi",           url: "http://mbostock.github.com/d3/ex/voronoi.html"},
+  {name: "bundle",            url: "http://mbostock.github.com/d3/talk/20111116/bundle.html"},
+  {name: "airports-all",      url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
+  {name: "airports",          url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
+  {name: "iris-parallel",     url: "http://mbostock.github.com/d3/talk/20111116/iris-parallel.html"},
+  {name: "iris-splom",        url: "http://mbostock.github.com/d3/talk/20111116/iris-splom.html"},
+  {name: "pack-hierarchy",    url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
+  {name: "bar-hierarchy",     url: "http://mbostock.github.com/d3/talk/20111116/bar-hierarchy.html"},
+  {name: "gears",             url: "http://mbostock.github.com/d3/talk/20111116/gears.html"},
+  {name: "force-collision",   url: "http://mbostock.github.com/d3/talk/20111018/collision.html"},
   {name: "force-collapsible", url: "http://mbostock.github.com/d3/talk/20111116/force-collapsible.html"},
-  {name: "force-states", url: "http://mbostock.github.com/d3/talk/20111018/force-states.html"},
-  {name: "azimuthal", url: "http://mbostock.github.com/d3/talk/20111018/azimuthal.html"},
-  {name: "choropleth", url: "http://mbostock.github.com/d3/talk/20111018/choropleth.html"},
-  {name: "tree-zoom", url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
-  {name: "treemap-zoom", url: "http://mbostock.github.com/d3/talk/20111018/treemap.html"},
-  {name: "partition-zoom", url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
-  {name: "area-gradient", url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
-  {name: "flight-calendar", url: "http://mbostock.github.com/d3/talk/20111018/calendar.html"},
-  {name: "cluster-radial", url: "http://mbostock.github.com/d3/talk/20111018/cluster.html"},
-  {name: "sankey", url: "http://bost.ocks.org/mike/sankey/"},
-  {name: "fisheye", url: "http://bost.ocks.org/mike/fisheye/"},
-  {name: "hive", url: "http://bost.ocks.org/mike/hive/"},
-  {name: "miserables", url: "http://bost.ocks.org/mike/miserables/"},
-  {name: "nations", url: "http://bost.ocks.org/mike/nations/"},
-  {name: "uber", url: "http://bost.ocks.org/mike/uberdata/"},
-  {name: "bezier", url: "http://www.jasondavies.com/animated-bezier/"},
-  {name: "coffee", url: "http://www.jasondavies.com/coffee-wheel/"},
-  {name: "collatz", url: "http://www.jasondavies.com/collatz-graph/"},
-  {name: "parsets", url: "http://www.jasondavies.com/parallel-sets/"},
-  {name: "cloud", url: "http://www.jasondavies.com/wordcloud/"},
-  {name: "facebook-ipo", url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
-  {name: "budget", url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
-  {name: "koalas", url: "http://www.koalastothemax.com/"},
-  {name: "particles", url: "http://bl.ocks.org/1062544"},
-  {name: "indented-tree", url: "http://bl.ocks.org/1093025"},
-  {name: "ronded-rect", url: "http://bl.ocks.org/1123639"},
-  {name: "sperm", url: "http://bl.ocks.org/1136236"},
-  {name: "show-reel", url: "http://bl.ocks.org/1256572"},
-  {name: "debt", url: "http://bl.ocks.org/1308257"},
-  {name: "force-labels", url: "http://bl.ocks.org/1377729"},
-  {name: "illusion", url: "http://bl.ocks.org/1386444"},
-  {name: "voronoi-picker", url: "http://bl.ocks.org/1405439"},
-  {name: "map-zoom", url: "http://bl.ocks.org/2206590"},
-  {name: "rain", url: "http://bl.ocks.org/849853"},
-  {name: "color", url: "http://color.method.ac/"},
-  {name: "nutrient", url: "http://exposedata.com/parallel/"},
-  {name: "hn", url: "http://hn.metamx.com/"},
-  {name: "world", url: "http://projects.flowingdata.com/life-expectancy/"},
-  {name: "slope", url: "http://skedasis.com/d3/slopegraph/"},
-  {name: "ncaa", url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
-  {name: "cubism", url: "http://square.github.com/cubism/"},
-  {name: "crossfilter", url: "http://square.github.com/crossfilter/"},
-  {name: "windhistory", url: "http://windhistory.com/"},
-  {name: "lcf", url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
-  {name: "force-voronoi", url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
-  {name: "house-heatmap", url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
-  {name: "house-map", url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
-  {name: "open-budget", url: "http://marcinignac.com/projects/open-budget/"}
+  {name: "force-states",      url: "http://mbostock.github.com/d3/talk/20111018/force-states.html"},
+  {name: "azimuthal",         url: "http://mbostock.github.com/d3/talk/20111018/azimuthal.html"},
+  {name: "choropleth",        url: "http://mbostock.github.com/d3/talk/20111018/choropleth.html"},
+  {name: "tree-zoom",         url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
+  {name: "treemap-zoom",      url: "http://mbostock.github.com/d3/talk/20111018/treemap.html"},
+  {name: "partition-zoom",    url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
+  {name: "area-gradient",     url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
+  {name: "flight-calendar",   url: "http://mbostock.github.com/d3/talk/20111018/calendar.html"},
+  {name: "cluster-radial",    url: "http://mbostock.github.com/d3/talk/20111018/cluster.html"},
+  {name: "sankey",            url: "http://bost.ocks.org/mike/sankey/"},
+  {name: "fisheye",           url: "http://bost.ocks.org/mike/fisheye/"},
+  {name: "hive",              url: "http://bost.ocks.org/mike/hive/"},
+  {name: "miserables",        url: "http://bost.ocks.org/mike/miserables/"},
+  {name: "nations",           url: "http://bost.ocks.org/mike/nations/"},
+  {name: "uber",              url: "http://bost.ocks.org/mike/uberdata/"},
+  {name: "bezier",            url: "http://www.jasondavies.com/animated-bezier/"},
+  {name: "coffee",            url: "http://www.jasondavies.com/coffee-wheel/"},
+  {name: "collatz",           url: "http://www.jasondavies.com/collatz-graph/"},
+  {name: "parsets",           url: "http://www.jasondavies.com/parallel-sets/"},
+  {name: "cloud",             url: "http://www.jasondavies.com/wordcloud/"},
+  {name: "facebook-ipo",      url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
+  {name: "budget",            url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
+  {name: "koalas",            url: "http://www.koalastothemax.com/"},
+  {name: "particles",         url: "http://bl.ocks.org/1062544"},
+  {name: "indented-tree",     url: "http://bl.ocks.org/1093025"},
+  {name: "ronded-rect",       url: "http://bl.ocks.org/1123639"},
+  {name: "sperm",             url: "http://bl.ocks.org/1136236"},
+  {name: "show-reel",         url: "http://bl.ocks.org/1256572"},
+  {name: "debt",              url: "http://bl.ocks.org/1308257"},
+  {name: "force-labels",      url: "http://bl.ocks.org/1377729"},
+  {name: "illusion",          url: "http://bl.ocks.org/1386444"},
+  {name: "voronoi-picker",    url: "http://bl.ocks.org/1405439"},
+  {name: "map-zoom",          url: "http://bl.ocks.org/2206590"},
+  {name: "rain",              url: "http://bl.ocks.org/849853"},
+  {name: "color",             url: "http://color.method.ac/"},
+  {name: "nutrient",          url: "http://exposedata.com/parallel/"},
+  {name: "hn",                url: "http://hn.metamx.com/"},
+  {name: "world",             url: "http://projects.flowingdata.com/life-expectancy/"},
+  {name: "slope",             url: "http://skedasis.com/d3/slopegraph/"},
+  {name: "ncaa",              url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
+  {name: "cubism",            url: "http://square.github.com/cubism/"},
+  {name: "crossfilter",       url: "http://square.github.com/crossfilter/"},
+  {name: "windhistory",       url: "http://windhistory.com/"},
+  {name: "lcf",               url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
+  {name: "force-voronoi",     url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
+  {name: "house-heatmap",     url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
+  {name: "house-map",         url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
+  {name: "open-budget",       url: "http://marcinignac.com/projects/open-budget/"}
 ];
+
+exampleData.forEach(function(d, i) {
+  d.i = i % 10;
+  d.j = i / 10 | 0;
+});
 
 var examples = d3.select("#examples");
 
@@ -340,15 +345,17 @@ function resized() {
   example.exit().remove();
 
   var exampleEnter = example.enter().append("a")
+      .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
       .on("mouseenter", mouseentered)
       .on("mouseleave", mouseleaved);
 
   exampleEnter.append("image")
       .attr("clip-path", "url(#hexagon-clip)")
-      .attr("x", -113 / exampleScale)
-      .attr("y", -90 / exampleScale)
-      .attr("width", 226 / exampleScale)
-      .attr("height", 180 / exampleScale);
+      .attr("xlink:href", "ex.jpg")
+      .attr("x", function(d) { return -(d.example.i * 226 + 113) / exampleScale; })
+      .attr("y", function(d) { return -(d.example.j * 180 + 270) / exampleScale; })
+      .attr("width", 226 / exampleScale * 10)
+      .attr("height", 180 / exampleScale * 10);
 
   exampleEnter.append("use")
       .attr("xlink:href", "#hexagon");
@@ -356,9 +363,7 @@ function resized() {
   example
       .each(function(d, i) { d.example = exampleData[i % exampleData.length]; })
       .attr("transform", function(d) { return "translate(" + d + ")"; })
-      .attr("xlink:href", function(d) { return d.example.url; })
-    .select("image")
-      .attr("xlink:href", function(d) { return "ex/" + d.example.name + ".png"; });
+      .attr("xlink:href", function(d) { return d.example.url; });
 }
 
 function mouseentered(d) {
