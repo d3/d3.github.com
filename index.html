@@ -390,6 +390,7 @@ function resized() {
       exampleCenters = exampleHexbin.size([width, exampleHeight]).centers();
 
   examplesCanvas.attr("width", width);
+  examplesSvg.attr("width", width);
 
   exampleCenters.forEach(function(center, i) {
     examplesContext.save();
