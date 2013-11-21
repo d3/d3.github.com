@@ -32,7 +32,6 @@ EXAMPLES = \
 	treemap-zoom \
 	partition-zoom \
 	area-gradient \
-	flight-calendar \
 	cluster-radial \
 	sankey \
 	fisheye \

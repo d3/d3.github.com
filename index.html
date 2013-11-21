@@ -264,80 +264,79 @@ pre {
 <script>
 
 var data = [
-  {name: "box",               url: "http://bl.ocks.org/mbostock/4061502"},
-  {name: "bubble",            url: "http://bl.ocks.org/mbostock/4063269"},
-  {name: "bullet",            url: "http://bl.ocks.org/mbostock/4061961"},
-  {name: "calendar",          url: "http://bl.ocks.org/mbostock/4063318"},
-  {name: "cartogram",         url: "http://bl.ocks.org/mbostock/4055908"},
-  {name: "chord",             url: "http://bl.ocks.org/mbostock/4062006"},
-  {name: "cluster",           url: "http://bl.ocks.org/mbostock/4063570"},
-  {name: "force",             url: "http://bl.ocks.org/mbostock/4062045"},
-  {name: "pack",              url: "http://bl.ocks.org/mbostock/4063530"},
-  {name: "population",        url: "http://bl.ocks.org/mbostock/4062085"},
-  {name: "stack",             url: "http://bl.ocks.org/mbostock/3943967"},
-  {name: "stream",            url: "http://bl.ocks.org/mbostock/4060954"},
-  {name: "sunburst",          url: "http://bl.ocks.org/mbostock/4063423"},
-  {name: "tree",              url: "http://bl.ocks.org/mbostock/4063550"},
-  {name: "treemap",           url: "http://bl.ocks.org/mbostock/4063582"},
-  {name: "voronoi",           url: "http://bl.ocks.org/mbostock/4060366"},
-  {name: "bundle",            url: "http://mbostock.github.com/d3/talk/20111116/bundle.html"},
-  {name: "airports-all",      url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
-  {name: "airports",          url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
-  {name: "iris-parallel",     url: "http://mbostock.github.com/d3/talk/20111116/iris-parallel.html"},
-  {name: "iris-splom",        url: "http://mbostock.github.com/d3/talk/20111116/iris-splom.html"},
-  {name: "pack-hierarchy",    url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
-  {name: "bar-hierarchy",     url: "http://mbostock.github.com/d3/talk/20111116/bar-hierarchy.html"},
-  {name: "gears",             url: "http://mbostock.github.com/d3/talk/20111116/gears.html"},
-  {name: "force-collision",   url: "http://mbostock.github.com/d3/talk/20111018/collision.html"},
-  {name: "force-collapsible", url: "http://mbostock.github.com/d3/talk/20111116/force-collapsible.html"},
-  {name: "force-states",      url: "http://mbostock.github.com/d3/talk/20111018/force-states.html"},
-  {name: "azimuthal",         url: "http://mbostock.github.com/d3/talk/20111018/azimuthal.html"},
-  {name: "choropleth",        url: "http://mbostock.github.com/d3/talk/20111018/choropleth.html"},
-  {name: "tree-zoom",         url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
-  {name: "treemap-zoom",      url: "http://mbostock.github.com/d3/talk/20111018/treemap.html"},
-  {name: "partition-zoom",    url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
-  {name: "area-gradient",     url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
-  {name: "flight-calendar",   url: "http://mbostock.github.com/d3/talk/20111018/calendar.html"},
-  {name: "cluster-radial",    url: "http://mbostock.github.com/d3/talk/20111018/cluster.html"},
-  {name: "sankey",            url: "http://bost.ocks.org/mike/sankey/"},
-  {name: "fisheye",           url: "http://bost.ocks.org/mike/fisheye/"},
-  {name: "hive",              url: "http://bost.ocks.org/mike/hive/"},
-  {name: "miserables",        url: "http://bost.ocks.org/mike/miserables/"},
-  {name: "nations",           url: "http://bost.ocks.org/mike/nations/"},
-  {name: "uber",              url: "http://bost.ocks.org/mike/uberdata/"},
-  {name: "bezier",            url: "http://www.jasondavies.com/animated-bezier/"},
-  {name: "coffee",            url: "http://www.jasondavies.com/coffee-wheel/"},
-  {name: "collatz",           url: "http://www.jasondavies.com/collatz-graph/"},
-  {name: "parsets",           url: "http://www.jasondavies.com/parallel-sets/"},
-  {name: "cloud",             url: "http://www.jasondavies.com/wordcloud/"},
-  {name: "facebook-ipo",      url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
-  {name: "budget",            url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
-  {name: "koalas",            url: "http://www.koalastothemax.com/"},
-  {name: "particles",         url: "http://bl.ocks.org/mbostock/1062544"},
-  {name: "indented-tree",     url: "http://bl.ocks.org/mbostock/1093025"},
-  {name: "rounded-rect",      url: "http://bl.ocks.org/mbostock/1123639"},
-  {name: "sperm",             url: "http://bl.ocks.org/mbostock/1136236"},
-  {name: "show-reel",         url: "http://bl.ocks.org/mbostock/1256572"},
-  {name: "debt",              url: "http://bl.ocks.org/mbostock/1308257"},
-  {name: "force-labels",      url: "http://bl.ocks.org/MoritzStefaner/1377729"},
-  {name: "illusion",          url: "http://bl.ocks.org/mbostock/1386444"},
-  {name: "voronoi-picker",    url: "http://bl.ocks.org/njvack/1405439"},
-  {name: "map-zoom",          url: "http://bl.ocks.org/mbostock/2206590"},
-  {name: "rain",              url: "http://bl.ocks.org/mbostock/849853"},
-  {name: "color",             url: "http://color.method.ac/"},
-  {name: "nutrient",          url: "http://exposedata.com/parallel/"},
-  {name: "hn",                url: "http://hn.metamx.com/"},
-  {name: "world",             url: "http://projects.flowingdata.com/life-expectancy/"},
-  {name: "slope",             url: "http://skedasis.com/d3/slopegraph/"},
-  {name: "ncaa",              url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
-  {name: "cubism",            url: "http://square.github.com/cubism/"},
-  {name: "crossfilter",       url: "http://square.github.com/crossfilter/"},
-  {name: "windhistory",       url: "http://windhistory.com/"},
-  {name: "lcf",               url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
-  {name: "force-voronoi",     url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
-  {name: "house-heatmap",     url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
-  {name: "house-map",         url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
-  {name: "open-budget",       url: "http://marcinignac.com/projects/open-budget/"}
+  /* box               */ {title: "Box Plot",                                                        url: "http://bl.ocks.org/mbostock/4061502"},
+  /* bubble            */ {title: "Bubble Chart",                                                    url: "http://bl.ocks.org/mbostock/4063269"},
+  /* bullet            */ {title: "Bullet Chart",                                                    url: "http://bl.ocks.org/mbostock/4061961"},
+  /* calendar          */ {title: "Calendar View",                                                   url: "http://bl.ocks.org/mbostock/4063318"},
+  /* cartogram         */ {title: "Non-Contiguous Cartogram",                                        url: "http://bl.ocks.org/mbostock/4055908"},
+  /* chord             */ {title: "Chord Diagram",                                                   url: "http://bl.ocks.org/mbostock/4062006"},
+  /* cluster           */ {title: "Cluster Dendrogram",                                              url: "http://bl.ocks.org/mbostock/4063570"},
+  /* force             */ {title: "Force-Directed Graph",                                            url: "http://bl.ocks.org/mbostock/4062045"},
+  /* pack              */ {title: "Circle Packing",                                                  url: "http://bl.ocks.org/mbostock/4063530"},
+  /* population        */ {title: "Population Pyramid",                                              url: "http://bl.ocks.org/mbostock/4062085"},
+  /* stack             */ {title: "Stacked-to-Grouped Bar Transition",                               url: "http://bl.ocks.org/mbostock/3943967"},
+  /* stream            */ {title: "Streamgraph",                                                     url: "http://bl.ocks.org/mbostock/4060954"},
+  /* sunburst          */ {title: "Sunburst Partition",                                              url: "http://bl.ocks.org/mbostock/4063423"},
+  /* tree              */ {title: "Reingold–Tilford Tree",                                           url: "http://bl.ocks.org/mbostock/4063550"}, // TODO update preview
+  /* treemap           */ {title: "Treemap",                                                         url: "http://bl.ocks.org/mbostock/4063582"},
+  /* voronoi           */ {title: "Voronoi Tessellation",                                            url: "http://bl.ocks.org/mbostock/4060366"}, // TODO update preview
+  /* bundle            */ {title: "Hierarchical Edge Bundling",                                      url: "http://bl.ocks.org/mbostock/1044242"}, // TODO update preview, link to interactive rotating one
+  /* airports-all      */ {title: "Voronoi Map",                                                     url: "http://mbostock.github.com/d3/talk/20111116/airports-all.html"},
+  /* airports          */ {title: "Great Arcs and Symbol Map",                                       url: "http://mbostock.github.com/d3/talk/20111116/airports.html"},
+  /* iris-parallel     */ {title: "Parallel Coordinates",                                            url: "http://bl.ocks.org/mbostock/1341021"}, // TODO link to iris data set colored version
+  /* iris-splom        */ {title: "Scatterplot Matrix Brushing",                                     url: "http://bl.ocks.org/mbostock/4063663"}, // TODO update preview, link to static version
+  /* pack-hierarchy    */ {title: "Zoomable Circle Packing",                                         url: "http://mbostock.github.com/d3/talk/20111116/pack-hierarchy.html"},
+  /* bar-hierarchy     */ {title: "Hierarchical Bar Chart",                                          url: "http://bl.ocks.org/mbostock/1283663"},
+  /* gears             */ {title: "Epicyclic Gear Animation",                                        url: "http://bl.ocks.org/mbostock/1353700"}, // TODO update preview
+  /* force-collision   */ {title: "Collision Detection",                                             url: "http://bl.ocks.org/mbostock/3231298"},
+  /* force-collapsible */ {title: "Collapsible Force Layout",                                        url: "http://bl.ocks.org/mbostock/1062288"},
+  /* force-states      */ {title: "Force-Directed States",                                           url: "http://bl.ocks.org/mbostock/1073373"},
+  /* azimuthal         */ {title: "Map Projection Transitions",                                      url: "http://www.jasondavies.com/maps/transition/"}, // TODO update preview
+  /* choropleth        */ {title: "Choropleth",                                                      url: "http://bl.ocks.org/mbostock/4060606"}, // TODO update preview
+  /* tree-zoom         */ {title: "Collapsible Tree",                                                url: "http://mbostock.github.com/d3/talk/20111018/tree.html"},
+  /* treemap-zoom      */ {title: "Zoomable Treemaps",                                               url: "http://bost.ocks.org/mike/treemap/"}, // TODO update preview
+  /* partition-zoom    */ {title: "Zoomable Partition",                                              url: "http://mbostock.github.com/d3/talk/20111018/partition.html"},
+  /* area-gradient     */ {title: "Zoomable Area Chart",                                             url: "http://mbostock.github.com/d3/talk/20111018/area-gradient.html"},
+  /* cluster-radial    */ {title: "Radial Cluster Dendrogram",                                       url: "http://bl.ocks.org/mbostock/4339607"},
+  /* sankey            */ {title: "Sankey Diagrams",                                                 url: "http://bost.ocks.org/mike/sankey/"},
+  /* fisheye           */ {title: "Fisheye Distortion",                                              url: "http://bost.ocks.org/mike/fisheye/"},
+  /* hive              */ {title: "Hive Plots",                                                      url: "http://bost.ocks.org/mike/hive/"},
+  /* miserables        */ {title: "Co-occurrence Matrix",                                            url: "http://bost.ocks.org/mike/miserables/"},
+  /* nations           */ {title: "Motion Chart",                                                    url: "http://bost.ocks.org/mike/nations/"},
+  /* uber              */ {title: "Interactive Chord Diagram",                                       url: "http://bost.ocks.org/mike/uberdata/"},
+  /* bezier            */ {title: "Animated Bézier Curves",                                          url: "http://www.jasondavies.com/animated-bezier/"},
+  /* coffee            */ {title: "Zoomable Radial Partition",                                       url: "http://www.jasondavies.com/coffee-wheel/"},
+  /* collatz           */ {title: "Animated Collatz Graph",                                          url: "http://www.jasondavies.com/collatz-graph/"},
+  /* parsets           */ {title: "Parallel Sets",                                                   url: "http://www.jasondavies.com/parallel-sets/"},
+  /* cloud             */ {title: "Word Clouds",                                                     url: "http://www.jasondavies.com/wordcloud/"},
+  /* facebook-ipo      */ {title: "The Facebook Offering: How It Compares",                          url: "http://www.nytimes.com/interactive/2012/05/17/business/dealbook/how-the-facebook-offering-compares.html"},
+  /* budget            */ {title: "Four Ways to Slice Obama’s 2013 Budget Proposal",                 url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
+  /* koalas            */ {title: "Koalas to the Max",                                               url: "http://www.koalastothemax.com/"},
+  /* particles         */ {title: "Particle Effects",                                                url: "http://bl.ocks.org/mbostock/1062544"},
+  /* indented-tree     */ {title: "Collapsible Indented Tree",                                       url: "http://bl.ocks.org/mbostock/1093025"},
+  /* rounded-rect      */ {title: "Rounded Rectangles",                                              url: "http://bl.ocks.org/mbostock/1123639"},
+  /* sperm             */ {title: "Spermatozoa",                                                     url: "http://bl.ocks.org/mbostock/1136236"},
+  /* show-reel         */ {title: "Show Reel",                                                       url: "http://bl.ocks.org/mbostock/1256572"},
+  /* debt              */ {title: "The Euro Debt Crisis",                                            url: "http://bl.ocks.org/mbostock/1308257"},
+  /* force-labels      */ {title: "Force-based Label Placement",                                     url: "http://bl.ocks.org/MoritzStefaner/1377729"},
+  /* illusion          */ {title: "Square Circle Spiral Illusion",                                   url: "http://bl.ocks.org/mbostock/1386444"},
+  /* voronoi-picker    */ {title: "Voronoi-Based Point Picker",                                      url: "http://bl.ocks.org/njvack/1405439"},
+  /* map-zoom          */ {title: "Click-to-Zoom Via Transform",                                     url: "http://bl.ocks.org/mbostock/2206590"},
+  /* rain              */ {title: "Raindrops",                                                       url: "http://bl.ocks.org/mbostock/849853"},
+  /* color             */ {title: "Color — Method of Action",                                        url: "http://color.method.ac/"},
+  /* nutrient          */ {title: "Nutrient Contents - Parallel Coordinates",                        url: "http://exposedata.com/parallel/"},
+  /* hn                */ {title: "Current Article Popularity Trends on Hacker News",                url: "http://hn.metamx.com/"},
+  /* world             */ {title: "Life Expectancy",                                                 url: "http://projects.flowingdata.com/life-expectancy/"},
+  /* slope             */ {title: "Slopegraphs",                                                     url: "http://skedasis.com/d3/slopegraph/"},
+  /* ncaa              */ {title: "NCAA Men’s Basketball Tournament Bracket, 2013 - The Power Rank", url: "http://thepowerrank.com/visual/NCAA_Tournament_Predictions"},
+  /* cubism            */ {title: "Horizon Charts - Cubism.js",                                      url: "http://square.github.com/cubism/"},
+  /* crossfilter       */ {title: "Crossfilter",                                                     url: "http://square.github.com/crossfilter/"},
+  /* windhistory       */ {title: "Wind History Map",                                                url: "http://windhistory.com/"},
+  /* lcf               */ {title: "Building Hamiltonian Graphs from LCF Notation",                   url: "http://www.christophermanning.org/projects/building-cubic-hamiltonian-graphs-from-lcf-notation/"},
+  /* force-voronoi     */ {title: "Voronoi Diagram with Force Directed Nodes and Delaunay Links",    url: "http://www.christophermanning.org/projects/voronoi-diagram-with-force-directed-nodes-and-delaunay-links/"},
+  /* house-heatmap     */ {title: "House Hunter By Day, Not So Much After Midnight",                 url: "http://trends.truliablog.com/2011/09/house-hunter-by-day-not-so-much-after-midnight/"},
+  /* house-map         */ {title: "Where Are House Hunters Searching?",                              url: "http://trends.truliablog.com/2012/02/where-are-house-hunters-searching/"},
+  /* open-budget       */ {title: "Open Budget",                                                     url: "http://marcinignac.com/projects/open-budget/"}
 ];
 
 data.forEach(function(d, i) {
@@ -388,7 +387,7 @@ var anchor = svg.append("g")
 var graphic = deep.selectAll("svg,canvas");
 
 var image = new Image;
-image.src = "ex.jpg";
+image.src = "ex.jpg?63ad2e974d28c2790b8c081d150e0604dc546356";
 image.onload = resized;
 
 d3.select(window)
@@ -445,7 +444,7 @@ function resized() {
 
   anchor.enter().append("a")
       .attr("xlink:href", function(d, i) { d.example = data[i % data.length]; return d.example.url; })
-      .attr("xlink:title", function(d) { return d.example.name; })
+      .attr("xlink:title", function(d) { return d.example.title; })
     .append("path")
       .attr("d", hexbin.hexagon());
 
