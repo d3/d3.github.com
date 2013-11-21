@@ -50,7 +50,7 @@ EXAMPLES = \
 	koalas \
 	particles \
 	indented-tree \
-	ronded-rect \
+	rounded-rect \
 	sperm \
 	show-reel \
 	debt \
