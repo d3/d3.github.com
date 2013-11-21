@@ -350,9 +350,9 @@ var scale = 1.5,
     height = 410,
     imageWidth = 226,
     imageHeight = 180,
-    depth = 10;
+    depth = 6;
 
-var currentFocus = [0, 0],
+var currentFocus,
     desiredFocus,
     idle = true;
 
@@ -385,6 +385,8 @@ var mesh = svg.append("path")
 var anchor = svg.append("g")
       .attr("class", "example-anchor")
     .selectAll("a");
+
+var graphic = deep.selectAll("svg,canvas");
 
 var image = new Image;
 image.src = "ex.jpg";
@@ -419,11 +421,13 @@ function resized() {
       deepHeight = height * (depth + 1) / depth,
       centers = hexbin.size([deepWidth, deepHeight]).centers();
 
-  canvas
-      .attr("width", deepWidth)
-      .attr("height", deepHeight);
+  deep.style(transform, "translate3d(0,0,0)");
+  currentFocus = [innerWidth / 2, height / 2];
+  idle = true;
 
-  svg
+  graphic
+      .style("left", (innerWidth - deepWidth) / 2 + "px")
+      .style("top", (height - deepHeight) / 2 + "px")
       .attr("width", deepWidth)
       .attr("height", deepHeight);
 
@@ -455,7 +459,7 @@ function mousemoved() {
   if (idle) d3.timer(function() {
     if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
-    deep.style(transform, "translate3d(" + currentFocus[0] / -depth + "px," + currentFocus[1] / -depth + "px,0)");
+    deep.style(transform, "translate3d(" + (innerWidth / 2 - currentFocus[0]) / depth + "px," + (height / 2 - currentFocus[1]) / depth + "px,0)");
     return idle;
   });
 }
