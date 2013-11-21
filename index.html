@@ -345,12 +345,11 @@ data.forEach(function(d, i) {
   d.j = i / 10 | 0;
 });
 
-var scale = 1.5,
-    radius = 90 / scale,
-    height = 410,
+var height = 410,
     imageWidth = 226,
     imageHeight = 180,
-    depth = 6;
+    radius = imageHeight / 2.4,
+    depth = 4;
 
 var currentFocus,
     desiredFocus,
@@ -426,8 +425,8 @@ function resized() {
   idle = true;
 
   graphic
-      .style("left", (innerWidth - deepWidth) / 2 + "px")
-      .style("top", (height - deepHeight) / 2 + "px")
+      .style("left", Math.round((innerWidth - deepWidth) / 2) + "px")
+      .style("top", Math.round((height - deepHeight) / 2) + "px")
       .attr("width", deepWidth)
       .attr("height", deepHeight);
 
@@ -455,7 +454,7 @@ function resized() {
 }
 
 function mousemoved() {
-  desiredFocus = d3.mouse(this);
+  desiredFocus = d3.mouse(this).map(Math.round);
   if (idle) d3.timer(function() {
     if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
