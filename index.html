@@ -364,7 +364,7 @@ var style = document.body.style,
 var hexbin = d3.hexbin()
     .radius(radius);
 
-d3.select("#examples")
+if (!("ontouchstart" in document)) d3.select("#examples")
     .on("mousemove", mousemoved);
 
 var deep = d3.select("#examples-deep");
@@ -453,14 +453,17 @@ function resized() {
 }
 
 function mousemoved() {
-  desiredFocus = d3.mouse(this);
+  var m = d3.mouse(this);
+
+  desiredFocus = [
+    Math.round((m[0] - innerWidth / 2) / depth) * depth + innerWidth / 2,
+    Math.round((m[1] - height / 2) / depth) * depth + height / 2
+  ];
+
   if (idle) d3.timer(function() {
     if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
-    var x = (innerWidth / 2 - currentFocus[0]) / depth,
-        y = (height / 2 - currentFocus[1]) / depth;
-    if (idle) x = Math.round(x), y = Math.round(y);
-    deep.style(transform, "translate3d(" + x + "px," + y + "px,0)");
+    deep.style(transform, "translate3d(" + (innerWidth / 2 - currentFocus[0]) / depth + "px," + (height / 2 - currentFocus[1]) / depth + "px,0)");
     return idle;
   });
 }
