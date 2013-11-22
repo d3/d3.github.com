@@ -453,11 +453,14 @@ function resized() {
 }
 
 function mousemoved() {
-  desiredFocus = d3.mouse(this).map(Math.round);
+  desiredFocus = d3.mouse(this);
   if (idle) d3.timer(function() {
     if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
-    deep.style(transform, "translate3d(" + (innerWidth / 2 - currentFocus[0]) / depth + "px," + (height / 2 - currentFocus[1]) / depth + "px,0)");
+    var x = (innerWidth / 2 - currentFocus[0]) / depth,
+        y = (height / 2 - currentFocus[1]) / depth;
+    if (idle) x = Math.round(x), y = Math.round(y);
+    deep.style(transform, "translate3d(" + x + "px," + y + "px,0)");
     return idle;
   });
 }
