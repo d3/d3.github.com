@@ -384,7 +384,7 @@ var height = 460,
     radius = 75,
     depth = 4;
 
-var currentFocus,
+var currentFocus = [innerWidth / 2, height / 2],
     desiredFocus,
     idle = true;
 
@@ -454,8 +454,7 @@ function resized() {
       centers = hexbin.size([deepWidth, deepHeight]).centers();
 
   deep.style(transform, "translate3d(0,0,0)");
-  currentFocus = [innerWidth / 2, height / 2];
-  idle = true;
+  currentFocus = desiredFocus = [innerWidth / 2, height / 2];
 
   graphic
       .style("left", Math.round((innerWidth - deepWidth) / 2) + "px")
