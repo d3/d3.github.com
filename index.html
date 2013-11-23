@@ -467,7 +467,7 @@ function resized() {
     center.i = Math.round((center[0] - (center.j & 1) * radius * Math.sin(Math.PI / 3)) / (radius * 2 * Math.sin(Math.PI / 3)));
     context.save();
     context.translate(Math.round(center[0]), Math.round(center[1]));
-    drawImage(center.example = data[(center.i + center.j * 10) % data.length]);
+    drawImage(center.example = data[(center.i % 10) + ((center.j + (center.i / 10 & 1) * 5) % 10) * 10]);
     context.restore();
   });
 
