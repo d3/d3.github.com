@@ -453,8 +453,8 @@ function resized() {
       deepHeight = height * (depth + 1) / depth,
       centers = hexbin.size([deepWidth, deepHeight]).centers();
 
-  deep.style(transform, "translate3d(0,0,0)");
-  currentFocus = desiredFocus = [innerWidth / 2, height / 2];
+  desiredFocus = [innerWidth / 2, height / 2];
+  moved();
 
   graphic
       .style("left", Math.round((innerWidth - deepWidth) / 2) + "px")
@@ -463,20 +463,22 @@ function resized() {
       .attr("height", deepHeight);
 
   centers.forEach(function(center, i) {
+    center.j = Math.round(center[1] / (radius * 1.5));
+    center.i = Math.round((center[0] - (center.j & 1) * radius * Math.sin(Math.PI / 3)) / (radius * 2 * Math.sin(Math.PI / 3)));
     context.save();
     context.translate(Math.round(center[0]), Math.round(center[1]));
-    drawImage(data[i % data.length]);
+    drawImage(center.example = data[(center.i + center.j * 10) % data.length]);
     context.restore();
   });
 
   mesh.attr("d", hexbin.mesh);
 
-  anchor = anchor.data(centers);
+  anchor = anchor.data(centers, function(d) { return d.i + "," + d.j; });
 
   anchor.exit().remove();
 
   anchor.enter().append("a")
-      .attr("xlink:href", function(d, i) { d.example = data[i % data.length]; return d.example.url; })
+      .attr("xlink:href", function(d) { return d.example.url; })
       .attr("xlink:title", function(d) { return d.example.title; })
     .append("path")
       .attr("d", hexbin.hexagon());
@@ -493,6 +495,10 @@ function mousemoved() {
     Math.round((m[1] - height / 2) / depth) * depth + height / 2
   ];
 
+  moved();
+}
+
+function moved() {
   if (idle) d3.timer(function() {
     if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
