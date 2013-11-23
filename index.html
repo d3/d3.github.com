@@ -374,7 +374,7 @@ data.forEach(function(d, i) {
   d.j = i / 10 | 0;
 });
 
-Math.seedrandom(+d3.time.minute(new Date));
+Math.seedrandom(+d3.time.hour(new Date));
 
 d3.shuffle(data);
 
