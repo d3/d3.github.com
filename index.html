@@ -425,7 +425,8 @@ image.src = "ex.jpg?3f2d00ffdba6ced9c50f02ed42f12f6156368bd2";
 image.onload = resized;
 
 d3.select(window)
-    .on("resize", resized);
+    .on("resize", resized)
+    .each(resized);
 
 function drawImage(d) {
   context.save();
