@@ -481,6 +481,7 @@ function resized() {
   anchor.enter().append("a")
       .attr("xlink:href", function(d) { return d.example.url; })
       .attr("xlink:title", function(d) { return d.example.title; })
+      .attr("target","_blank")
     .append("path")
       .attr("d", hexbin.hexagon());
 
