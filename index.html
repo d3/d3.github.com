@@ -516,17 +516,24 @@ function moved() {
 
 <p><b>D3.js</b> is a JavaScript library for manipulating documents based on data. <b>D3</b> helps you bring data to life using HTML, SVG and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.
 
-<p>Download the latest version here:
+<p>Download the latest version <span id="version"></span> here:
 
 <ul>
-  <li><a href="d3.v3.zip">d3.v3.zip</a>
+  <li><a id="download" href="https://github.com/mbostock/d3/releases/latest">d3.v3.zip</a>
 </ul>
+
+<script>
+
+d3.select("#download").attr("href", "https://github.com/mbostock/d3/releases/download/v" + d3.version + "/d3.v3.zip");
+d3.select("#version").text(" (" + d3.version + ")");
+
+</script>
 
 <p>Or, to link directly to the latest release, copy this snippet:
 
 <pre><code class="html">&lt;script src="http://d3js.org/d3.v3.min.js" charset="utf-8">&lt;/script></code></pre>
 
-<p>The <a href="https://github.com/mbostock/d3">full source and tests</a> are also available <a href="https://github.com/mbostock/d3/zipball/master">for download</a> on GitHub.
+<p>Sites using HTTPS may wish to self-host D3, or use a CDN that supports HTTPS, such as <a href="http://cdnjs.com/libraries/d3/">CDNJS</a>. The <a href="https://github.com/mbostock/d3">full source and tests</a> are also available <a href="https://github.com/mbostock/d3/zipball/master">for download</a> on GitHub.
 
 <h2><a name="introduction" href="#introduction">#</a>Introduction</h2>
 
