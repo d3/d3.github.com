@@ -1,6 +1,6 @@
 !function() {
   var d3 = {
-    version: "3.4.12"
+    version: "3.4.13"
   };
   if (!Date.now) Date.now = function() {
     return +new Date();
@@ -78,24 +78,27 @@
     }
     return [ a, c ];
   };
+  function d3_number(x) {
+    return x === null ? NaN : +x;
+  }
+  function d3_numeric(x) {
+    return !isNaN(x);
+  }
   d3.sum = function(array, f) {
     var s = 0, n = array.length, a, i = -1;
     if (arguments.length === 1) {
-      while (++i < n) if (!isNaN(a = +array[i])) s += a;
+      while (++i < n) if (d3_numeric(a = +array[i])) s += a;
     } else {
-      while (++i < n) if (!isNaN(a = +f.call(array, array[i], i))) s += a;
+      while (++i < n) if (d3_numeric(a = +f.call(array, array[i], i))) s += a;
     }
     return s;
   };
-  function d3_number(x) {
-    return x != null && !isNaN(x);
-  }
   d3.mean = function(array, f) {
     var s = 0, n = array.length, a, i = -1, j = n;
     if (arguments.length === 1) {
-      while (++i < n) if (d3_number(a = array[i])) s += a; else --j;
+      while (++i < n) if (d3_numeric(a = d3_number(array[i]))) s += a; else --j;
     } else {
-      while (++i < n) if (d3_number(a = f.call(array, array[i], i))) s += a; else --j;
+      while (++i < n) if (d3_numeric(a = d3_number(f.call(array, array[i], i)))) s += a; else --j;
     }
     return j ? s / j : undefined;
   };
@@ -104,9 +107,13 @@
     return e ? v + e * (values[h] - v) : v;
   };
   d3.median = function(array, f) {
-    if (arguments.length > 1) array = array.map(f);
-    array = array.filter(d3_number);
-    return array.length ? d3.quantile(array.sort(d3_ascending), .5) : undefined;
+    var numbers = [], n = array.length, a, i = -1;
+    if (arguments.length === 1) {
+      while (++i < n) if (d3_numeric(a = d3_number(array[i]))) numbers.push(a);
+    } else {
+      while (++i < n) if (d3_numeric(a = d3_number(f.call(array, array[i], i)))) numbers.push(a);
+    }
+    return numbers.length ? d3.quantile(numbers.sort(d3_ascending), .5) : undefined;
   };
   function d3_bisector(compare) {
     return {
@@ -223,15 +230,11 @@
     return k;
   }
   function d3_class(ctor, properties) {
-    try {
-      for (var key in properties) {
-        Object.defineProperty(ctor.prototype, key, {
-          value: properties[key],
-          enumerable: false
-        });
-      }
-    } catch (e) {
-      ctor.prototype = properties;
+    for (var key in properties) {
+      Object.defineProperty(ctor.prototype, key, {
+        value: properties[key],
+        enumerable: false
+      });
     }
   }
   d3.map = function(object) {
@@ -241,62 +244,63 @@
     }); else for (var key in object) map.set(key, object[key]);
     return map;
   };
-  function d3_Map() {}
+  function d3_Map() {
+    this._ = Object.create(null);
+  }
+  var d3_map_proto = "__proto__", d3_map_zero = "\x00";
   d3_class(d3_Map, {
     has: d3_map_has,
     get: function(key) {
-      return this[d3_map_prefix + key];
+      return this._[d3_map_escape(key)];
     },
     set: function(key, value) {
-      return this[d3_map_prefix + key] = value;
+      return this._[d3_map_escape(key)] = value;
     },
     remove: d3_map_remove,
     keys: d3_map_keys,
     values: function() {
       var values = [];
-      this.forEach(function(key, value) {
-        values.push(value);
-      });
+      for (var key in this._) values.push(this._[key]);
       return values;
     },
     entries: function() {
       var entries = [];
-      this.forEach(function(key, value) {
-        entries.push({
-          key: key,
-          value: value
-        });
+      for (var key in this._) entries.push({
+        key: d3_map_unescape(key),
+        value: this._[key]
       });
       return entries;
     },
     size: d3_map_size,
     empty: d3_map_empty,
     forEach: function(f) {
-      for (var key in this) if (key.charCodeAt(0) === d3_map_prefixCode) f.call(this, key.slice(1), this[key]);
+      for (var key in this._) f.call(this, d3_map_unescape(key), this._[key]);
     }
   });
-  var d3_map_prefix = "\x00", d3_map_prefixCode = d3_map_prefix.charCodeAt(0);
+  function d3_map_escape(key) {
+    return (key += "") === d3_map_proto || key[0] === d3_map_zero ? d3_map_zero + key : key;
+  }
+  function d3_map_unescape(key) {
+    return (key += "")[0] === d3_map_zero ? key.slice(1) : key;
+  }
   function d3_map_has(key) {
-    return d3_map_prefix + key in this;
+    return d3_map_escape(key) in this._;
   }
   function d3_map_remove(key) {
-    key = d3_map_prefix + key;
-    return key in this && delete this[key];
+    return (key = d3_map_escape(key)) in this._ && delete this._[key];
   }
   function d3_map_keys() {
     var keys = [];
-    this.forEach(function(key) {
-      keys.push(key);
-    });
+    for (var key in this._) keys.push(d3_map_unescape(key));
     return keys;
   }
   function d3_map_size() {
     var size = 0;
-    for (var key in this) if (key.charCodeAt(0) === d3_map_prefixCode) ++size;
+    for (var key in this._) ++size;
     return size;
   }
   function d3_map_empty() {
-    for (var key in this) if (key.charCodeAt(0) === d3_map_prefixCode) return false;
+    for (var key in this._) return false;
     return true;
   }
   d3.nest = function() {
@@ -367,22 +371,21 @@
     if (array) for (var i = 0, n = array.length; i < n; ++i) set.add(array[i]);
     return set;
   };
-  function d3_Set() {}
+  function d3_Set() {
+    this._ = Object.create(null);
+  }
   d3_class(d3_Set, {
     has: d3_map_has,
-    add: function(value) {
-      this[d3_map_prefix + value] = true;
-      return value;
+    add: function(key) {
+      this._[d3_map_escape(key += "")] = true;
+      return key;
     },
-    remove: function(value) {
-      value = d3_map_prefix + value;
-      return value in this && delete this[value];
-    },
+    remove: d3_map_remove,
     values: d3_map_keys,
     size: d3_map_size,
     empty: d3_map_empty,
     forEach: function(f) {
-      for (var value in this) if (value.charCodeAt(0) === d3_map_prefixCode) f.call(this, value.slice(1));
+      for (var key in this._) f.call(this, d3_map_unescape(key));
     }
   });
   d3.behavior = {};
@@ -762,29 +765,26 @@
     function bind(group, groupData) {
       var i, n = group.length, m = groupData.length, n0 = Math.min(n, m), updateNodes = new Array(m), enterNodes = new Array(m), exitNodes = new Array(n), node, nodeData;
       if (key) {
-        var nodeByKeyValue = new d3_Map(), dataByKeyValue = new d3_Map(), keyValues = [], keyValue;
+        var nodeByKeyValue = new d3_Map(), keyValues = new Array(n), keyValue;
         for (i = -1; ++i < n; ) {
-          keyValue = key.call(node = group[i], node.__data__, i);
-          if (nodeByKeyValue.has(keyValue)) {
+          if (nodeByKeyValue.has(keyValue = key.call(node = group[i], node.__data__, i))) {
             exitNodes[i] = node;
           } else {
             nodeByKeyValue.set(keyValue, node);
           }
-          keyValues.push(keyValue);
+          keyValues[i] = keyValue;
         }
         for (i = -1; ++i < m; ) {
-          keyValue = key.call(groupData, nodeData = groupData[i], i);
-          if (node = nodeByKeyValue.get(keyValue)) {
+          if (!(node = nodeByKeyValue.get(keyValue = key.call(groupData, nodeData = groupData[i], i)))) {
+            enterNodes[i] = d3_selection_dataNode(nodeData);
+          } else if (node !== true) {
             updateNodes[i] = node;
             node.__data__ = nodeData;
-          } else if (!dataByKeyValue.has(keyValue)) {
-            enterNodes[i] = d3_selection_dataNode(nodeData);
           }
-          dataByKeyValue.set(keyValue, nodeData);
-          nodeByKeyValue.remove(keyValue);
+          nodeByKeyValue.set(keyValue, true);
         }
         for (i = -1; ++i < n; ) {
-          if (nodeByKeyValue.has(keyValues[i])) {
+          if (nodeByKeyValue.get(keyValues[i]) !== true) {
             exitNodes[i] = group[i];
           }
         }
@@ -1548,7 +1548,7 @@
   }
   d3.lab = d3_lab;
   function d3_lab(l, a, b) {
-    return this instanceof d3_lab ? void (this.l = +l, this.a = +a, this.b = +b) : arguments.length < 2 ? l instanceof d3_lab ? new d3_lab(l.l, l.a, l.b) : l instanceof d3_hcl ? d3_hcl_lab(l.l, l.c, l.h) : d3_rgb_lab((l = d3_rgb(l)).r, l.g, l.b) : new d3_lab(l, a, b);
+    return this instanceof d3_lab ? void (this.l = +l, this.a = +a, this.b = +b) : arguments.length < 2 ? l instanceof d3_lab ? new d3_lab(l.l, l.a, l.b) : l instanceof d3_hcl ? d3_hcl_lab(l.h, l.c, l.l) : d3_rgb_lab((l = d3_rgb(l)).r, l.g, l.b) : new d3_lab(l, a, b);
   }
   var d3_lab_K = 18;
   var d3_lab_X = .95047, d3_lab_Y = 1, d3_lab_Z = 1.08883;
@@ -1997,7 +1997,7 @@
           a.push(t);
           t = token();
         }
-        if (f && !(a = f(a, n++))) continue;
+        if (f && (a = f(a, n++)) == null) continue;
         rows.push(a);
       }
       return rows;
@@ -2120,21 +2120,22 @@
     };
   }
   function d3_locale_numberFormat(locale) {
-    var locale_decimal = locale.decimal, locale_thousands = locale.thousands, locale_grouping = locale.grouping, locale_currency = locale.currency, formatGroup = locale_grouping ? function(value) {
-      var i = value.length, t = [], j = 0, g = locale_grouping[0];
-      while (g > 0 && i > 0) {
+    var locale_decimal = locale.decimal, locale_thousands = locale.thousands, locale_grouping = locale.grouping, locale_currency = locale.currency, formatGroup = locale_grouping && locale_thousands ? function(value, width) {
+      var i = value.length, t = [], j = 0, g = locale_grouping[0], length = 0;
+      while (i > 0 && g > 0) {
+        if (length + g + 1 > width) g = Math.max(1, width - length);
         t.push(value.substring(i -= g, i + g));
+        if ((length += g + 1) > width) break;
         g = locale_grouping[j = (j + 1) % locale_grouping.length];
       }
       return t.reverse().join(locale_thousands);
     } : d3_identity;
     return function(specifier) {
-      var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "", symbol = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, prefix = "", suffix = "", integer = false;
+      var match = d3_format_re.exec(specifier), fill = match[1] || " ", align = match[2] || ">", sign = match[3] || "-", symbol = match[4] || "", zfill = match[5], width = +match[6], comma = match[7], precision = match[8], type = match[9], scale = 1, prefix = "", suffix = "", integer = false, exponent = true;
       if (precision) precision = +precision.substring(1);
       if (zfill || fill === "0" && align === "=") {
         zfill = fill = "0";
         align = "=";
-        if (comma) width -= Math.floor((width - 1) / 4);
       }
       switch (type) {
        case "n":
@@ -2161,6 +2162,8 @@
         if (symbol === "#") prefix = "0" + type.toLowerCase();
 
        case "c":
+        exponent = false;
+
        case "d":
         integer = true;
         precision = 0;
@@ -2181,7 +2184,7 @@
       return function(value) {
         var fullSuffix = suffix;
         if (integer && value % 1) return "";
-        var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, "-") : sign;
+        var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, "-") : sign === "-" ? "" : sign;
         if (scale < 0) {
           var unit = d3.formatPrefix(value, precision);
           value = unit.scale(value);
@@ -2190,10 +2193,17 @@
           value *= scale;
         }
         value = type(value, precision);
-        var i = value.lastIndexOf("."), before = i < 0 ? value : value.substring(0, i), after = i < 0 ? "" : locale_decimal + value.substring(i + 1);
-        if (!zfill && comma) before = formatGroup(before);
+        var i = value.lastIndexOf("."), before, after;
+        if (i < 0) {
+          var j = exponent ? value.lastIndexOf("e") : -1;
+          if (j < 0) before = value, after = ""; else before = value.substring(0, j), after = value.substring(j);
+        } else {
+          before = value.substring(0, i);
+          after = locale_decimal + value.substring(i + 1);
+        }
+        if (!zfill && comma) before = formatGroup(before, Infinity);
         var length = prefix.length + before.length + after.length + (zcomma ? 0 : negative.length), padding = length < width ? new Array(length = width - length + 1).join(fill) : "";
-        if (zcomma) before = formatGroup(padding + before);
+        if (zcomma) before = formatGroup(padding + before, padding.length ? width - after.length : Infinity);
         negative += prefix;
         value = before + after;
         return (align === "<" ? negative + value + padding : align === ">" ? padding + negative + value : align === "^" ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length) : negative + (zcomma ? value : padding + value)) + fullSuffix;
@@ -5605,9 +5615,9 @@
   }
   d3.interpolateNumber = d3_interpolateNumber;
   function d3_interpolateNumber(a, b) {
-    b -= a = +a;
+    a = +a, b = +b;
     return function(t) {
-      return a + b * t;
+      return a * (1 - t) + b * t;
     };
   }
   d3.interpolateString = d3_interpolateString;
@@ -5906,15 +5916,15 @@
     };
   }
   function d3_uninterpolateNumber(a, b) {
-    b = b - (a = +a) ? 1 / (b - a) : 0;
+    b = (b -= a = +a) || 1 / b;
     return function(x) {
-      return (x - a) * b;
+      return (x - a) / b;
     };
   }
   function d3_uninterpolateClamp(a, b) {
-    b = b - (a = +a) ? 1 / (b - a) : 0;
+    b = (b -= a = +a) || 1 / b;
     return function(x) {
-      return Math.max(0, Math.min(1, (x - a) * b));
+      return Math.max(0, Math.min(1, (x - a) / b));
     };
   }
   d3.layout = {};
@@ -6516,6 +6526,7 @@
   d3.layout.stack = function() {
     var values = d3_identity, order = d3_layout_stackOrderDefault, offset = d3_layout_stackOffsetZero, out = d3_layout_stackOut, x = d3_layout_stackX, y = d3_layout_stackY;
     function stack(data, index) {
+      if (!(n = data.length)) return data;
       var series = data.map(function(d, i) {
         return values.call(stack, d, i);
       });
@@ -6528,7 +6539,7 @@
       series = d3.permute(series, orders);
       points = d3.permute(points, orders);
       var offsets = offset.call(stack, points, index);
-      var n = series.length, m = series[0].length, i, j, o;
+      var m = series[0].length, n, i, j, o;
       for (j = 0; j < m; ++j) {
         out.call(stack, series[0][j], o = offsets[j], points[0][j][1]);
         for (i = 1; i < n; ++i) {
@@ -7683,7 +7694,7 @@
     }
     scale.domain = function(x) {
       if (!arguments.length) return domain;
-      domain = x.filter(d3_number).sort(d3_ascending);
+      domain = x.map(d3_number).filter(d3_numeric).sort(d3_ascending);
       return rescale();
     };
     scale.range = function(x) {
@@ -8632,61 +8643,25 @@
       g.each(function() {
         var g = d3.select(this);
         var scale0 = this.__chart__ || scale, scale1 = this.__chart__ = scale.copy();
-        var ticks = tickValues == null ? scale1.ticks ? scale1.ticks.apply(scale1, tickArguments_) : scale1.domain() : tickValues, tickFormat = tickFormat_ == null ? scale1.tickFormat ? scale1.tickFormat.apply(scale1, tickArguments_) : d3_identity : tickFormat_, tick = g.selectAll(".tick").data(ticks, scale1), tickEnter = tick.enter().insert("g", ".domain").attr("class", "tick").style("opacity", ε), tickExit = d3.transition(tick.exit()).style("opacity", ε).remove(), tickUpdate = d3.transition(tick.order()).style("opacity", 1), tickTransform;
+        var ticks = tickValues == null ? scale1.ticks ? scale1.ticks.apply(scale1, tickArguments_) : scale1.domain() : tickValues, tickFormat = tickFormat_ == null ? scale1.tickFormat ? scale1.tickFormat.apply(scale1, tickArguments_) : d3_identity : tickFormat_, tick = g.selectAll(".tick").data(ticks, scale1), tickEnter = tick.enter().insert("g", ".domain").attr("class", "tick").style("opacity", ε), tickExit = d3.transition(tick.exit()).style("opacity", ε).remove(), tickUpdate = d3.transition(tick.order()).style("opacity", 1), tickSpacing = Math.max(innerTickSize, 0) + tickPadding, tickTransform;
         var range = d3_scaleRange(scale1), path = g.selectAll(".domain").data([ 0 ]), pathUpdate = (path.enter().append("path").attr("class", "domain"), 
         d3.transition(path));
         tickEnter.append("line");
         tickEnter.append("text");
-        var lineEnter = tickEnter.select("line"), lineUpdate = tickUpdate.select("line"), text = tick.select("text").text(tickFormat), textEnter = tickEnter.select("text"), textUpdate = tickUpdate.select("text");
-        switch (orient) {
-         case "bottom":
-          {
-            tickTransform = d3_svg_axisX;
-            lineEnter.attr("y2", innerTickSize);
-            textEnter.attr("y", Math.max(innerTickSize, 0) + tickPadding);
-            lineUpdate.attr("x2", 0).attr("y2", innerTickSize);
-            textUpdate.attr("x", 0).attr("y", Math.max(innerTickSize, 0) + tickPadding);
-            text.attr("dy", ".71em").style("text-anchor", "middle");
-            pathUpdate.attr("d", "M" + range[0] + "," + outerTickSize + "V0H" + range[1] + "V" + outerTickSize);
-            break;
-          }
-
-         case "top":
-          {
-            tickTransform = d3_svg_axisX;
-            lineEnter.attr("y2", -innerTickSize);
-            textEnter.attr("y", -(Math.max(innerTickSize, 0) + tickPadding));
-            lineUpdate.attr("x2", 0).attr("y2", -innerTickSize);
-            textUpdate.attr("x", 0).attr("y", -(Math.max(innerTickSize, 0) + tickPadding));
-            text.attr("dy", "0em").style("text-anchor", "middle");
-            pathUpdate.attr("d", "M" + range[0] + "," + -outerTickSize + "V0H" + range[1] + "V" + -outerTickSize);
-            break;
-          }
-
-         case "left":
-          {
-            tickTransform = d3_svg_axisY;
-            lineEnter.attr("x2", -innerTickSize);
-            textEnter.attr("x", -(Math.max(innerTickSize, 0) + tickPadding));
-            lineUpdate.attr("x2", -innerTickSize).attr("y2", 0);
-            textUpdate.attr("x", -(Math.max(innerTickSize, 0) + tickPadding)).attr("y", 0);
-            text.attr("dy", ".32em").style("text-anchor", "end");
-            pathUpdate.attr("d", "M" + -outerTickSize + "," + range[0] + "H0V" + range[1] + "H" + -outerTickSize);
-            break;
-          }
-
-         case "right":
-          {
-            tickTransform = d3_svg_axisY;
-            lineEnter.attr("x2", innerTickSize);
-            textEnter.attr("x", Math.max(innerTickSize, 0) + tickPadding);
-            lineUpdate.attr("x2", innerTickSize).attr("y2", 0);
-            textUpdate.attr("x", Math.max(innerTickSize, 0) + tickPadding).attr("y", 0);
-            text.attr("dy", ".32em").style("text-anchor", "start");
-            pathUpdate.attr("d", "M" + outerTickSize + "," + range[0] + "H0V" + range[1] + "H" + outerTickSize);
-            break;
-          }
+        var lineEnter = tickEnter.select("line"), lineUpdate = tickUpdate.select("line"), text = tick.select("text").text(tickFormat), textEnter = tickEnter.select("text"), textUpdate = tickUpdate.select("text"), sign = orient === "top" || orient === "left" ? -1 : 1, x1, x2, y1, y2;
+        if (orient === "bottom" || orient === "top") {
+          tickTransform = d3_svg_axisX, x1 = "x", y1 = "y", x2 = "x2", y2 = "y2";
+          text.attr("dy", sign < 0 ? "0em" : ".71em").style("text-anchor", "middle");
+          pathUpdate.attr("d", "M" + range[0] + "," + sign * outerTickSize + "V0H" + range[1] + "V" + sign * outerTickSize);
+        } else {
+          tickTransform = d3_svg_axisY, x1 = "y", y1 = "x", x2 = "y2", y2 = "x2";
+          text.attr("dy", ".32em").style("text-anchor", sign < 0 ? "end" : "start");
+          pathUpdate.attr("d", "M" + sign * outerTickSize + "," + range[0] + "H0V" + range[1] + "H" + sign * outerTickSize);
         }
+        lineEnter.attr(y2, sign * innerTickSize);
+        textEnter.attr(y1, sign * tickSpacing);
+        lineUpdate.attr(x2, 0).attr(y2, sign * innerTickSize);
+        textUpdate.attr(x1, 0).attr(y1, sign * tickSpacing);
         if (scale1.rangeBand) {
           var x = scale1, dx = x.rangeBand() / 2;
           scale0 = scale1 = function(d) {
@@ -8695,10 +8670,10 @@
         } else if (scale0.rangeBand) {
           scale0 = scale1;
         } else {
-          tickExit.call(tickTransform, scale1);
+          tickExit.call(tickTransform, scale1, scale0);
         }
-        tickEnter.call(tickTransform, scale0);
-        tickUpdate.call(tickTransform, scale1);
+        tickEnter.call(tickTransform, scale0, scale1);
+        tickUpdate.call(tickTransform, scale1, scale1);
       });
     }
     axis.scale = function(x) {
@@ -8759,14 +8734,16 @@
     bottom: 1,
     left: 1
   };
-  function d3_svg_axisX(selection, x) {
+  function d3_svg_axisX(selection, x0, x1) {
     selection.attr("transform", function(d) {
-      return "translate(" + x(d) + ",0)";
+      var v0 = x0(d);
+      return "translate(" + (isFinite(v0) ? v0 : x1(d)) + ",0)";
     });
   }
-  function d3_svg_axisY(selection, y) {
+  function d3_svg_axisY(selection, y0, y1) {
     selection.attr("transform", function(d) {
-      return "translate(0," + y(d) + ")";
+      var v0 = y0(d);
+      return "translate(0," + (isFinite(v0) ? v0 : y1(d)) + ")";
     });
   }
   d3.svg.brush = function() {
