@@ -1089,7 +1089,7 @@
   function ellipticFi(φ, ψ, m) {
     var r = Math.abs(φ), i = Math.abs(ψ), sinhψ = sinh(i);
     if (r) {
-      var cscφ = 1 / Math.sin(r), cotφ2 = 1 / (Math.tan(r) * Math.tan(r)), b = -(cotφ2 + m * (sinhψ * sinhψ * cscφ * cscφ) - 1 + m), c = (m - 1) * cotφ2, cotλ2 = .5 * (-b + Math.sqrt(b * b - 4 * c));
+      var cscφ = 1 / Math.sin(r), cotφ2 = 1 / (Math.tan(r) * Math.tan(r)), b = -(cotφ2 + m * sinhψ * sinhψ * cscφ * cscφ - 1 + m), c = (m - 1) * cotφ2, cotλ2 = .5 * (-b + Math.sqrt(b * b - 4 * c));
       return [ ellipticF(Math.atan(1 / Math.sqrt(cotλ2)), m) * sgn(φ), ellipticF(Math.atan(asqrt((cotλ2 / cotφ2 - 1) / m)), 1 - m) * sgn(ψ) ];
     }
     return [ 0, ellipticF(Math.atan(sinhψ), 1 - m) * sgn(ψ) ];
@@ -1574,6 +1574,23 @@
   (d3.geo.nellHammer = function() {
     return projection(nellHammer);
   }).raw = nellHammer;
+  var pattersonK1 = 1.0148, pattersonK2 = .23185, pattersonK3 = -.14499, pattersonK4 = .02406, pattersonC1 = pattersonK1, pattersonC2 = 5 * pattersonK2, pattersonC3 = 7 * pattersonK3, pattersonC4 = 9 * pattersonK4, pattersonYmax = 1.790857183;
+  function patterson(λ, φ) {
+    var φ2 = φ * φ;
+    return [ λ, φ * (pattersonK1 + φ2 * φ2 * (pattersonK2 + φ2 * (pattersonK3 + pattersonK4 * φ2))) ];
+  }
+  patterson.invert = function(x, y) {
+    if (y > pattersonYmax) y = pattersonYmax; else if (y < -pattersonYmax) y = -pattersonYmax;
+    var yc = y, δ;
+    do {
+      var y2 = yc * yc;
+      yc -= δ = (yc * (pattersonK1 + y2 * y2 * (pattersonK2 + y2 * (pattersonK3 + pattersonK4 * y2))) - y) / (pattersonC1 + y2 * y2 * (pattersonC2 + y2 * (pattersonC3 + pattersonC4 * y2)));
+    } while (Math.abs(δ) > ε);
+    return [ x, yc ];
+  };
+  (d3.geo.patterson = function() {
+    return projection(patterson);
+  }).raw = patterson;
   var peirceQuincuncialProjection = quincuncialProjection(guyou);
   (d3.geo.peirceQuincuncial = function() {
     return peirceQuincuncialProjection().quincuncial(true).rotate([ -90, -90, 45 ]).clipAngle(180 - 1e-6);
