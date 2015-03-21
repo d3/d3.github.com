@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>JP Home</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>JP Home</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ <strong>日本語</strong></p>
+</blockquote>
+<p><strong>D3.js</strong> は document ベースでデータを操作するための JavaScript ライブラリです。 <strong>D3</strong> を使うことで、 HTML, SVG, CSS を利用し、データを表現する事ができます。D3 はプロプライエタリなフレームワークを使わなくとも、モダンブラウザの機能でパワフルな視覚化コンポーネントとデータ駆動アプローチでの DOM 操作を実現するためにWeb標準を重視しています。</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="http://mbostock.github.com/d3/">はじめに</a></li>
+<li>[[事例ギャラリー|Gallery]]</li>
+<li>[[チュートリアル と 資料|JP-Tutorials]]</li>
+<li>[[API Reference]]</li>
+<li><a href="/mbostock/d3/releases">Release Notes</a></li>
+<li><a href="/d3/d3-plugins">Plugins</a></li>
+<li><a href="http://stackoverflow.com/questions/tagged/d3.js">d3.js on Stack Overflow</a></li>
+<li><a href="http://groups.google.com/group/d3-js">d3-js Google Group</a></li>
+<li><a href="/mbostock/d3/wiki/Home">英語</a></li>
+<li><a href="https://github.com/zziuni/d3/wiki">한국어</a></li>
+<li><a href="/mbostock/d3/wiki/CN-Home">中文</a></li>
+</ul>
+<h2 id="-">ブラウザサポート</h2>
+<p>D3 は、いわゆる &quot;モダン&quot; ブラウザ (一般的に、IE8およびそれ以前を除くすべて) をサポートします。 D3 は、 Firefox, Chrome (Chromium), Safari (Webkit), Opera および IE9 に対してテストされています。 D3 の一部は D3 のコアライブラリの最小動作要件が JavaScript と <a href="http://www.w3.org/DOM/">W3C DOM</a> APIであるために古いブラウザでも機能します。 IE8 に対しては、 <a href="https://github.com/shawnbot/aight">Aight</a> という互換ライブラリが推奨されます。 D3 は Level 1 の <a href="http://www.w3.org/TR/selectors-api/">Selectors API</a> Level 1 を利用していますが、<a href="http://sizzlejs.com/">Sizzle</a> をプリロードしておくことで互換性を得ることができます。 <a href="http://www.w3.org/TR/SVG/">SVG</a> と <a href="http://www.w3.org/TR/css3-transitions/">CSS3 Transitions</a> を利用するためにモダンブラウザが必要となるでしょう。D3 は互換レイヤではないので、利用するブラウザが標準をサポートしないのであれば、残念だけど、ごめんね！</p>
+<h2 id="-">インストール</h2>
+<p>最新の D3 のはこちらです。</p>
+<ul>
+<li><a href="https://github.com/mbostock/d3/releases">https://github.com/mbostock/d3/releases</a></li>
+</ul>
+<p>最新リリースの直リンクであれば、以下のスニペットをコピーしてください。</p>
+<pre><code class="lang-html">&lt;script src=&quot;http://d3js.org/d3.v3.min.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>もし、テストを含むリポジトリ全てが必要であれば</p>
+<ul>
+<li><a href="https://github.com/mbostock/d3/zipball/master">https://github.com/mbostock/d3/zipball/master</a></li>
+</ul>
+<p>ローカル環境で開発するときに、ブラウザでローカルファイルシステム以外へのファイル読み込みに厳しい制限があるかもしれません。 <strong>もし (d3.json などを含む) <a href="wiki/Requests">d3.xhr</a> をローカルで利用するのであれば、ローカルWebサーバを起動しなければなりません。</strong> 例えば、Pythonでサーバを起動することができます：</p>
+<pre><code>python -m SimpleHTTPServer 8888 &amp;
+</code></pre><p>Python3以降なら</p>
+<pre><code>python -m http.server 8888 &amp;
+</code></pre><p>これを動かしたら、 <a href="http://localhost:8888/examples/">http://localhost:8888/examples/</a> を開いてください。</p>
+<p>D3 はthe asynchronous module definition (AMD) API をサポートしています。<a href="http://requirejs.org/">RequireJS</a>を使用しているなら、次のようにロードすることができます。</p>
+<pre><code class="lang-js">require.config({paths: {d3: &quot;http://d3js.org/d3.v3.min&quot;}});
+
+require([&quot;d3&quot;], function(d3) {
+  console.log(d3.version);
+});
+</code></pre>
+<h2 id="modifying">Modifying</h2>
+<p>D3 の実装を変更したい場合は、このページの右上にある &quot;Fork&quot; ボタンを押して、次のコマンドラインから <em>username</em> の部分をあなたのGitHub のユーザネームに変更してクローンしてください。</p>
+<pre><code class="lang-bash">git clone git://github.com/username/d3.git
+</code></pre>
+<p>D3 を利用した新しい視覚化を作りたいなら、 D3 リポジトリがそのまま使えるはずです。そうではなく、新機能を追加したりバグ修正したりテストを動かしたいなら<a href="/mbostock/d3">D3 のレポジトリをフォーク</a> して、<a href="http://nodejs.org/">Node.js</a> (version 0.10.x 以降) をインストールしてください。このリポジトリのルートから、 D3 の依存関係をインストールすることができます。</p>
+<pre><code>npm install
+</code></pre><p>テストを実行するのは次のコマンドです:</p>
+<pre><code>make test
+</code></pre>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Time Formatting</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Time Formatting</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Time]] ▸ <strong>Time Formatting</strong></p>
+</blockquote>
+<p>D3 includes a helper module for parsing and formatting dates modeled after the venerable <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html">strptime</a> and <a href="http://pubs.opengroup.org/onlinepubs/007908799/xsh/strftime.html">strftime</a> C-library standards. These functions are also notably available in Python&#39;s <a href="http://docs.python.org/library/time.html">time</a> module.</p>
+<p><a name="format" href="Time-Formatting#format">#</a> d3.time.<b>format</b>(<i>specifier</i>)</p>
+<p>Constructs a new local time formatter using the given <em>specifier</em>. (Equivalent to <a href="Localization#locale_timeFormat">locale.timeFormat</a> for the default U.S. English locale.) The specifier string may contain the following directives.</p>
+<ul>
+<li><code>%a</code> - abbreviated weekday name.</li>
+<li><code>%A</code> - full weekday name.</li>
+<li><code>%b</code> - abbreviated month name.</li>
+<li><code>%B</code> - full month name.</li>
+<li><code>%c</code> - date and time, as &quot;%a %b %e %H:%M:%S %Y&quot;.</li>
+<li><code>%d</code> - zero-padded day of the month as a decimal number [01,31].</li>
+<li><code>%e</code> - space-padded day of the month as a decimal number [ 1,31]; equivalent to <code>%_d</code>.</li>
+<li><code>%H</code> - hour (24-hour clock) as a decimal number [00,23].</li>
+<li><code>%I</code> - hour (12-hour clock) as a decimal number [01,12].</li>
+<li><code>%j</code> - day of the year as a decimal number [001,366].</li>
+<li><code>%m</code> - month as a decimal number [01,12].</li>
+<li><code>%M</code> - minute as a decimal number [00,59].</li>
+<li><code>%L</code> - milliseconds as a decimal number [000, 999].</li>
+<li><code>%p</code> - either AM or PM.</li>
+<li><code>%S</code> - second as a decimal number [00,61].</li>
+<li><code>%U</code> - week number of the year (Sunday as the first day of the week) as a decimal number [00,53].</li>
+<li><code>%w</code> - weekday as a decimal number [0(Sunday),6].</li>
+<li><code>%W</code> - week number of the year (Monday as the first day of the week) as a decimal number [00,53].</li>
+<li><code>%x</code> - date, as &quot;%m/%d/%Y&quot;.</li>
+<li><code>%X</code> - time, as &quot;%H:%M:%S&quot;.</li>
+<li><code>%y</code> - year without century as a decimal number [00,99].</li>
+<li><code>%Y</code> - year with century as a decimal number.</li>
+<li><code>%Z</code> - time zone offset, such as &quot;-0700&quot;.</li>
+<li><code>%%</code> - a literal &quot;%&quot; character.</li>
+</ul>
+<p>For %U, all days in a new year preceding the first Sunday are considered to be in week 0. For %W, all days in a new year preceding the first Monday are considered to be in week 0. In some implementations of strftime and strptime (as in Python), a directive may include an optional field width or precision; this feature is not yet implemented in D3, but may be added in the future.</p>
+<p>For locale-specific date and time formatters, see <a href="Localization#locale_timeFormat">locale.timeFormat</a>.</p>
+<p>The % sign indicating a directive may be immediately followed by a padding modifier:</p>
+<ul>
+<li><code>0</code> - zero-padding</li>
+<li><code>_</code> - space-padding</li>
+<li><code>-</code> - disable padding</li>
+</ul>
+<p>If no padding modifier is specified, the default is <code>0</code> for all directives, except for <code>%e</code> which defaults to <code>_</code>).</p>
+<p>The returned <em>format</em> is both an object and a function. For example:</p>
+<pre><code class="lang-javascript">var format = d3.time.format(&quot;%Y-%m-%d&quot;);
+format.parse(&quot;2011-01-01&quot;); // returns a Date
+format(new Date(2011, 0, 1)); // returns a string
+</code></pre>
+<p><a name="_format" href="Time-Formatting#_format">#</a> <b>format</b>(<i>date</i>)</p>
+<p>Formats the specified <em>date</em>, returning the corresponding string. The <em>date</em> must be a JavaScript <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date">Date</a> object. </p>
+<pre><code class="lang-javascript">var monthNameFormat = d3.time.format(&quot;%B&quot;);
+var dayNameFormat = d3.time.format(&quot;%A&quot;);
+monthNameFormat(new Date(2014, 4, 1));  //returns string &quot;May&quot; (remember javascript months are zero-indexed, thus 4 = May)
+dayNameFormat(new Date(2014, 4, 1));  //returns string &quot;Thursday&quot;
+</code></pre>
+<p>Note that when dates are used in conjunction with <a href="Quantitative-Scales">quantitative scales</a>, the dates are implicitly coerced to numbers representing the number of milliseconds since <a href="http://en.wikipedia.org/wiki/Unix_time">UNIX epoch</a>. To convert between numbers and dates, you can use the following code:</p>
+<pre><code class="lang-javascript">time = +date; // convert a Date object to time in milliseconds
+date = new Date(time); // convert a time in milliseconds to a Date object
+</code></pre>
+<p>If you prefer to be explicit, you can also use the date object&#39;s <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getTime">getTime</a> method, but the + operator is shorter and possibly faster.</p>
+<p><a name="parse" href="Time-Formatting#parse">#</a> format.<b>parse</b>(<i>string</i>)</p>
+<p>Parses the specified <em>string</em>, returning the corresponding date object. If the parsing fails, returns null. Unlike &quot;natural language&quot; date parsers (including JavaScript&#39;s built-in <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse">parse</a>), this method is strict: if the specified string does not exactly match the associated format specifier, this method returns null. For example, if the associated format is the full ISO 8601 string &quot;%Y-%m-%dT%H:%M:%SZ&quot;, then the string &quot;2011-07-01T19:15:28Z&quot; will be parsed correctly, but &quot;2011-07-01T19:15:28&quot;, &quot;2011-07-01 19:15:28&quot; and &quot;2011-07-01&quot; will return null, despite being valid 8601 dates. (Note that the hard-coded &quot;Z&quot; here is different from <code>%Z</code>, the time zone offset.) If desired, you can use multiple formats to try multiple format specifiers sequentially.</p>
+<p>The <code>%d</code> and <code>%e</code> format specifiers are considered equivalent for parsing.</p>
+<p><a name="format_multi" href="#format_multi">#</a> d3.time.format.<b>multi</b>(<i>formats</i>)</p>
+<p>Returns a new multi-resolution time format given the specified array of predicated <em>formats</em>. Each format is a two-element array consisting of a format specifier string (such as that passed to the <a href="#format">d3.time.format</a> constructor) and a predicate function. For any date that is passed to the returned time format, the first predicate function that returns true will determine how the specified date is formatted. For example, the default time format used by <a href="Time-Scales">d3.time.scale</a> is implemented as:</p>
+<pre><code class="lang-js">var format = d3.time.format.multi([
+  [&quot;.%L&quot;, function(d) { return d.getMilliseconds(); }],
+  [&quot;:%S&quot;, function(d) { return d.getSeconds(); }],
+  [&quot;%I:%M&quot;, function(d) { return d.getMinutes(); }],
+  [&quot;%I %p&quot;, function(d) { return d.getHours(); }],
+  [&quot;%a %d&quot;, function(d) { return d.getDay() &amp;&amp; d.getDate() != 1; }],
+  [&quot;%b %d&quot;, function(d) { return d.getDate() != 1; }],
+  [&quot;%B&quot;, function(d) { return d.getMonth(); }],
+  [&quot;%Y&quot;, function() { return true; }]
+]);
+</code></pre>
+<p>Thus, if the specified date is not a round second, the milliseconds format (<code>&quot;.%L&quot;</code>) is used; otherwise, if the specified date is not a round minute, the seconds format (<code>&quot;:%S&quot;</code>) is used, and so on. See <a href="http://bl.ocks.org/mbostock/4149176">bl.ocks.org/4149176</a> for an example.</p>
+<p>The <strong>multi</strong> method is available on any d3.time.format constructor. For example, <a href="#format_utc">d3.time.format.utc</a>.multi returns a multi-resolution UTC time format, and <a href="Localization#timeFormat">locale.timeFormat</a>.multi returns a multi-resolution time format for the specified locale.</p>
+<p><a name="format_utc" href="Time-Formatting#format_utc">#</a> d3.time.format.<b>utc</b>(<i>specifier</i>)</p>
+<p>Constructs a new UTC time formatter using the given <em>specifier</em>. (Equivalent to <a href="Localization#locale_timeFormat_utc">locale.timeFormat.utc</a> for the default U.S. English locale.) The specifier may contain the same directives as the local time <a href="Time-Formatting#format">format</a>. Internally, this time formatter is implemented using the UTC methods on the Date object, such as <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getUTCDate">getUTCDate</a> and <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/setUTCDate">setUTCDate</a> in place of <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/getDate">getDate</a> and <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/setDate">setDate</a>.</p>
+<p><a name="format_iso" href="Time-Formatting#format_iso">#</a> d3.time.format.<b>iso</b></p>
+<p>The full <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> UTC time format: &quot;%Y-%m-%dT%H:%M:%S.%LZ&quot;. Where available, this method will use <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/toISOString">Date.toISOString</a> to format and the <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date">Date constructor</a> to parse strings. If you depend on strict validation of the input format according to ISO 8601, you should construct a time format explicitly instead:</p>
+<pre><code class="lang-js">var iso = d3.time.format.utc(&quot;%Y-%m-%dT%H:%M:%S.%LZ&quot;);
+</code></pre>
+
+    </div>
+  </body>
+</html>

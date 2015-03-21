@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Namespaces</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Namespaces</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Core]] ▸ <strong>Namespaces</strong></p>
+</blockquote>
+<p>SVG has a different namespace from HTML, so D3 provides a few tools to simplify dealing with namespaces.</p>
+<p><a name="prefix" href="Namespaces#prefix">#</a> d3.ns.<b>prefix</b></p>
+<p>The map of registered namespace prefixes. The default value is:</p>
+<pre><code class="lang-javascript">{
+  svg: &quot;http://www.w3.org/2000/svg&quot;,
+  xhtml: &quot;http://www.w3.org/1999/xhtml&quot;,
+  xlink: &quot;http://www.w3.org/1999/xlink&quot;,
+  xml: &quot;http://www.w3.org/XML/1998/namespace&quot;,
+  xmlns: &quot;http://www.w3.org/2000/xmlns/&quot;
+}
+</code></pre>
+<p>Additional prefixes may be assigned as needed to create elements or attributes in other namespaces.</p>
+<p><a name="qualify" href="Namespaces#qualify">#</a> d3.ns.<b>qualify</b>(<i>name</i>)</p>
+<p>Qualifies the specified <em>name</em>, which may have a namespace prefix. If the name contains a colon (&quot;:&quot;), the substring before the colon is interpreted as the namespace prefix, which must be registered in d3.ns.<strong>prefix</strong>; the return value is an object with <code>space</code> and <code>local</code> attributes containing the full namespace URL and the local name. For example, the result of qualify(&quot;svg:text&quot;) is:</p>
+<pre><code class="lang-javascript">{space: &quot;http://www.w3.org/2000/svg&quot;, local: &quot;text&quot;}
+</code></pre>
+<p>If the name does not contain a colon, this function merely returns the input name. This function is used internally to decide whether to use a namespaced method (such as <code>createElementNS</code>) or a non-namespaced equivalent.</p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Treemap Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Treemap Layout</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <a href="Hierarchy-Layout">Hierarchy</a> ▸ <strong>Treemap Layout</strong></p>
+</blockquote>
+<p>Introduced by <a href="http://www.cs.umd.edu/hcil/treemap-history/">Ben Shneiderman</a> in 1991, a <strong>treemap</strong> recursively subdivides area into rectangles. As with <a href="Partition-Layout">adjacency diagrams</a>, the size of any node in the tree is quickly revealed. “Squarified” treemaps use approximately-square rectangles, which offer better readability and size estimation than naïve “slice-and-dice” subdivision. Fancier algorithms such as <a href="http://portal.acm.org/citation.cfm?id=1056018.1056041">Voronoi</a> and <a href="http://hint.fm/papers/158-wattenberg-final3.pdf">jigsaw</a> treemaps also exist but are less common.</p>
+<p><a href="http://bl.ocks.org/mbostock/4063582"><img src="treemap.png" alt="treemap"></a></p>
+<p>Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+<p><a name="treemap" href="#treemap">#</a> d3.layout.<b>treemap</b>()</p>
+<p>Creates a new treemap layout with the default settings: the default sort order is by descending value; the default value accessor assumes each input data is an object with a numeric value attribute; the default children accessor assumes each input data is an object with a children array; the default size is 1×1.</p>
+<p><a name="_treemap" href="#_treemap">#</a> <b>treemap</b>(<i>root</i>)
+<br><a name="nodes" href="#nodes">#</a> treemap.<b>nodes</b>(<i>root</i>)</p>
+<p>Runs the treemap layout, returning the array of nodes associated with the specified <em>root</em> node. The treemap layout is part of D3&#39;s family of <a href="Hierarchy-Layout">hierarchical layouts</a>. These layouts follow the same basic structure: the input argument to the layout is the root node of the hierarchy, and the output return value is an array representing the computed positions of all nodes. Several attributes are populated on each node:</p>
+<ul>
+<li>parent - the parent node, or null for the root.</li>
+<li>children - the array of child nodes, or null for leaf nodes.</li>
+<li>value - the node value, as returned by the value accessor.</li>
+<li>depth - the depth of the node, starting at 0 for the root.</li>
+<li>x - the minimum <em>x</em>-coordinate of the node position.</li>
+<li>y - the minimum <em>y</em>-coordinate of the node position.</li>
+<li>dx - the <em>x</em>-extent of the node position.</li>
+<li>dy - the <em>y</em>-extent of the node position.</li>
+</ul>
+<p>Note that this will modify the nodes that you pass in!</p>
+<p>Although the layout has a size in <em>x</em> and <em>y</em>, this represents an arbitrary coordinate system; for example, you can treat <em>x</em> as a radius and <em>y</em> as an angle to produce a radial rather than Cartesian layout. In Cartesian orientation, <em>x</em>, <em>y</em>, <em>dx</em> and <em>dy</em> correspond to the &quot;x&quot;, &quot;y&quot;, &quot;width&quot; and &quot;height&quot; attributes of the SVG [[rect|SVG-Shapes#svg_rect]] element.</p>
+<p><a name="links" href="#links">#</a> treemap.<b>links</b>(<i>nodes</i>)</p>
+<p>Given the specified array of <em>nodes</em>, such as those returned by <a href="Treemap-Layout#nodes">nodes</a>, returns an array of objects representing the links from parent to child for each node. Leaf nodes will not have any links. Each link is an object with two attributes:</p>
+<ul>
+<li>source - the parent node (as described above).</li>
+<li>target - the child node.</li>
+</ul>
+<p>This method is useful for retrieving a set of link descriptions suitable for display, often in conjunction with the <a href="SVG-Shapes#diagonal">diagonal</a> shape generator. For example:</p>
+<pre><code class="lang-javascript">svg.selectAll(&quot;path&quot;)
+    .data(partition.links(nodes))
+  .enter().append(&quot;path&quot;)
+    .attr(&quot;d&quot;, d3.svg.diagonal());
+</code></pre>
+<p><a name="children" href="#children">#</a> treemap.<b>children</b>([<i>children</i>])</p>
+<p>If <em>children</em> is specified, sets the specified children accessor function. If <em>children</em> is not specified, returns the current children accessor function, which by default assumes that the input data is an object with a children array:</p>
+<pre><code class="lang-javascript">function children(d, depth) {
+  return d.children;
+}
+</code></pre>
+<p>Often, it is convenient to load the node hierarchy using <a href="Requests#d3_json">d3.json</a>, and represent the input hierarchy as a nested <a href="http://json.org">JSON</a> object. For example:</p>
+<pre><code class="lang-javascript">{
+ &quot;name&quot;: &quot;flare&quot;,
+ &quot;children&quot;: [
+  {
+   &quot;name&quot;: &quot;analytics&quot;,
+   &quot;children&quot;: [
+    {
+     &quot;name&quot;: &quot;cluster&quot;,
+     &quot;children&quot;: [
+      {&quot;name&quot;: &quot;AgglomerativeCluster&quot;, &quot;size&quot;: 3938},
+      {&quot;name&quot;: &quot;CommunityStructure&quot;, &quot;size&quot;: 3812},
+      {&quot;name&quot;: &quot;MergeEdge&quot;, &quot;size&quot;: 743}
+     ]
+    },
+    {
+     &quot;name&quot;: &quot;graph&quot;,
+     &quot;children&quot;: [
+      {&quot;name&quot;: &quot;BetweennessCentrality&quot;, &quot;size&quot;: 3534},
+      {&quot;name&quot;: &quot;LinkDistance&quot;, &quot;size&quot;: 5731}
+     ]
+    }
+   ]
+  }
+ ]
+}
+</code></pre>
+<p>The children accessor is first invoked for root node in the hierarchy. If the accessor returns null, then the node is assumed to be a leaf node at the layout traversal terminates. Otherwise, the accessor should return an array of data elements representing the child nodes.</p>
+<p><a name="sort" href="#sort">#</a> treemap.<b>sort</b>([<i>comparator</i>])</p>
+<p>If <em>comparator</em> is specified, sets the sort order of sibling nodes for the layout using the specified comparator function.  If <em>comparator</em> is not specified, returns the current group sort order, which defaults to descending order by the associated input data&#39;s numeric value attribute:</p>
+<pre><code class="lang-javascript">function comparator(a, b) {
+  return b.value - a.value;
+}
+</code></pre>
+<p>The comparator function is invoked for pairs of nodes, being passed the input data for each node. A null comparator disables sorting and uses tree traversal order. Comparator functions may also be implemented using <a href="Arrays#d3_ascending">d3.ascending</a> or <a href="Arrays#d3_descending">d3.descending</a>.</p>
+<p><a name="value" href="#value">#</a> treemap.<b>value</b>([<i>value</i>])</p>
+<p>If <em>value</em> is specified, sets the value accessor to the specified function. If <em>value</em> is not specified, returns the current value accessor, which assumes that the input data is an object with a numeric value attribute:</p>
+<pre><code class="lang-javascript">function value(d) {
+  return d.value;
+}
+</code></pre>
+<p>The value accessor is invoked for each input data element, and must return a number representing the numeric value of the node. This value is used to set the area of each node proportionally to the value.</p>
+<p><a name="size" href="#size">#</a> treemap.<b>size</b>([<i>size</i>])</p>
+<p>If <em>size</em> is specified, sets the available layout size to the specified two-element array of numbers representing <em>x</em> and <em>y</em>. If <em>size</em> is not specified, returns the current size, which defaults to 1×1.</p>
+<p><a name="padding" href="#padding">#</a> treemap.<b>padding</b>([<i>padding</i>])</p>
+<p>Get or set the padding for each treemap cell, in pixels. The padding determines the amount of extra space to reserve between the parent and its children; this space can be used to indicate the hierarchy through enclosure, or to reserve space for parent labels. If no padding is used, then the leaves of the tree will completely fill the layout&#39;s size.</p>
+<p>If <em>padding</em> is specified, sets the new padding and returns the treemap layout; if <em>padding</em> is not specified, returns the current padding. The padding may be specified several ways:</p>
+<ul>
+<li>A null value disables padding; null is equivalent to zero.</li>
+<li>A number indicates uniform padding, in pixels, on all four sides.</li>
+<li>An array of numbers indicates the top, right, bottom and left padding values.</li>
+</ul>
+<p>The padding may also be specified as a function which returns one of the three above values. This function is evaluated for each internal (non-leaf) node, and can be used to compute padding dynamically.</p>
+<p><a name="round" href="#round">#</a> treemap.<b>round</b>([<i>round</i>])</p>
+<p>If <em>round</em> is specified, sets whether or not the treemap layout will round to exact pixel boundaries. This can be nice to avoid antialiasing artifacts in SVG. If <em>round</em> is not specified, returns whether the treemap will be rounded.</p>
+<p><a name="sticky" href="#sticky">#</a> treemap.<b>sticky</b>([<i>sticky</i>])</p>
+<p>If <em>sticky</em> is specified, sets whether or not the treemap layout is &quot;sticky&quot;: a <em>sticky</em> treemap layout will preserve the relative arrangement of nodes across transitions. The allocation of nodes into squarified horizontal and vertical rows is persisted across updates by storing a <em>z</em> attribute on the last element in each row; this allows nodes to be resized smoothly, without shuffling or occlusion that would impede perception of changing values. Note, however, that this results in a suboptimal layout for one of the two states. If <em>sticky</em> is not specified, returns whether the treemap layout is sticky.</p>
+<p>Implementation note: sticky treemaps cache the array of nodes internally; therefore, it is not possible to reuse the same layout instance on multiple datasets. To reset the cached state when switching datasets with a sticky layout, call sticky(true) again. Since version <a href="https://github.com/mbostock/d3/tree/v1.25.0">1.25.0</a>, hierarchy layouts no longer copy the input data by default on each invocation, so it may be possible to eliminate caching and make the layout fully stateless.</p>
+<p><a name="mode" href="#mode">#</a> treemap.<b>mode</b>([<i>mode</i>])</p>
+<p>If <em>mode</em> is specified, sets the layout algorithm. If <em>mode</em> is not specified, returns the current layout algorithm, which defaults to &quot;squarify&quot;. The following modes are supported:</p>
+<ul>
+<li>squarify - rectangular subdivision; squareness controlled via the target <a href="#ratio">ratio</a>.</li>
+<li>slice - horizontal subdivision.</li>
+<li>dice - vertical subdivision.</li>
+<li>slice-dice - alternating between horizontal and vertical subdivision.</li>
+</ul>
+<p><a name="ratio" href="#ratio">#</a> treemap.<b>ratio</b>([<i>ratio</i>])</p>
+<p>If <em>ratio</em> is specified, sets the layout ratio. If <em>ratio</em> is not specified, returns the current layout ratio, which defaults to <code>.5 * (1 + Math.sqrt(5))</code></p>
+
+    </div>
+  </body>
+</html>

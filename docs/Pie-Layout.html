@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Pie Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Pie Layout</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <strong>Pie Layout</strong></p>
+</blockquote>
+<p>The pie layout is a convenience for computing the start and end angles of arcs that comprise a pie or donut chart:</p>
+<p><img src="pie.png" alt="pie"></p>
+<p>You don&#39;t <em>need</em> to use the pie layout to create a pie chart; you can just use the <a href="SVG-Shapes#arc">arc shape</a> directly if you prefer. The pie layout simply makes it easier to convert an array of data into an array of objects with startAngle and endAngle attributes that range from 0 to 2π, which you can then pass to the arc shape generator.</p>
+<p><a name="pie" href="#pie">#</a> d3.layout.<b>pie</b>()</p>
+<p>Constructs a new pie function with the default value accessor (number), sort comparator (descending value), start angle (0) and end angle (2π). The returned layout object is both an object and a function. That is: you can call the layout like any other function, and the layout has additional methods that change its behavior. Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+<p><a name="_pie" href="#_pie">#</a> <b>pie</b>(<i>values</i>[, <i>index</i>])</p>
+<p>Evaluates the pie function on the specified array of <em>values</em>. An optional <em>index</em> may be specified, which is passed along to the start and end angle functions. The return value is an array of arc descriptors:</p>
+<ul>
+<li>value - the data value, returned by the <em>value</em> accessor.</li>
+<li>startAngle - the start angle of the arc in radians.</li>
+<li>endAngle - the end angle of the arc in radians.</li>
+<li>padAngle - the pad angle of the arc in radians.</li>
+<li>data - the original datum for this arc.</li>
+</ul>
+<p>The elements are returned in the original order, matching <em>values</em>, even if a <a href="#sort">sort</a> order is applied; this preserves the original index of each element in the values array, which is nice if you are using the index to generate a categorical color or other display property.</p>
+<p><a name="value" href="#value">#</a> pie.<b>value</b>([<i>accessor</i>])</p>
+<p>Specifies how to extract a value from the associated data (e.g. sets the accessor function for the pie layout to use); <em>accessor</em> is a function which is invoked on each input value passed to <a href="#_pie">pie</a>, equivalent to calling <em>values.map(accessor)</em> before computing the pie layout. The function is passed two arguments: the current datum and the current index. The default value function is the built-in <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Number">Number</a>, which is similar to the identity function. If <em>accessor</em> is not specified, returns the current value accessor.</p>
+<p><a name="sort" href="#sort">#</a> pie.<b>sort</b>([<i>comparator</i>])</p>
+<p>If <em>comparator</em> is specified, sets the sort order of data for the layout using the specified comparator function. Pass <code>null</code> to disable sorting. If <em>comparator</em> is not specified, returns the current sort order. The sort order defaults to descending value. Sorting preserves the index (and z-index) of input values, affecting only the computed angles. The comparator function is invoked for pairs of data elements from the <em>values</em> array passed to <a href="#_pie">pie</a>. Comparator functions may also be implemented using <a href="Arrays#d3_ascending">d3.ascending</a> or <a href="Arrays#d3_descending">d3.descending</a>.</p>
+<p><a name="startAngle" href="#startAngle">#</a> pie.<b>startAngle</b>([<i>angle</i>])</p>
+<p>If <em>angle</em> is specified, sets the overall start angle of the pie layout to the specified value in radians. If <em>angle</em> is not specified, returns the current value, which defaults to 0. The start angle can be specified either as a constant or as a function; if a function, it is evaluated once when the <a href="#_pie">pie</a> function is called, being passed the current <em>data</em> and <em>index</em>.</p>
+<p><a name="endAngle" href="#endAngle">#</a> pie.<b>endAngle</b>([<i>angle</i>])</p>
+<p>If <em>angle</em> is specified, sets the overall end angle of the pie layout to the specified value in radians. If <em>angle</em> is not specified, returns the current value, which defaults to 2π. The end angle can be specified either as a constant or as a function; if a function, it is evaluated once when the <a href="#_pie">pie</a> function is called, being passed the current <em>data</em> and <em>index</em>.</p>
+<p><a name="padAngle" href="#padAngle">#</a> pie.<b>padAngle</b>([<i>angle</i>])</p>
+<p>If <em>angle</em> is specified, sets the pad angle of the pie layout to the specified value in radians. Adjacent arcs <a href="http://bl.ocks.org/mbostock/f098d146315be4d1db52">will be separated</a> by the pad angle. If <em>angle</em> is not specified, returns the current value, which defaults to 0. The pad angle can be specified either as a constant or as a function; if a function, it is evaluated once when the <a href="#_pie">pie</a> function is called, being passed the current <em>data</em> and <em>index</em>.</p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Quadtree Geom</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Quadtree Geom</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[Geometry]] ▸ <strong>Quadtree Geom</strong></p>
+</blockquote>
+<p>A <strong>quadtree</strong> is a two-dimensional recursive spatial subdivision. This implementation uses square partitions, dividing each square into four equally-sized squares. Each point exists in a unique node; if multiple points are in the same position, some points may be stored on internal nodes rather than leaf nodes. Quadtrees can be used to accelerate various spatial operations, such as the Barnes-Hut approximation for computing n-body forces, or collision detection.</p>
+<p><a href="http://bl.ocks.org/mbostock/4343214"><img src="http://bl.ocks.org/mbostock/raw/4343214/thumbnail.png" width="202"></a>
+<a href="http://bl.ocks.org/mbostock/6216724"><img src="http://bl.ocks.org/mbostock/raw/6216724/thumbnail.png" width="202"></a>
+<a href="http://bl.ocks.org/mbostock/6224050"><img src="http://bl.ocks.org/mbostock/raw/6224050/thumbnail.png" width="202"></a>
+<a href="http://bl.ocks.org/patricksurry/6478178"><img src="http://bl.ocks.org/patricksurry/raw/6478178/thumbnail.png" width="202"></a>
+<a href="http://bl.ocks.org/llb4ll/8709363"><img src="http://bl.ocks.org/llb4ll/raw/8709363/thumbnail.png" width="202"></a></p>
+<p><a name="quadtree" href="#quadtree">#</a> d3.geom.<b>quadtree</b>()</p>
+<p>Creates a new quadtree factory with the default <a href="#x"><em>x</em>-accessor</a>, <a href="#y"><em>y</em>-accessor</a> and <a href="#extent">extent</a>. The <a href="#_quadtree">returned function</a> can be used to create any number of quadtrees from data with the factory’s configuration.</p>
+<p><a name="_quadtree" href="Quadtree-Geom#_quadtree">#</a> <b>quadtree</b>(<i>points</i>)</p>
+<p>Constructs a new quadtree for the specified array of data <em>points</em>, returning the root node of a new quadtree. The <em>x</em>- and <em>y</em>-coordinates of each point are determined using the current <a href="#x"><em>x</em>-</a> and <a href="#y"><em>y</em>-</a> accessor functions. To build a quadtree by adding points incrementally, the specified <em>points</em> array can be empty, and then points can be later <a href="#add">added</a> to the returned root node; in this case, you must also specify the <a href="#extent">extent</a> of the quadtree.</p>
+<p>Each node in the quadtree has several properties:</p>
+<ul>
+<li><em>nodes</em> - a sparse array of the four child nodes in order: top-left, top-right, bottom-left, bottom-right</li>
+<li><em>leaf</em> - a boolean indicating whether this is an internal node or a leaf node</li>
+<li><em>point</em> - the point associated with this node, if any (may apply to either internal or leaf nodes)</li>
+<li><em>x</em> - the <em>x</em>-coordinate of the associated point, if any</li>
+<li><em>y</em> - the <em>y</em>-coordinate of the associated point, if any</li>
+</ul>
+<p>The returned root node also defines <a href="#add">add</a> and <a href="#visit">visit</a> methods.</p>
+<p><a name="add" href="#add">#</a> root.<b>add</b>(<i>point</i>)</p>
+<p>Adds the specified new <em>point</em> to the quadtree.</p>
+<p><a name="visit" href="#visit">#</a> root.<b>visit</b>(<i>callback</i>)</p>
+<p>Visits each node in the quadtree, invoking the specified <em>callback</em> with arguments {<i>node</i>, <em>x1</em>, <em>y1</em>, <em>x2</em>, <em>y2</em>} for each node. Nodes are traversed in pre-order. If the <em>callback</em> returns true for a given node, then the children of that node are not visited; otherwise, all child nodes are visited.</p>
+<p><a name="visit" href="#visit">#</a> root.<b>find</b>(<i>point</i>)</p>
+<p>Given any point <em>[x,y]</em>, returns the closest point in the quadtree.</p>
+<p><a name="x" href="#x">#</a> quadtree.<b>x</b>([<i>x</i>])</p>
+<p>If <em>x</em> is specified, sets the x-coordinate accessor and returns this quadtree factory. If <em>x</em> is not specified, returns the current <em>x</em>-coordinate accessor, which defaults to:</p>
+<pre><code class="lang-js">function(d) { return d[0]; }
+</code></pre>
+<p>For each point added to the quadtree, either during <a href="#_quadtree">initial construction</a> or lazily <a href="#add">added</a>, the <em>x</em>-accessor is invoked with the arguments {<i>d</i>, <i>i</i>}, where <em>d</em> is the current point and <em>i</em> is its index in the array of all points. The <em>x</em>-accessor must then return a numeric value indicating the <em>x</em>-coordinate of the given point. The <em>x</em>-accessor may also be defined as a constant number rather than a function, if desired.</p>
+<p><a name="y" href="#y">#</a> quadtree.<b>y</b>([<i>y</i>])</p>
+<p>If <em>y</em> is specified, sets the y-coordinate accessor and returns this quadtree factory. If <em>y</em> is not specified, returns the current <em>y</em>-coordinate accessor, which defaults to:</p>
+<pre><code class="lang-js">function(d) { return d[1]; }
+</code></pre>
+<p>For each point added to the quadtree, either during <a href="#_quadtree">initial construction</a> or lazily <a href="#add">added</a>, the <em>y</em>-accessor is invoked with the arguments {<i>d</i>, <i>i</i>}, where <em>d</em> is the current point and <em>i</em> is its index in the array of all points. The <em>y</em>-accessor must then return a numeric value indicating the <em>y</em>-coordinate of the given point. The <em>y</em>-accessor may also be defined as a constant number rather than a function, if desired.</p>
+<p><a name="extent" href="#extent">#</a> quadtree.<b>extent</b>([<i>extent</i>])</p>
+<p>If <em>extent</em> is specified, sets the current extent and returns this quadtree factory. If <em>extent</em> is not specified, returns the current extent, which defaults to null. When the extent is null, an extent will be computed automatically by scanning the array of input points passed to the <a href="#_quadtree">quadtree constructor</a>. Otherwise, the <em>extent</em> must be specified as a two-dimensional array [​[<i>x0</i>, <i>y0</i>], [​<i>x1</i>, <i>y1</i>]​], where <em>x0</em> and <em>y0</em> are the lower bounds of the extent, and <em>x1</em> and <em>y1</em> are the upper bounds of the extent. Setting an extent is required when constructing a quadtree lazily from an initially-empty set of nodes.</p>
+
+    </div>
+  </body>
+</html>

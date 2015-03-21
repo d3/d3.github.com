@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Stack Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Stack Layout</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <strong>Stack Layout</strong></p>
+</blockquote>
+<p>The stack layout takes a two-dimensional array of data and computes a baseline; the baseline is then propagated to the above layers, so as to produce a stacked graph. Several baseline algorithms are supported, along with sorting heuristics to improve perception, as described in <a href="http://www.leebyron.com/else/streamgraph/download.php?file=stackedgraphs_byron_wattenberg.pdf">“Stacked Graphs—Geometry &amp; Aesthetics”</a> by Byron &amp; Wattenberg.</p>
+<p><a href="http://bl.ocks.org/mbostock/4060954"><img src="stack.png" alt="stack"></a></p>
+<p>The stack layout operates in an arbitrary two-dimensional <em>x</em> and <em>y</em> coordinate space, similar to D3&#39;s other layouts, including <a href="Tree-Layout">tree</a>. Thus, layers can be stacked vertically, horizontally, or even <a href="http://hint.fm/projects/flickr/">radially</a>. While the &quot;zero&quot; offset is the default, a streamgraph can be generated using the &quot;wiggle&quot; offset, which attempts to minimize change in slope weighted by layer thickness.</p>
+<p><a name="stack" href="Stack-Layout#stack">#</a> d3.layout.<b>stack</b>()</p>
+<p>Constructs a new stack layout with the default offset (zero) and order (null). The returned layout object is both an object and a function. That is: you can call the layout like any other function, and the layout has additional methods that change its behavior. Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+<p><a name="_stack" href="Stack-Layout#_stack">#</a> <b>stack</b>(<i>layers</i>[, <i>index</i>])</p>
+<p>Computes the <em>y</em>-coordinate baseline for each series (layer) in <em>layers</em>, and then propagate that baseline to the other layers. In the simplest case, <em>layers</em> is a two-dimensional array of values. All of the 2nd-dimensional arrays must be the same length. The <a href="Stack-Layout#y">y</a> and <a href="Stack-Layout#x">x</a> accessors are used to define the <em>y</em>-thickness of each layer at the given <em>x</em>-position, respectively. Thus, by default the following attributes are required on each value:</p>
+<ul>
+<li>x - the <em>x</em>-position of the value.</li>
+<li>y - the <em>y</em>-thickness of the value.</li>
+<li>y0 - the minimum <em>y</em>-position of the value (baseline).</li>
+</ul>
+<p>These attributes can be customized by overriding the accessors and the <a href="Stack-Layout#out">out</a> function.</p>
+<p><a name="values" href="Stack-Layout#values">#</a> stack.<b>values</b>([<i>accessor</i>])</p>
+<p>Specifies how to extract values from the associated element in <em>layers</em>; <em>accessor</em> is a function which is invoked on each input layer passed to <a href="Stack-Layout#_stack">stack</a>, equivalent to calling <em>layers.map(accessor)</em> before computing the stack layout. The default values function is the built-in <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object">Object</a>, which is similar to the identity function. If <em>accessor</em> is not specified, returns the current values accessor.</p>
+<p>The values accessor can be used to associate additional data per-layer, rather than per-point. For example, say your data were structured as follows:</p>
+<pre><code class="lang-js">var layers = [
+  {
+    &quot;name&quot;: &quot;apples&quot;,
+    &quot;values&quot;: [
+      { &quot;x&quot;: 0, &quot;y&quot;:  91},
+      { &quot;x&quot;: 1, &quot;y&quot;: 290}
+    ]
+  },
+  {  
+    &quot;name&quot;: &quot;oranges&quot;,
+    &quot;values&quot;: [
+      { &quot;x&quot;: 0, &quot;y&quot;:  9},
+      { &quot;x&quot;: 1, &quot;y&quot;: 49}
+    ]
+  }
+];
+</code></pre>
+<p>Specify a values accessor that retrieves the points for each layer:</p>
+<pre><code class="lang-js">var stack = d3.layout.stack()
+    .offset(&quot;wiggle&quot;)
+    .values(function(d) { return d.values; });
+</code></pre>
+<p>Then, if you wanted to add a tooltip for each layer, you might say:</p>
+<pre><code class="lang-js">svg.selectAll(&quot;path&quot;)
+    .data(stack(layers))
+  .enter().append(&quot;path&quot;)
+    .attr(&quot;d&quot;, function(d) { return area(d.values); })
+  .append(&quot;title&quot;)
+    .text(function(d) { return d.name; });
+</code></pre>
+<p><a name="offset" href="Stack-Layout#offset">#</a> stack.<b>offset</b>([<i>offset</i>])</p>
+<p>If <em>offset</em> is specified, sets the stack offset algorithm to the specified value. If <em>offset</em> is not specified, returns the current offset algorithm. The following string values are supported:</p>
+<ul>
+<li>silhouette - center the stream, as in <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.39.2977&amp;rep=rep1&amp;type=pdf">ThemeRiver</a>.</li>
+<li>wiggle - minimize weighted change in slope.</li>
+<li>expand - normalize layers to fill the range [0,1].</li>
+<li>zero - use a zero baseline, <em>i.e.</em>, the <em>y</em>-axis.</li>
+</ul>
+<p>In addition to a string, <em>offset</em> may be specified as a function. The input to the offset function is the layer data, converted to a standardized representation: a two-dimensional array of values, where each value is represented as a two-element array [<em>x</em>, <em>y</em>]. The return value of the offset function must be an array of values which represents the <em>y</em>-coordinates of the baseline. For example, the default &quot;zero&quot; offset is implemented as:</p>
+<pre><code class="lang-javascript">function offset(data) {
+  var j = -1,
+      m = data[0].length,
+      y0 = [];
+  while (++j &lt; m) y0[j] = 0;
+  return y0;
+}
+</code></pre>
+<p><a name="order" href="Stack-Layout#order">#</a> stack.<b>order</b>([<i>order</i>])</p>
+<p>If <em>order</em> is specified, sets the stack order to the specified value. If <em>order</em> is not specified, returns the current order. The following string values are supported:</p>
+<ul>
+<li>inside-out - sort by index of maximum value, then use balanced weighting.</li>
+<li>reverse - reverse the input layer order.</li>
+<li>default - use the input layer order.</li>
+</ul>
+<p>In addition to a string, <em>order</em> may be specified as a function. The input to the order function is the layer data, converted to the standardized representation: a two-dimensional array of values, where each value is represented as a two-element array [<em>x</em>, <em>y</em>]. The return value of the order function must be an array of indexes which represents the layer order. For example, the default order is implemented as:</p>
+<pre><code class="lang-javascript">function order(data) {
+  return d3.range(data.length);
+}
+</code></pre>
+<p>See also <a href="Arrays#d3_range">d3.range</a>.</p>
+<p><a name="x" href="Stack-Layout#x">#</a> stack.<b>x</b>([<i>accessor</i>])</p>
+<p>Specifies how to access the <em>x</em>-coordinate of each value&#39;s position. If <em>accessor</em> is specified, sets the accessor to the specified function. If <em>accessor</em> is not specified, returns the current function, which by default assumes that each input value has an x attribute:</p>
+<pre><code class="lang-javascript">function x(d) {
+  return d.x;
+}
+</code></pre>
+<p>The <em>x</em>-accessor is invoked for each input value, for each input layer, being passed the current data (d) and index (i). The return value of the accessor must be a number. Although the <em>x</em>-accessor is invoked for all layers (not just the bottommost layer), the stack layout assumes that the <em>x</em>-coordinates of all layers are consistent. In other words, the stack layout currently requires that the layers be homogenous: each must contain the same number of values at the same <em>x</em>-coordinates. If your data is not so regular, you will need to reinterpolate the data before computing the stack.</p>
+<p><a name="y" href="Stack-Layout#y">#</a> stack.<b>y</b>([<i>accessor</i>])</p>
+<p>Specifies how to access the <em>y</em>-coordinate of each value&#39;s thickness. If <em>accessor</em> is specified, sets the accessor to the specified function. If <em>accessor</em> is not specified, returns the current function, which by default assumes that each input value has a y attribute:</p>
+<pre><code class="lang-javascript">function y(d) {
+  return d.y;
+}
+</code></pre>
+<p>The <em>y</em>-accessor is invoked for each input value, for each input layer, being passed the current data (d) and index (i). The return value of the accessor must be a number. With the exception of the &quot;expand&quot; offset, the stack layout does not perform any automatic scaling of data. To simplify scaling, use this layout in conjunction with a <a href="Quantitative-Scales#linear">linear scale</a> or similar.</p>
+<p><a name="out" href="Stack-Layout#out">#</a> stack.<b>out</b>([<i>setter</i>])</p>
+<p>Specifies how to propagate the computed baseline to above layers. If <em>setter</em> is specified, it is used as the output function. If <em>setter</em> is not specified, returns the current output function, which by default assumes that each input value has y and y0 attributes:</p>
+<pre><code class="lang-javascript">function out(d, y0, y) {
+  d.y0 = y0;
+  d.y = y;
+}
+</code></pre>
+<p>The <em>setter</em> is invoked for each input value, for each input layer, being passed the current data (d), the computed <em>y0</em> value, and the computed <em>y</em>-thickness. In all cases except the &quot;expand&quot; offset, the <em>y</em>-thickness is the same as the input value returned by <a href="Stack-Layout#y">y</a>, and thus may be ignored.</p>
+
+    </div>
+  </body>
+</html>

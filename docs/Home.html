@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Home</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Home</h1>
+      <p><strong>D3.js</strong> is a JavaScript library for manipulating documents based on data. <strong>D3</strong> helps you bring data to life using HTML, SVG and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="http://d3js.org/">Introduction</a></li>
+<li><a href="/mbostock/d3/wiki/Gallery">Examples Gallery</a></li>
+<li><a href="/mbostock/d3/wiki/Tutorials">Tutorials and Talks</a></li>
+<li><a href="/mbostock/d3/wiki/API-Reference">API Reference</a></li>
+<li><a href="/mbostock/d3/releases">Release Notes</a></li>
+<li><a href="/d3/d3-plugins">Plugins</a></li>
+<li><a href="http://stackoverflow.com/questions/tagged/d3.js">d3.js on Stack Overflow</a></li>
+<li><a href="http://groups.google.com/group/d3-js">d3-js Google Group</a></li>
+</ul>
+<h3 id="translations-unofficial-">Translations (Unofficial)</h3>
+<ul>
+<li><a href="/zziuni/d3/wiki">한국어</a></li>
+<li><a href="/mbostock/d3/wiki/JP-Home">日本語</a></li>
+<li><a href="/mbostock/d3/wiki/CN-Home">简体中文</a></li>
+<li><a href="/mbostock/d3/wiki/TW-Home">繁體中文</a></li>
+<li><a href="/mbostock/d3/wiki/API-Reference-\(русскоязычная-версия\">Русский</a>)</li>
+<li><a href="/ahmetkurnaz/d3/wiki">Türkçe</a></li>
+<li><a href="/widiantonugroho/d3/wiki">Indonesian</a></li>
+</ul>
+<h2 id="browser-platform-support">Browser / Platform Support</h2>
+<p>D3 supports so-called “modern” browsers, which generally means everything <em>except</em> IE8 and below. D3 is tested against Firefox, Chrome, Safari, Opera, IE9+, Android and iOS. Parts of D3 may work in older browsers, as the core D3 library has minimal requirements: JavaScript and the <a href="http://www.w3.org/DOM/">W3C DOM</a> API. D3 uses the <a href="http://www.w3.org/TR/selectors-api/">Selectors API</a> Level 1, but you can preload <a href="http://sizzlejs.com/">Sizzle</a> for compatibility. You&#39;ll need a modern browser to use <a href="http://www.w3.org/TR/SVG/">SVG</a> and <a href="http://www.w3.org/TR/css3-transitions/">CSS3 Transitions</a>. D3 is not a compatibility layer, so if your browser doesn&#39;t support standards, you&#39;re out of luck. Sorry!</p>
+<p>D3 also runs on <a href="http://nodejs.org/">Node.js</a>. Use <code>npm install d3</code> to install, and <code>require(&quot;d3&quot;)</code> to load. On Node, limited DOM support is provided by <a href="https://github.com/tmpvar/jsdom">JSDOM</a>. D3 can also run within a <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html">WebWorker</a> by creating a <a href="/mbostock/smash/wiki">custom build</a> containing only the desired (non-DOM) features.</p>
+<h2 id="installing">Installing</h2>
+<p>Download the latest version here:</p>
+<ul>
+<li><a href="https://github.com/mbostock/d3/releases">https://github.com/mbostock/d3/releases</a></li>
+</ul>
+<p>Or, to link directly to the latest release, copy this snippet:</p>
+<pre><code class="lang-html">&lt;script src=&quot;http://d3js.org/d3.v3.min.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p><strong>Note:</strong> the non-minified source code contains non-ASCII characters and must be served with UTF-8 encoding, either via the <code>charset=&quot;utf-8&quot;</code> attribute on the script tag or by adding <code>&lt;meta charset=&quot;utf-8&quot;&gt;</code> to the top of the page. If you see a SyntaxError: Unexpected token ILLEGAL at <code>var Ï€ = Math.PI</code>, it is because you are serving the non-minified source with the incorrect ISO-8859-1 encoding. See this <a href="http://stackoverflow.com/a/14301241">StackOverflow answer</a> for more information.</p>
+<p>If you want the full repository including tests, download or clone the D3 git repository:</p>
+<ul>
+<li><a href="https://github.com/mbostock/d3/zipball/master">https://github.com/mbostock/d3/zipball/master</a></li>
+</ul>
+<p>D3 is also available via numerous package managers, including: <a href="https://npmjs.org/package/d3">NPM</a> (Node.js), <a href="http://bower.io/search/?q=d3">Bower</a>, <a href="http://browserify.org/">Browserify</a>, <a href="http://component.io/">Component</a>, <a href="http://jamjs.org/packages/#/details/d3">Jam</a>, <a href="https://packagist.org/packages/mbostock/d3">Composer / Packagist</a> (PHP), <a href="https://spmjs.org/gallery/d3/">SPM</a>, <a href="http://jspm.io/">JSPM</a>, <a href="https://www.nuget.org/packages/d3/">NuGet</a> (.Net), and <a href="https://github.com/amdjs/amdjs-api/blob/master/AMD.md">AMD</a> (e.g., <a href="http://requirejs.org/">RequireJS</a>). The official releases of D3 are on <a href="https://npmjs.org/package/d3">NPM</a> and <a href="/mbostock/d3">GitHub</a> only; support for other package managers is unofficial and maintained by contributors.</p>
+<h2 id="using">Using</h2>
+<p>When developing locally, note that your browser may enforce strict permissions for reading files out of the local file system. <strong>If you use <a href="wiki/Requests">d3.xhr</a> locally (including d3.json et al.), you must have a local web server.</strong> For example, you can run Python&#39;s built-in server:</p>
+<pre><code>python -m SimpleHTTPServer 8888 &amp;
+</code></pre><p>or for Python 3+</p>
+<pre><code>python -m http.server 8888 &amp;
+</code></pre><p>If you have have PHP installed you could try</p>
+<pre><code>php -S localhost:8888
+</code></pre><p>or if you are running Ruby you can use</p>
+<pre><code>ruby -run -e httpd . -p 8888
+</code></pre><p>Once this is running, go to <a href="http://localhost:8888/">http://localhost:8888/</a>.</p>
+<p>Or if you are running nodejs you can do</p>
+<pre><code>npm install http-server -g
+http-server
+</code></pre><p>Another option is to start a local jetty instance, by using the jetty-runner library with the JVM already installed on your system. In order to achieve this you&#39;ll need to download <a href="http://central.maven.org/maven2/org/eclipse/jetty/jetty-runner/9.3.0.M0/jetty-runner-9.3.0.M0.jar">jetty-runner</a>, then you can simply do:</p>
+<pre><code>java -jar jetty-runner-9.3.0.M0.jar  --port 8080  .
+</code></pre><p>and this will start the server on <a href="http://localhost:8080">http://localhost:8080</a> as usual from the current directory, or a different directory, simply changing &#39;.&#39; to the path to that directory.</p>
+<p>D3 supports the asynchronous module definition (AMD) API. For example, if you use <a href="http://requirejs.org/">RequireJS</a>, you may load as follows:</p>
+<pre><code class="lang-js">require.config({paths: {d3: &quot;http://d3js.org/d3.v3.min&quot;}});
+
+require([&quot;d3&quot;], function(d3) {
+  console.log(d3.version);
+});
+</code></pre>
+<h2 id="modifying">Modifying</h2>
+<p>If you want to modify how D3 is implemented, click the &quot;Fork&quot; button in the top-right corner of this page, and then clone your fork from the command line by replacing <em>username</em> with your GitHub username:</p>
+<pre><code class="lang-bash">git clone git://github.com/username/d3.git
+</code></pre>
+<p>The D3 repository should work out of the box if you just want to create new visualizations using D3. On the other hand, if you want to extend D3 with new features, fix bugs, or run tests, you should <a href="/mbostock/d3">fork the D3 repository</a>, and install <a href="http://nodejs.org/">Node.js</a> (version 0.10.x or higher). From the root directory of this repository, you can then install D3&#39;s dependencies:</p>
+<pre><code>npm install
+</code></pre><p>To run the tests, use:</p>
+<pre><code>make test
+</code></pre>
+    </div>
+  </body>
+</html>

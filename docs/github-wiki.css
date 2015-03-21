@@ -1,0 +1,7 @@
+/* CSS that makes the page look more like the GitHub Wiki. */
+.markdown-body{
+  margin-top: 80px;
+  margin-bottom: 100px;
+  margin-right: 150px;
+  margin-left: 150px;
+}

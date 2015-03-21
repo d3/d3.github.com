@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Ordinal Scales</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Ordinal Scales</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Scales]] ▸ <strong>Ordinal Scales</strong></p>
+</blockquote>
+<p><strong>Scales</strong> are functions that map from an input domain to an output range. <strong>Ordinal</strong> scales have a discrete domain, such as a set of names or categories. There are also [[quantitative scales|Quantitative-Scales]], which have a continuous domain, such as the set of real numbers. Scales are an optional feature in D3; you don&#39;t have to use them, if you prefer to do the math yourself. However, using scales can greatly simplify the code needed to map a dimension of data to a visual representation.</p>
+<p>A scale object, such as that returned by <a href="Ordinal-Scales#ordinal">d3.scale.ordinal</a>, is both an object and a function. That is: you can call the scale like any other function, and the scale has additional methods that change its behavior. Like other classes in D3, scales follow the method chaining pattern where setter methods return the scale itself, allowing multiple setters to be invoked in a concise statement.</p>
+<p><a name="ordinal" href="Ordinal-Scales#ordinal">#</a> d3.scale.<b>ordinal</b>()</p>
+<p>Constructs a new ordinal scale with an empty domain and an empty range. The ordinal scale is invalid (always returning undefined) until an output range is specified.</p>
+<p><a name="_ordinal" href="Ordinal-Scales#_ordinal">#</a> <b>ordinal</b>(<i>x</i>)</p>
+<p>Given a value <em>x</em> in the input domain, returns the corresponding value in the output range.</p>
+<p>If the range was specified explicitly (as by <a href="#ordinal_range">range</a>, but not <a href="#ordinal_rangeBands">rangeBands</a>, <a href="#ordinal_rangeRoundBands">rangeRoundBands</a> or <a href="#ordinal_rangePoints">rangePoints</a>), <em>and</em> the given value <em>x</em> is not in the scale’s <a href="#ordinal_domain">domain</a>, then <em>x</em> is implicitly added to the domain; subsequent invocations of the scale given the same value <em>x</em> will return the same value <em>y</em> from the range.</p>
+<p><a name="ordinal_domain" href="Ordinal-Scales#ordinal_domain">#</a> ordinal.<b>domain</b>([<i>values</i>])</p>
+<p>If <em>values</em> is specified, sets the input domain of the ordinal scale to the specified array of values. The first element in <em>values</em> will be mapped to the first element in the output range, the second domain value to the second range value, and so on. Domain values are stored internally in an associative array as a mapping from value to index; the resulting index is then used to retrieve a value from the output range. Thus, an ordinal scale&#39;s values must be coercible to a string, and the stringified version of the domain value uniquely identifies the corresponding range value. If <em>values</em> is not specified, this method returns the current domain.</p>
+<p>Setting the domain on an ordinal scale is optional. If no domain is set, a <a href="#ordinal_range">range</a> must be set explicitly. Then, each unique value that is passed to the scale function will be assigned a new value from the output range; in other words, the domain will be inferred implicitly from usage. Although domains may thus be constructed implicitly, it is still a good idea to assign the ordinal scale&#39;s domain explicitly to ensure deterministic behavior, as inferring the domain from usage will be dependent on ordering.</p>
+<p><a name="ordinal_range" href="Ordinal-Scales#ordinal_range">#</a> ordinal.<b>range</b>([<i>values</i>])</p>
+<p>If <em>values</em> is specified, sets the output range of the ordinal scale to the specified array of values. The first element in the domain will be mapped to the first element in <em>values</em>, the second domain value to the second range value, and so on. If there are fewer elements in the range than in the domain, the scale will recycle values from the start of the range. If <em>values</em> is not specified, this method returns the current output range.</p>
+<p>This method is intended for when the set of discrete output values is computed explicitly, such as a set of categorical colors. In other cases, such as determining the layout of an ordinal scatterplot or bar chart, you may find the <a href="Ordinal-Scales#ordinal_rangePoints">rangePoints</a> or <a href="Ordinal-Scales#ordinal_rangeBands">rangeBands</a> operators more convenient.</p>
+<p><a name="ordinal_rangePoints" href="Ordinal-Scales#ordinal_rangePoints">#</a> ordinal.<b>rangePoints</b>(<i>interval</i>[, <i>padding</i>])</p>
+<p>Sets the output range from the specified continuous <em>interval</em>. The array <em>interval</em> contains two elements representing the minimum and maximum numeric value. This interval is subdivided into <em>n</em> evenly-spaced <strong>points</strong>, where <em>n</em> is the number of (unique) values in the input domain. The first and last point may be offset from the edge of the interval according to the specified <em>padding</em>, which defaults to zero. The <em>padding</em> is expressed as a multiple of the spacing between points. A reasonable value is 1.0, such that the first and last point will be offset from the minimum and maximum value by half the distance between points.</p>
+<p><img src="https://f.cloud.github.com/assets/230541/538689/46d87118-c193-11e2-83ab-2008df7c36aa.png" alt="rangepoints"></p>
+<pre><code class="lang-javascript">var o = d3.scale.ordinal()
+    .domain([1, 2, 3, 4])
+    .rangePoints([0, 100]);
+
+o.range(); // [0, 33.333333333333336, 66.66666666666667, 100]
+</code></pre>
+<p><a name="ordinal_rangeRoundPoints" href="#ordinal_rangeRoundPoints">#</a> ordinal.<b>rangeRoundPoints</b>(<i>interval</i>[, <i>padding</i>])</p>
+<p>Like <a href="#ordinal_rangePoints">rangePoints</a>, except guarantees that the range values are integers so as to avoid antialiasing artifacts.</p>
+<pre><code class="lang-js">var o = d3.scale.ordinal()
+    .domain([1, 2, 3, 4])
+    .rangeRoundPoints([0, 100]);
+
+o.range(); // [1, 34, 67, 100]
+</code></pre>
+<p>Note that rounding necessarily introduces additional outer padding which is, on average, proportional to the length of the domain. For example, for a domain of size 50, an additional 25px of outer padding on either side may be required. Modifying the range extent to be closer to a multiple of the domain length may reduce the additional padding.</p>
+<pre><code class="lang-js">var o = d3.scale.ordinal()
+    .domain(d3.range(50))
+    .rangeRoundPoints([0, 95]);
+
+o.range(); // [23, 24, 25, …, 70, 71, 72]
+o.rangeRoundPoints([0, 100]);
+o.range(); // [1, 3, 5, …, 95, 97, 98]
+</code></pre>
+<p>(Alternatively, you could round the output of the scale manually or apply shape-rendering: crispEdges. However, this will result in irregularly spaced points.)</p>
+<p><a name="ordinal_rangeBands" href="Ordinal-Scales#ordinal_rangeBands">#</a> ordinal.<b>rangeBands</b>(<i>interval</i>[, <i>padding</i>[, <i>outerPadding</i>]])</p>
+<p>Sets the output range from the specified continuous <em>interval</em>. The array <em>interval</em> contains two elements representing the minimum and maximum numeric value. This interval is subdivided into <em>n</em> evenly-spaced <strong>bands</strong>, where <em>n</em> is the number of (unique) values in the input domain. The bands may be offset from the edge of the interval and other bands according to the specified <em>padding</em>, which defaults to zero. The padding is typically in the range [0,1] and corresponds to the amount of space in the range interval to allocate to padding. A value of 0.5 means that the band width will be equal to the padding width. The <em>outerPadding</em> argument is for the entire group of bands; a value of 0 means there will be padding only between rangeBands.</p>
+<p><img src="https://f.cloud.github.com/assets/230541/538688/46c298c0-c193-11e2-9a7e-15d9abcfab9b.png" alt="rangebands"></p>
+<pre><code class="lang-javascript">var o = d3.scale.ordinal()
+    .domain([1, 2, 3])
+    .rangeBands([0, 100]);
+
+o.rangeBand(); // 33.333333333333336
+o.range(); // [0, 33.333333333333336, 66.66666666666667]
+o.rangeExtent(); // [0, 100]
+</code></pre>
+<p><a name="ordinal_rangeRoundBands" href="Ordinal-Scales#ordinal_rangeRoundBands">#</a> ordinal.<b>rangeRoundBands</b>(<i>interval</i>[, <i>padding</i>[, <i>outerPadding</i>]])</p>
+<p>Like <a href="Ordinal-Scales#ordinal_rangeBands">rangeBands</a>, except guarantees that range values and band width are integers so as to avoid antialiasing artifacts.</p>
+<pre><code class="lang-js">var o = d3.scale.ordinal()
+    .domain([1, 2, 3])
+    .rangeRoundBands([0, 100]);
+
+o.range(); // [1, 34, 67]
+o.rangeBand(); // 33
+o.rangeExtent(); // [0, 100]
+</code></pre>
+<p>Note that rounding necessarily introduces additional outer padding which is, on average, proportional to the length of the domain. For example, for a domain of size 50, an additional 25px of outer padding on either side may be required. Modifying the range extent to be closer to a multiple of the domain length may reduce the additional padding.</p>
+<pre><code class="lang-js">var o = d3.scale.ordinal()
+    .domain(d3.range(50))
+    .rangeRoundBands([0, 95]);
+
+o.range(); // [23, 24, 25, …, 70, 71, 72]
+
+o.rangeRoundBands([0, 100]);
+o.range(); // [0, 2, 4, …, 94, 96, 98]
+</code></pre>
+<p>(Alternatively, you could round the output of the scale manually or apply shape-rendering: crispEdges. However, this will result in irregularly spaced and sized bands.)</p>
+<p><a name="ordinal_rangeBand" href="Ordinal-Scales#ordinal_rangeBand">#</a> ordinal.<b>rangeBand</b>()</p>
+<p>Returns the band width. When the scale’s range is configured with rangeBands or rangeRoundBands, the scale returns the lower value for the given input. The upper value can then be computed by offsetting by the band width. If the scale’s range is set using range or rangePoints, the band width is zero.</p>
+<p><a name="ordinal_rangeExtent" href="Ordinal-Scales#ordinal_rangeExtent">#</a> ordinal.<b>rangeExtent</b>()</p>
+<p>Returns a two-element array representing the extent of the scale&#39;s range, i.e., the smallest and largest values.</p>
+<p><a name="ordinal_copy" href="#ordinal_copy">#</a> ordinal.<b>copy</b>()</p>
+<p>Returns an exact copy of this ordinal scale. Changes to this scale will not affect the returned scale, and vice versa.</p>
+<h2 id="categorical-colors">Categorical Colors</h2>
+<p><a name="category10" href="Ordinal-Scales#category10">#</a> d3.scale.<b>category10</b>()</p>
+<p>Constructs a new ordinal scale with a range of ten categorical colors:</p>
+<p><img src="1f77b4.png" alt="1f77b4"> #1f77b4<br>
+<img src="ff7f0e.png" alt="ff7f0e"> #ff7f0e<br>
+<img src="2ca02c.png" alt="2ca02c"> #2ca02c<br>
+<img src="d62728.png" alt="d62728"> #d62728<br>
+<img src="9467bd.png" alt="9467bd"> #9467bd<br>
+<img src="8c564b.png" alt="8c564b"> #8c564b<br>
+<img src="e377c2.png" alt="e377c2"> #e377c2<br>
+<img src="7f7f7f.png" alt="7f7f7f"> #7f7f7f<br>
+<img src="bcbd22.png" alt="bcbd22"> #bcbd22<br>
+<img src="17becf.png" alt="17becf"> #17becf<br></p>
+<p><a name="category20" href="Ordinal-Scales#category20">#</a> d3.scale.<b>category20</b>()</p>
+<p>Constructs a new ordinal scale with a range of twenty categorical colors:</p>
+<p><img src="1f77b4.png" alt="1f77b4"> #1f77b4<br>
+<img src="aec7e8.png" alt="aec7e8"> #aec7e8<br>
+<img src="ff7f0e.png" alt="ff7f0e"> #ff7f0e<br>
+<img src="ffbb78.png" alt="ffbb78"> #ffbb78<br>
+<img src="2ca02c.png" alt="2ca02c"> #2ca02c<br>
+<img src="98df8a.png" alt="98df8a"> #98df8a<br>
+<img src="d62728.png" alt="d62728"> #d62728<br>
+<img src="ff9896.png" alt="ff9896"> #ff9896<br>
+<img src="9467bd.png" alt="9467bd"> #9467bd<br>
+<img src="c5b0d5.png" alt="c5b0d5"> #c5b0d5<br>
+<img src="8c564b.png" alt="8c564b"> #8c564b<br>
+<img src="c49c94.png" alt="c49c94"> #c49c94<br>
+<img src="e377c2.png" alt="e377c2"> #e377c2<br>
+<img src="f7b6d2.png" alt="f7b6d2"> #f7b6d2<br>
+<img src="7f7f7f.png" alt="7f7f7f"> #7f7f7f<br>
+<img src="c7c7c7.png" alt="c7c7c7"> #c7c7c7<br>
+<img src="bcbd22.png" alt="bcbd22"> #bcbd22<br>
+<img src="dbdb8d.png" alt="dbdb8d"> #dbdb8d<br>
+<img src="17becf.png" alt="17becf"> #17becf<br>
+<img src="9edae5.png" alt="9edae5"> #9edae5<br></p>
+<p><a name="category20b" href="Ordinal-Scales#category20b">#</a> d3.scale.<b>category20b</b>()</p>
+<p>Constructs a new ordinal scale with a range of twenty categorical colors:</p>
+<p><img src="393b79.png" alt="393b79"> #393b79<br>
+<img src="5254a3.png" alt="5254a3"> #5254a3<br>
+<img src="6b6ecf.png" alt="6b6ecf"> #6b6ecf<br>
+<img src="9c9ede.png" alt="9c9ede"> #9c9ede<br>
+<img src="637939.png" alt="637939"> #637939<br>
+<img src="8ca252.png" alt="8ca252"> #8ca252<br>
+<img src="b5cf6b.png" alt="b5cf6b"> #b5cf6b<br>
+<img src="cedb9c.png" alt="cedb9c"> #cedb9c<br>
+<img src="8c6d31.png" alt="8c6d31"> #8c6d31<br>
+<img src="bd9e39.png" alt="bd9e39"> #bd9e39<br>
+<img src="e7ba52.png" alt="e7ba52"> #e7ba52<br>
+<img src="e7cb94.png" alt="e7cb94"> #e7cb94<br>
+<img src="843c39.png" alt="843c39"> #843c39<br>
+<img src="ad494a.png" alt="ad494a"> #ad494a<br>
+<img src="d6616b.png" alt="d6616b"> #d6616b<br>
+<img src="e7969c.png" alt="e7969c"> #e7969c<br>
+<img src="7b4173.png" alt="7b4173"> #7b4173<br>
+<img src="a55194.png" alt="a55194"> #a55194<br>
+<img src="ce6dbd.png" alt="ce6dbd"> #ce6dbd<br>
+<img src="de9ed6.png" alt="de9ed6"> #de9ed6<br></p>
+<p><a name="category20c" href="Ordinal-Scales#category20c">#</a> d3.scale.<b>category20c</b>()</p>
+<p>Constructs a new ordinal scale with a range of twenty categorical colors:</p>
+<p><img src="3182bd.png" alt="3182bd"> #3182bd<br>
+<img src="6baed6.png" alt="6baed6"> #6baed6<br>
+<img src="9ecae1.png" alt="9ecae1"> #9ecae1<br>
+<img src="c6dbef.png" alt="c6dbef"> #c6dbef<br>
+<img src="e6550d.png" alt="e6550d"> #e6550d<br>
+<img src="fd8d3c.png" alt="fd8d3c"> #fd8d3c<br>
+<img src="fdae6b.png" alt="fdae6b"> #fdae6b<br>
+<img src="fdd0a2.png" alt="fdd0a2"> #fdd0a2<br>
+<img src="31a354.png" alt="31a354"> #31a354<br>
+<img src="74c476.png" alt="74c476"> #74c476<br>
+<img src="a1d99b.png" alt="a1d99b"> #a1d99b<br>
+<img src="c7e9c0.png" alt="c7e9c0"> #c7e9c0<br>
+<img src="756bb1.png" alt="756bb1"> #756bb1<br>
+<img src="9e9ac8.png" alt="9e9ac8"> #9e9ac8<br>
+<img src="bcbddc.png" alt="bcbddc"> #bcbddc<br>
+<img src="dadaeb.png" alt="dadaeb"> #dadaeb<br>
+<img src="636363.png" alt="636363"> #636363<br>
+<img src="969696.png" alt="969696"> #969696<br>
+<img src="bdbdbd.png" alt="bdbdbd"> #bdbdbd<br>
+<img src="d9d9d9.png" alt="d9d9d9"> #d9d9d9<br></p>
+<h2 id="colorbrewer">ColorBrewer</h2>
+<p>D3 also bundles some fantastic categorical color scales by [[Cynthia Brewer|<a href="http://colorbrewer2.org/">http://colorbrewer2.org/</a>]]. You can find those in either CSS or JavaScript form in <a href="/mbostock/d3/tree/master/lib/colorbrewer">lib/colorbrewer</a>.</p>
+<p>For CSS, assign a class such as &quot;q0-3&quot;, &quot;q1-3&quot; or &quot;q2-3&quot; to the element you wish it be filled. Then, set the class attribute on a parent element (such as the SVG element) with the desired color scale name, such as &quot;RdBu&quot; or &quot;Blues&quot;. For examples, see: <a href="http://mbostock.github.com/d3/talk/20111116/calendar.html">calendar heatmap</a>, <a href="http://mbostock.github.com/d3/talk/20111018/choropleth.html">choropleth</a>.</p>
+<p>For JavaScript, you can use colorbrewer.RdBu[9] or equivalent as the range of a d3.scale.ordinal. For example:</p>
+<pre><code class="lang-js">var o = d3.scale.ordinal()
+    .domain([&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;])
+    .range(colorbrewer.RdBu[9]);
+</code></pre>
+
+    </div>
+  </body>
+</html>

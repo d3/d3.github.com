@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki.
+
+         Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Drag Behavior</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Drag Behavior</h1>
+      <blockquote>
+<p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Behaviors]] ▸ <strong>Drag Behavior</strong></p>
+</blockquote>
+<p>This behavior automatically creates event listeners to handle drag gestures on an element. Both mouse events and touch events are supported.</p>
+<p><a name="drag" href="Drag-Behavior#drag">#</a> d3.behavior.<b>drag</b>()</p>
+<p>Constructs a new drag behavior.</p>
+<p><a name="on" href="Drag-Behavior#on">#</a> drag.<b>on</b>(<i>type</i>[, <i>listener</i>])</p>
+<p>Registers the specified <em>listener</em> to receive events of the specified <em>type</em> from the drag behavior. If no <em>listener</em> is specified, returns the currently-registered listener for the specified event <em>type</em>. (The <em>type</em> may include a namespace; see <a href="Internals#dispatch_on">dispatch.on</a> for additional details.) The following events are supported:</p>
+<ul>
+<li><em>dragstart</em> - when a drag gesture starts.</li>
+<li><em>drag</em> - when the drag gesture moves.</li>
+<li><em>dragend</em> - when the drag gesture finishes.</li>
+</ul>
+<p>Drag events (but not dragstart and dragend events) expose &quot;x&quot; and &quot;y&quot; properties representing the current position of the drag gesture in local coordinates. By default, this position is simply the <a href="Selections#d3_mouse">mouse</a> (or <a href="Selections#d3_touches">touch</a>) position; however, the position can be modified by specifying an <a href="#origin">origin</a>. The drag event also exposes &quot;dx&quot; and &quot;dy&quot; properties representing the element’s coordinates relative to its position at the beginning of the gesture, which is occasionally more convenient than specifying an explicit origin.</p>
+<p>During a drag gesture, some browser default behaviors (such as text selection) are prevented. To allow the dragging of links, the default behavior for a click event that immediately follows a non-empty drag gesture is prevented. When registering your own click listener on draggable elements, you can check whether the click event was suppressed as follows:</p>
+<pre><code class="lang-js">selection.on(&quot;click&quot;, function() {
+  if (d3.event.defaultPrevented) return; // click suppressed
+  console.log(&quot;clicked!&quot;);
+});
+</code></pre>
+<p>When combining drag behaviors with other event listeners for interaction events (such as having <a href="http://bl.ocks.org/mbostock/6123708">drag take precedence over zoom</a>), you may also consider stopping propagation on the source event to prevent multiple actions:</p>
+<pre><code class="lang-js">drag.on(&quot;dragstart&quot;, function() {
+  d3.event.sourceEvent.stopPropagation(); // silence other listeners
+});
+</code></pre>
+<p><a name="origin" href="Drag-Behavior#origin">#</a> drag.<b>origin</b>([<i>origin</i>])</p>
+<p>If <em>origin</em> is specified, sets the origin accessor to the specified function. If <em>origin</em> is not specified, returns the current origin accessor which defaults to null.</p>
+<p>The <em>origin</em> accessor function is used to determine the starting position (the “origin”) of the element being dragged; this allows the drag behavior to preserve the offset between the mouse position and the starting element position during drag. If the origin accessor is null, then the element position is set to the mouse position on drag; this can cause a noticeable jump on large elements. If an origin accessor is specified, the function is called on mousedown. The function is invoked in the same manner as other operator functions, being passed the current datum <code>d</code> and index <code>i</code>, with the <code>this</code> context as the clicked-on DOM element. To access the current event, use the global <a href="Selections#d3_event">d3.event</a>. The origin accessor must return an object with <code>x</code> and <code>y</code> properties representing the starting coordinates of the element being dragged.</p>
+<p>Frequently the origin accessor is specified as the identity function: <code>function(d) { return d; }</code>. This is suitable when the datum bound to the dragged element is already an object with <code>x</code> and <code>y</code> attributes representing its current position. For example: <a href="http://bl.ocks.org/1557377">http://bl.ocks.org/1557377</a></p>
+
+    </div>
+  </body>
+</html>
