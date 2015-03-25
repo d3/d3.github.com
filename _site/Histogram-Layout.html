@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Histogram Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Histogram Layout</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <strong>Histogram Layout</strong></p>
+</blockquote>
+
+<p>A <strong>histogram layout</strong> shows the distribution of data by grouping discrete data points into bins. See <a href="http://bl.ocks.org/mbostock/3048450">bl.ock 3048450</a> for example usage.</p>
+
+<p><a name="histogram" href="Histogram-Layout#histogram">#</a> d3.layout.<b>histogram</b>()</p>
+
+<p>Constructs a new histogram function with the default value accessor, range function, and bin function. By default, the histogram function returns frequencies. The returned layout object is both an object and a function. That is: you can call the layout like any other function, and the layout has additional methods that change its behavior. Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+
+<p><a name="_histogram" href="Histogram-Layout#_histogram">#</a> <b>histogram</b>(<i>values</i>[, <i>index</i>])</p>
+
+<p>Evaluates the histogram function on the specified array of <em>values</em>. An optional <em>index</em> may be specified, which is passed along to the range and bin function. The return value is an array of arrays: each element in the outer array represents a bin, and each bin contains the associated elements from the input <em>values</em>. In addition, each bin has three attributes:</p>
+
+<ul>
+  <li><em>x</em> - the lower bound of the bin (inclusive).</li>
+  <li><em>dx</em> - the width of the bin; x + dx is the upper bound (exclusive).</li>
+  <li><em>y</em> - the count (if <a href="Histogram-Layout#frequency">frequency</a> is true), or the probability (if frequency is false).</li>
+</ul>
+
+<p>Note that the y attribute is the same as the length attribute, in frequency mode.</p>
+
+<p><a name="value" href="Histogram-Layout#value">#</a> histogram.<b>value</b>([<i>accessor</i>])</p>
+
+<p>Specifies how to extract a value from the associated data; <em>accessor</em> is a function which is invoked on each input value passed to <a href="Histogram-Layout#_histogram">histogram</a>, equivalent to calling <em>values.map(accessor)</em> before computing the histogram. The default value function is the built-in <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Number">Number</a>, which is similar to the identity function. If <em>accessor</em> is not specified, returns the current value accessor.</p>
+
+<p><a name="range" href="Histogram-Layout#range">#</a> histogram.<b>range</b>([<i>range</i>])</p>
+
+<p>Specifies the range of the histogram. Values outside the specified range will be ignored. The <em>range</em> may be specified either as a two-element array representing the minimum and maximum value of the range, or as a function that returns the range given the array of <em>values</em> and the current <em>index</em> passed to <a href="Histogram-Layout#_histogram">histogram</a>. The default range is the extent (<a href="Arrays#d3_min">minimum</a> and <a href="Arrays#d3_max">maximum</a>) of the values. If <em>range</em> is not specified, returns the current range function.</p>
+
+<p><a name="bins" href="Histogram-Layout#bins">#</a> histogram.<b>bins</b>()
+<br /><a name="bins" href="Histogram-Layout#bins">#</a> histogram.<b>bins</b>(<i>count</i>)
+<br /><a name="bins" href="Histogram-Layout#bins">#</a> histogram.<b>bins</b>(<i>thresholds</i>)
+<br /><a name="bins" href="Histogram-Layout#bins">#</a> histogram.<b>bins</b>(<i>function</i>)</p>
+
+<p>Specifies how to bin values in the histogram. If no argument is specified, the current binning function is returned, which defaults to an implementation of <a href="http://en.wikipedia.org/wiki/Histogram">Sturges’ formula</a> that divides values into bins using uniformly-spaced values. If a <em>count</em> is specified, the value <a href="#range">range</a> is divided evenly into the specified number of bins.</p>
+
+<p>If an array of <em>thresholds</em> is specified, it defines the value thresholds used to bin, starting with the leftmost (lowest) value and ending with rightmost (highest) value. The <em>n</em> + 1 <em>thresholds</em> specify <em>n</em> bins. Any values less than <i>thresholds[1]</i> will be placed in the first bin; likewise any values greater than or equal to <i>thresholds[thresholds.length - 2]</i> will be placed in the last bin. Thus, although the first and last threshold are not used to assign values to bins, they are still necessary to define the <em>x</em> property of the first bin and the <em>dx</em> property of the last bin, respectively.</p>
+
+<p>Lastly, if a binning <em>function</em> is specified, it is invoked when the layout is passed data, being passed the current <a href="Histogram-Layout#range">range</a>, the array of values and the current index passed to <a href="Histogram-Layout#_histogram">histogram</a>. This function must then return an array of <em>thresholds</em> as described in the previous paragraph.</p>
+
+<p><a name="frequency" href="Histogram-Layout#frequency">#</a> histogram.<b>frequency</b>([<i>frequency</i>])</p>
+
+<p>Specifies whether the histogram’s <code>y</code> value is a count (frequency) or a probability (density); the default is frequency. If <em>frequency</em> is not specified, returns the current frequency boolean.</p>
+
+    </div>
+  </body>
+</html>

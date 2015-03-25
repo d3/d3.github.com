@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Pack Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Pack Layout</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <a href="Hierarchy-Layout">Hierarchy</a> ▸ <strong>Pack Layout</strong></p>
+</blockquote>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Enclosure diagrams use containment (nesting) to represent the hierarchy. The size of each leaf node’s circle reveals a quantitative dimension of each data point. The enclosing circles show the approximate cumulative size of each subtree, but note that because of wasted space there is some distortion between levels; only the leaf nodes can be compared accurately. Although <a href="http://en.wikipedia.org/wiki/Circle_packing">circle packing</a> does not use space as efficiently as a [[treemap</td>
+      <td>Treemap-Layout]], the “wasted” space more prominently reveals the hierarchy.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a href="http://bl.ocks.org/mbostock/4063530"><img src="pack.png" alt="pack" /></a></p>
+
+<p>By flattening the hierarchy, the <strong>pack layout</strong> can also be used to create <a href="http://www-958.ibm.com/software/data/cognos/manyeyes/page/Bubble_Chart.html">bubble charts</a>:</p>
+
+<p><a href="http://bl.ocks.org/mbostock/4063269"><img src="bubble.png" alt="bubble" /></a></p>
+
+<p>Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+
+<p><a name="pack" href="#pack">#</a> d3.layout.<b>pack</b>()</p>
+
+<p>Creates a new pack layout with the default settings: the default sort order is by ascending value; the default children accessor assumes each input data is an object with a children array; the default size is 1×1.</p>
+
+<p><a name="_pack" href="#_pack">#</a> <b>pack</b>(<i>root</i>)
+<br /><a name="nodes" href="#nodes">#</a> pack.<b>nodes</b>(<i>root</i>)</p>
+
+<p>Runs the pack layout, returning the array of nodes associated with the specified <em>root</em> node. The cluster layout is part of D3’s family of <a href="Hierarchy-Layout">hierarchical layouts</a>. These layouts follow the same basic structure: the input argument to the layout is the <em>root</em> node of the hierarchy, and the output return value is an array representing the computed positions of all nodes.  Several attributes are populated on each node:</p>
+
+<ul>
+  <li>parent - the parent node, or null for the root.</li>
+  <li>children - the array of child nodes, or null for leaf nodes.</li>
+  <li>value - the node value, as returned by the value accessor.</li>
+  <li>depth - the depth of the node, starting at 0 for the root.</li>
+  <li>x - the computed <em>x</em>-coordinate of the node position.</li>
+  <li>y - the computed <em>y</em>-coordinate of the node position.</li>
+  <li>r - the computed node radius.</li>
+</ul>
+
+<p><a name="links" href="#links">#</a> pack.<b>links</b>(<i>nodes</i>)</p>
+
+<p>Given the specified array of <em>nodes</em>, such as those returned by <a href="Pack-Layout#nodes">nodes</a>, returns an array of objects representing the links from parent to child for each node. Leaf nodes will not have any links. Each link is an object with two attributes:</p>
+
+<ul>
+  <li>source - the parent node (as described above).</li>
+  <li>target - the child node.</li>
+</ul>
+
+<p>This method is useful for retrieving a set of link descriptions suitable for display, often in conjunction with the <a href="SVG-Shapes#diagonal">diagonal</a> shape generator. For example:</p>
+
+<p><code>javascript
+svg.selectAll("path")
+    .data(cluster.links(nodes))
+  .enter().append("path")
+    .attr("d", d3.svg.diagonal());
+</code></p>
+
+<p><a name="children" href="#children">#</a> pack.<b>children</b>([<i>children</i>])</p>
+
+<p>If <em>children</em> is specified, sets the specified children accessor function. If <em>children</em> is not specified, returns the current children accessor function, which by default assumes that the input data is an object with a children array:</p>
+
+<p><code>javascript
+function children(d) {
+  return d.children;
+}
+</code></p>
+
+<p>Often, it is convenient to load the node hierarchy using <a href="Requests#d3_json">d3.json</a>, and represent the input hierarchy as a nested <a href="http://json.org">JSON</a> object. For example:</p>
+
+<p><code>javascript
+{
+ "name": "flare",
+ "children": [
+  {
+   "name": "analytics",
+   "children": [
+    {
+     "name": "cluster",
+     "children": [
+      {"name": "AgglomerativeCluster", "size": 3938},
+      {"name": "CommunityStructure", "size": 3812},
+      {"name": "MergeEdge", "size": 743}
+     ]
+    },
+    {
+     "name": "graph",
+     "children": [
+      {"name": "BetweennessCentrality", "size": 3534},
+      {"name": "LinkDistance", "size": 5731}
+     ]
+    }
+   ]
+  }
+ ]
+}
+</code></p>
+
+<p>The children accessor is first invoked for root node in the hierarchy. If the accessor returns null, then the node is assumed to be a leaf node and the layout traversal terminates. Otherwise, the accessor should return an array of data elements representing the child nodes.</p>
+
+<p><a name="sort" href="#sort">#</a> pack.<b>sort</b>([<i>comparator</i>])</p>
+
+<p>If <em>comparator</em> is specified, sets the sort order of sibling nodes for the layout using the specified comparator function.  If <em>comparator</em> is not specified, returns the current group sort order, which defaults to ascending order by the associated input data’s numeric value attribute:</p>
+
+<p><code>javascript
+function comparator(a, b) {
+  return a.value - b.value;
+}
+</code></p>
+
+<p>The comparator function is invoked for pairs of nodes, being passed the input data for each node. A null comparator disables sorting and uses tree traversal order. Comparator functions may also be implemented using <a href="Arrays#d3_ascending">d3.ascending</a> or <a href="Arrays#d3_descending">d3.descending</a>.</p>
+
+<p><a name="value" href="#value">#</a> pack.<b>value</b>([<i>value</i>])</p>
+
+<p>If <em>value</em> is specified, sets the value accessor to the specified function. If <em>value</em> is not specified, returns the current value accessor, which assumes that the input data is an object with a numeric value attribute:</p>
+
+<p><code>javascript
+function value(d) {
+  return d.value;
+}
+</code></p>
+
+<p>The value accessor is invoked for each input data element, and must return a number representing the numeric value of the node. This value is used to set the area of each circle proportionally to the value. However, note that circle size is strictly comparable only between leaf nodes; internal nodes cannot be compared accurately, as there is empty space between packed child circles and their parent.</p>
+
+<p><a name="size" href="#size">#</a> pack.<b>size</b>([<i>size</i>])</p>
+
+<p>If <em>size</em> is specified, sets the available layout size to the specified two-element array of numbers representing <em>x</em> and <em>y</em>. If <em>size</em> is not specified, returns the current size, which defaults to 1×1.</p>
+
+<p><a name="radius" href="#radius">#</a> pack.<b>radius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the radius function for computing the radius of each node. If <em>radius</em> is null,  as it is by default, the radius is determined automatically from the node value, scaled to fit the layout size. If <em>radius</em> is not specified, returns the current radius function, which defaults to null. The <em>radius</em> can also be specified as a constant number for uniform circle size.</p>
+
+<p><a name="padding" href="#padding">#</a> pack.<b>padding</b>([<i>padding</i>])</p>
+
+<p>If <em>padding</em> is specified, sets the approximate padding between adjacent circles, in pixels. If <em>padding</em> is not specified, returns the current padding, which defaults to zero.</p>
+
+    </div>
+  </body>
+</html>

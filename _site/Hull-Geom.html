@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Hull Geom</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Hull Geom</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Geometry]] ▸ <strong>Hull Geom</strong></p>
+</blockquote>
+
+<p><a name="hull" href="Hull-Geom#hull">#</a> d3.geom.<b>hull</b>()</p>
+
+<p><a href="http://bl.ocks.org/mbostock/4341699"><img src="http://bl.ocks.org/mbostock/raw/4341699/thumbnail.png" width="202" /></a></p>
+
+<p>Create a new hull layout with the default <em>x</em>- and <em>y</em>-accessors.</p>
+
+<p><a name="_hull" href="Hull-Geom#_hull">#</a> <b>hull</b>(<i>vertices</i>)</p>
+
+<p>Returns the convex hull for the specified <em>vertices</em> array, using the current x- and y-coordinate accessors. The returned convex hull is represented as an array containing a subset of the input vertices, arranged in counterclockwise order (for consistency with <a href="Polygon-Geom#clip">polygon.clip</a>).</p>
+
+<p>Assumes the <em>vertices</em> array is greater than three in length. If <em>vertices</em> is of length &lt;= 3, returns [].</p>
+
+<p><a name="x" href="Hull-Geom#x">#</a> hull.<b>x</b>([<i>x</i>])</p>
+
+<p>If <em>x</em> is specified, sets the x-coordinate accessor. If <em>x</em> is not specified, returns the current x-coordinate accessor, which defaults to:</p>
+
+<p><code>js
+function(d) { return d[0]; }
+</code></p>
+
+<p><a name="y" href="Hull-Geom#y">#</a> hull.<b>y</b>([<i>y</i>])</p>
+
+<p>If <em>y</em> is specified, sets the y-coordinate accessor. If <em>y</em> is not specified, returns the current y-coordinate accessor, which defaults to:</p>
+
+<p><code>js
+function(d) { return d[1]; }
+</code></p>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Geo Paths</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Geo Paths</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Geo]] ▸ <strong>Geo Paths</strong></p>
+</blockquote>
+
+<p>For cartographic visualizations, D3 supports a handful of components for displaying and manipulating <strong>geographic data</strong>. These components use the <a href="http://geojson.org/geojson-spec.html">GeoJSON format</a>—a standard way of representing geographic features in JavaScript. (See also the <a href="/mbostock/topojson">TopoJSON format</a>, an extension of GeoJSON that is significantly more compact.) To convert shapefiles to GeoJSON, use ogr2ogr, part of the <a href="http://www.gdal.org/">GDAL package</a>.</p>
+
+<p><a href="http://bl.ocks.org/mbostock/4060606"><img src="http://bl.ocks.org/mbostock/raw/4060606/thumbnail.png" height="120" /></a></p>
+
+<p>Some other tools you may be interested in:</p>
+
+<ul>
+  <li><a href="/mbostock/topojson">TopoJSON</a> - shapefile simplification, topology construction and GeoJSON compression.</li>
+  <li><a href="https://github.com/Toblerity/Shapely">Shapely</a> - manipulation of planar geometry objects.</li>
+  <li><a href="http://colorbrewer2.org">ColorBrewer</a> - color scales for maps.</li>
+  <li><a href="http://postgis.refractions.net/">PostGIS</a> - a geospatial database.</li>
+</ul>
+
+<p>The primary mechanism for displaying geographic data is <a href="#path">d3.geo.path</a>. This class is similar to <a href="SVG-Shapes#line">d3.svg.line</a> and the other SVG shape generators: given a geometry or feature object, it generates the path data string suitable for the “d” attribute of an SVG path element. The d3.geo.path class can <a href="http://bl.ocks.org/mbostock/3783604">render directly to Canvas</a>, which may offer better performance when animating the projection.</p>
+
+<p><a name="path" href="#path">#</a> d3.geo.<b>path</b>()</p>
+
+<p>Creates a new geographic path generator with the default settings: the <a href="Geo-Projections#albersUsa">albersUsa</a> projection and a point radius of 4.5 pixels.</p>
+
+<p><a name="_path" href="#_path">#</a> <b>path</b>(<i>feature</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the given <em>feature</em>, which may be any GeoJSON feature or geometry object:</p>
+
+<ul>
+  <li>Point - a single position.</li>
+  <li>MultiPoint - an array of positions.</li>
+  <li>LineString - an array of positions forming a continuous line.</li>
+  <li>MultiLineString - an array of arrays of positions forming several lines.</li>
+  <li>Polygon - an array of arrays of positions forming a polygon (possibly with holes).</li>
+  <li>MultiPolygon - a multidimensional array of positions forming multiple polygons.</li>
+  <li>GeometryCollection - an array of geometry objects.</li>
+  <li>Feature - a feature containing one of the above geometry objects.</li>
+  <li>FeatureCollection - an array of feature objects.</li>
+</ul>
+
+<p>The type “Sphere” is also supported, which is useful for rendering the outline of the globe. A sphere has no coordinates. An optional <em>index</em> may be specified, which is passed along to the <a href="Geo-Paths#pointRadius">pointRadius</a> accessor; the <em>index</em> is passed automatically when the path generator is invoked by <a href="Selections#attr">selection.attr</a>.</p>
+
+<p><strong>Important:</strong> the <em>inside</em> of a polygon is all points that the polygon winds around in a clockwise order. If your GeoJSON input has polygons in the wrong winding order, you must reverse them, say via <a href="http://www.postgis.org/docs/ST_ForceRHR.html">ST_ForceRHR</a>; you can also convert your GeoJSON to <a href="https://github.com/mbostock/topojson">TopoJSON</a>, and this will happen automatically.</p>
+
+<p>To display multiple features, you can place them in a single feature collection and a single path element:</p>
+
+<p><code>javascript
+svg.append("path")
+    .datum({type: "FeatureCollection", features: features})
+    .attr("d", d3.geo.path());
+</code></p>
+
+<p>Alternatively, you can create multiple distinct path elements:</p>
+
+<p><code>javascript
+svg.selectAll("path")
+    .data(features)
+  .enter().append("path")
+    .attr("d", d3.geo.path());
+</code></p>
+
+<p>Using distinct path elements is typically slower than a single path element for a collection. However, distinct path elements are preferred if you want interact with features separately (e.g., using CSS :hover or click events).</p>
+
+<p><a name="path_projection" href="#path_projection">#</a> path.<b>projection</b>([<i>projection</i>])</p>
+
+<p>If <em>projection</em> is specified, sets the projection used by the path generator to the specified projection function. If <em>projection</em> is not specified, returns the current projection, which defaults to <a href="Geo-Projections#albersUsa">albersUsa</a>. The projection is typically one of D3’s built-in <a href="Geo-Projections">geographic projections</a>; however, any function can be used. A projection function takes a two-element array of numbers representing the coordinates of a location, [<i>longitude</i>, <i>latitude</i>], and returns a similar two-element array of numbers representing the projected pixel position [<i>x</i>, <i>y</i>]. For example, a rudimentary spherical Mercator projection:</p>
+
+<p><code>javascript
+function mercator(coordinates) {
+  return [
+    coordinates[0] / 360,
+    (-180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + coordinates[1] * Math.PI / 360))) / 360
+  ];
+}
+</code></p>
+
+<p>Internally, this point projection function is wrapped with a fallback <a href="Geo-Streams">stream transformation</a> that performs <a href="http://bl.ocks.org/mbostock/3795544">adaptive resampling</a>. However, the fallback stream does not perform any clipping or cutting.</p>
+
+<p>For more control over the stream transformation, the <em>projection</em> may be specified as an object that implements the <em>stream</em> method. (<a href="http://bl.ocks.org/mbostock/5663666">See example.</a>) The stream method takes an output stream as input, and returns a wrapped stream that projects the input geometry; in other words, it implements <a href="Geo-Projections#stream">projection.stream</a>.</p>
+
+<p>If <em>projection</em> is null, the path uses the identity transformation, where the input geometry is not projected and is instead rendered directly in raw coordinates. This can be useful for fast rendering of already-projected geometry, or for fast rendering of the equirectangular projection.</p>
+
+<p><a name="path_context" href="#path_context">#</a> path.<b>context</b>([<i>context</i>])</p>
+
+<p>If <em>context</em> is specified, sets the render context and returns the path generator. If the context is null, then the path generator will return an SVG path string when <a href="#_path">invoked</a> on a given feature. If the context is non-null, the path generator will instead call methods on the specified context to render geometry. The context must implement the following methods:</p>
+
+<ul>
+  <li>beginPath()</li>
+  <li>moveTo(x, y)</li>
+  <li>lineTo(x, y)</li>
+  <li>arc(x, y, radius, startAngle, endAngle)</li>
+  <li>closePath()</li>
+</ul>
+
+<p>Note that this is a subset of the canvas element’s <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#2dcontext">2D rendering context</a>, and thus a canvas context can be passed to the path generator, in which case geometry will be rendered <a href="http://bl.ocks.org/mbostock/3783604">directly to the canvas</a>. If <em>context</em> is not specified, returns the current render context, which defaults to null.</p>
+
+<p><a name="path_area" href="#path_area">#</a> path.<b>area</b>(<i>feature</i>)</p>
+
+<p>Computes the projected area (in square pixels) for the specified <em>feature</em>. Point, MultiPoint, LineString and MultiLineString features have zero area. For Polygon and MultiPolygon features, this method first computes the area of the exterior ring, and then subtracts the area of any interior holes. This method observes any clipping and resampling performed by the projection stream.</p>
+
+<p><a name="path_centroid" href="#path_centroid">#</a> path.<b>centroid</b>(<i>feature</i>)</p>
+
+<p>Computes the projected centroid (in pixels) for the specified <em>feature</em>. This is handy for, say, labeling state or county boundaries, or displaying a symbol map. The <a href="http://mbostock.github.com/d3/ex/cartogram.html">noncontiguous cartogram</a> example scales each state around its centroid. This method observes any clipping and resampling performed by the projection stream.</p>
+
+<p><a name="path_bounds" href="#path_bounds">#</a> path.<b>bounds</b>(<i>feature</i>)</p>
+
+<p>Computes the projected bounding box (in pixels) for the specified <em>feature</em>. This is handy for, say, zooming in to a particular feature. This method observes any clipping and resampling performed by the projection stream.</p>
+
+<p><a name="path_pointRadius" href="#path_pointRadius">#</a> path.<b>pointRadius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the radius used to display Point and MultiPoint features to the specified number. If <em>radius</em> is not specified, returns the current radius. While the radius is commonly specified as a number constant, it may also be specified as a function which is computed per feature, being passed the <em>feature</em> and <em>index</em> arguments from the <a href="Geo-Paths#_path">path</a> function. For example, if your GeoJSON data has additional properties, you might access those properties inside the radius function to vary the point size; alternatively, you could <a href="SVG-Shapes#symbol">d3.svg.symbol</a> and a <a href="Geo-Projections">projection</a> for more control over the display.</p>
+
+<h2 id="shape-generators">Shape Generators</h2>
+
+<p>Note: to generate a great arc in D3, simply pass a LineString-type geometry object to d3.geo.path. D3’s projections use great-arc interpolation for intermediate points (with <a href="http://bl.ocks.org/mbostock/3795544">adaptive resampling</a>), so there’s no need to use a shape generator to create great arcs.</p>
+
+<p><a name="graticule" href="#graticule">#</a> d3.geo.<b>graticule</b></p>
+
+<p>Constructs a feature generator for creating graticules.</p>
+
+<p><a name="_graticule" href="#_graticule">#</a> <b>graticule</b>()</p>
+
+<p>Returns a MultiLineString geometry object representing all meridians and parallels for this graticule.</p>
+
+<p><a name="graticule_lines" href="#graticule_lines">#</a> graticule.<b>lines</b>()</p>
+
+<p>Returns an array of LineString geometry objects, one for each meridian or parallel for this graticule.</p>
+
+<p><a name="graticule_outline" href="#graticule_outline">#</a> graticule.<b>outline</b>()</p>
+
+<p>Returns a Polygon geometry object representing the outline of this graticule, i.e. along the meridians and parallels defining its extent.</p>
+
+<p><a name="graticule_extent" href="#graticule_extent">#</a> graticule.<b>extent</b>(<i>extent</i>)</p>
+
+<p>If <em>extent</em> is specified, sets the major and minor extents of this graticule.  If <em>extent</em> is not specified, returns the current minor extent, which defaults to ⟨⟨-180°, -80° - ε⟩, ⟨180°, 80° + ε⟩⟩.</p>
+
+<p><a name="graticule_majorExtent" href="#graticule_majorExtent">#</a> graticule.<b>majorExtent</b>(<i>extent</i>)</p>
+
+<p>If <em>extent</em> is specified, sets the major extent of this graticule.  If <em>extent</em> is not specified, returns the current major extent, which defaults to ⟨⟨-180°, -90° + ε⟩, ⟨180°, 90° - ε⟩⟩.</p>
+
+<p><a name="graticule_minorExtent" href="#graticule_minorExtent">#</a> graticule.<b>minorExtent</b>(<i>extent</i>)</p>
+
+<p>If <em>extent</em> is specified, sets the minor extent of this graticule.  If <em>extent</em> is not specified, returns the current minor extent, which defaults to ⟨⟨-180°, -80° - ε⟩, ⟨180°, 80° + ε⟩⟩.</p>
+
+<p><a name="graticule_step" href="#graticule_step">#</a> graticule.<b>step</b>(<i>step</i>)</p>
+
+<p>If <em>step</em> is specified, sets the major and minor step for this graticule.  If <em>step</em> is not specified, returns the current minor step, which defaults to ⟨10°, 10°⟩.</p>
+
+<p><a name="graticule_majorStep" href="#graticule_majorStep">#</a> graticule.<b>majorStep</b>(<i>step</i>)</p>
+
+<p>If <em>step</em> is specified, sets the major step for this graticule.  If <em>step</em> is not specified, returns the current major step, which defaults to ⟨90°, 360°⟩.</p>
+
+<p><a name="graticule_minorStep" href="#graticule_minorStep">#</a> graticule.<b>minorStep</b>(<i>step</i>)</p>
+
+<p>If <em>step</em> is specified, sets the minor step for this graticule.  If <em>step</em> is not specified, returns the current minor step, which defaults to ⟨10°, 10°⟩.</p>
+
+<p><a name="graticule_precision" href="#graticule_precision">#</a> graticule.<b>precision</b>(<i>precision</i>)</p>
+
+<p>If <em>precision</em> is specified, sets the precision for this graticule, in degrees.  If <em>precision</em> is not specified, returns the current precision, which defaults to 2.5°.</p>
+
+<p><a name="circle" href="#circle">#</a> d3.geo.<b>circle</b></p>
+
+<p>Constructs a feature generator for creating circles centered at a given geographic location with a given radius in degrees.</p>
+
+<p><a name="_circle" href="#_circle">#</a> <b>circle</b>(<i>arguments…</i>)</p>
+
+<p>Returns a GeoJSON Polygon approximating a circle. The origin accessor specifies how to determine the origin for the given <em>arguments</em>; the default accessor uses the constant ⟨0°,0°⟩.</p>
+
+<p><a name="circle_origin" href="#circle_origin">#</a> circle.<b>origin</b>([<i>origin</i>])</p>
+
+<p>If <em>origin</em> is specified, sets the circle origin.  A two-element coordinate array should be specified, or an accessor function.  If <em>origin</em> is not specified, returns the current origin, which defaults to ⟨0°,0°⟩.</p>
+
+<p><a name="circle_angle" href="#circle_angle">#</a> circle.<b>angle</b>([<i>angle</i>])</p>
+
+<p>If <em>angle</em> is specified, sets the angular radius of the circle in degrees.  If <em>angle</em> is not specified, returns the current radius, which defaults to 90°.</p>
+
+<p><a name="circle_precision" href="#circle_precision">#</a> circle.<b>precision</b>([<i>precision</i>])</p>
+
+<p>If <em>precision</em> is specified, sets the precision of the interpolated circle segments in degrees.  These interpolated segments are inserted when a feature is clipped by the circle. If <em>precision</em> is not specified, returns the current precision, which defaults to 6°.</p>
+
+<h2 id="spherical-math">Spherical Math</h2>
+
+<p><a name="area" href="#area">#</a> d3.geo.<b>area</b>(<i>feature</i>)</p>
+
+<p>Returns the spherical area of the specified <em>feature</em> in <a href="http://mathworld.wolfram.com/Steradian.html">steradians</a>. See also <a href="#path_area">path.area</a>, which computes the projected area on the Cartesian plane.</p>
+
+<p><a name="centroid" href="#centroid">#</a> d3.geo.<b>centroid</b>(<i>feature</i>)</p>
+
+<p>Returns the spherical centroid of the specified <em>feature</em>. See also <a href="#path_centroid">path.centroid</a>, which computes the projected centroid on the Cartesian plane.</p>
+
+<p><a name="bounds" href="#bounds">#</a> d3.geo.<b>bounds</b>(<i>feature</i>)</p>
+
+<p>Returns the spherical bounding box for the specified <em>feature</em>. The bounding box is represented by a two-dimensional array: [​[<i>left</i>, <i>bottom</i>], [<i>right</i>, <i>top</i>]​], where <em>left</em> is the minimum longitude, <em>bottom</em> is the minimum latitude, <em>right</em> is maximum longitude, and <em>top</em> is the maximum latitude. See also <a href="#path_bounds">path.bounds</a>, which computes the projected bounding box on the Cartesian plane.</p>
+
+<p><a name="distance" href="#distance">#</a> d3.geo.<b>distance</b>(<i>a</i>, <i>b</i>)</p>
+
+<p>Returns the great-arc distance in radians between the two points <i>a</i> and <i>b</i>. Each point is specified as an array [<i>longitude</i>, <i>latitude</i>], with coordinates expressed in decimal degrees.</p>
+
+<p><a name="length" href="#length">#</a> d3.geo.<b>length</b>(<i>feature</i>)</p>
+
+<p>Returns the great-arc length of the specified <em>feature</em> in <a href="http://mathworld.wolfram.com/Radian.html">radians</a>. For polygons, returns the perimeter of the exterior ring plus that of any interior rings.</p>
+
+<p><a name="interpolate" href="#interpolate">#</a> d3.geo.<b>interpolate</b>(<i>a</i>, <i>b</i>)</p>
+
+<p>Returns an interpolator given the two locations <em>a</em> and <em>b</em>. Each location must be represented as a two-element array of [<i>longitude</i>, <i>latitude</i>]. The returned interpolator is a function which takes a single parameter <em>t</em> as input, where <em>t</em> ranges from 0 to 1. A value of 0 returns the location <em>a</em>, while a value of 1 returns the location <em>b</em>. Intermediate values interpolate from <em>a</em> to <em>b</em> along the spanning great arc.</p>
+
+<p><a name="rotation" href="#rotation">#</a> d3.geo.<b>rotation</b>(<i>rotate</i>)</p>
+
+<p>Specifies a rotation in the form of an array, [λ, φ, γ]. The elements of the array are angles in degrees, and specify a rotation in the following order: longitudinal, latitudinal and about the origin. If the last element of the array, γ, is omitted, this defaults to 0.  Returns a function, which rotates a given location as described below.</p>
+
+<p><a name="_rotation" href="#_rotation">#</a> <b>rotation</b>(<i>location</i>)</p>
+
+<p>Rotates a given location according to the angles specified for this rotation, in the order described above.  A location is specified as an array [<i>longitude</i>, <i>latitude</i>], with coordinates expressed in degrees.  Returns a new array representing the rotated location.</p>
+
+<p><a name="rotation_invert" href="#rotation_invert">#</a> rotation.<b>invert</b>(<i>location</i>)</p>
+
+<p>Rotates a given location according to the angles specified for this rotation, but with the order described above reversed.  A location is specified as an array [<i>longitude</i>, <i>latitude</i>], with coordinates expressed in degrees.  Returns a new array representing the rotated location.</p>
+
+    </div>
+  </body>
+</html>

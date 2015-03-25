@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>ID Home</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>ID Home</h1>
+      <blockquote>
+  <p><strong>Wiki</strong></p>
+</blockquote>
+
+<p><strong>D3.js</strong> adalah pustaka JavaScript untuk manipulasi dokumen berdasarkan data. D3 membantu anda menyajikan data menggunakan HTML, SVG dan CSS. Penekanan D3 pada standard web memberi Anda kompatibilitas penuh trerhadap perambah web (<em>web browser</em>) modern tanpa mengkaitkan anda dengan <em>framework proprietary</em>, menggabungkan komponen-komponen visualisasi yang powerful dan pendekatan berdasarkan data pada manipulasi DOM (<em>Document Object Model</em>).</p>
+
+<h2 id="resources">Resources</h2>
+
+<ul>
+  <li><a href="/widiantonugroho/d3/wiki/Apa-Itu-D3js">Pengantar</a></li>
+  <li><a href="/mbostock/d3/wiki/Gallery">Gallery contoh-contoh</a></li>
+  <li><a href="/mbostock/d3/wiki/Tutorials">Tutorial dan Diskusi</a></li>
+  <li><a href="/widiantonugroho/d3/wiki/API-Reference-%28Bahasa-Indonesia%29">Referensi API (Bahasa Indonesia)</a></li>
+  <li><a href="/mbostock/d3/releases">Catatan Rilis</a></li>
+  <li><a href="/d3/d3-plugins">Plugins</a></li>
+  <li><a href="http://stackoverflow.com/questions/tagged/d3.js">Pertanyaan mengenai d3.js di Stack Overflow</a></li>
+  <li><a href="http://groups.google.com/group/d3-js">Milis d3-js di Google Group</a></li>
+  <li><a href="/mbostock/d3/wiki">English</a></li>
+  <li><a href="https://github.com/zziuni/d3/wiki">한국어</a></li>
+  <li><a href="/mbostock/d3/wiki/JP-Home">日本語</a></li>
+  <li><a href="/mbostock/d3/wiki/CN-Home">中文</a></li>
+  <li>[[API Reference (русскоязычная версия)]]</li>
+  <li><a href="https://github.com/ahmetkurnaz/d3/wiki">API Kaynak - Türkçe</a></li>
+</ul>
+
+<h2 id="browser-support">Browser Support</h2>
+
+<p>D3 mendukung apa yang disebut sebagai perambah (browser) web “modern”, yang umumnya semua perambah <em>kecuali</em> IE8 dan dibawahnya. D3 diujicoba terhadap Firefox, Chrome (Chromium), Safari (WebKit), Opera dan IE9. Beberapa bagian dari D3 mungkin dapat berjalan pada perambah yang lebih tua, karena pustaka inti (<em>core</em>) mempunyai <em>requirement</em> minimal: JavaScript dan API <a href="http://www.w3.org/DOM/">W3C DOM</a>. Untuk IE8, direkomendasikan menggunakan pustaka kompatibilitas <a href="https://github.com/shawnbot/aight">Aight</a>. D3 memnggunakan <a href="http://www.w3.org/TR/selectors-api/">Selectors API</a> Level 1, tapi Anda dapat mem-preload <a href="http://sizzlejs.com/">Sizzle</a> untuk kompatibilitas. Anda akan membutuhkan perambah modern untuk menggunakan <a href="http://www.w3.org/TR/SVG/">SVG</a> dan <a href="http://www.w3.org/TR/css3-transitions/">CSS3 Transitions</a>. D3 bukanlah suatu lapisan kompatibilitas, jadi bila perambah Anda tidak mendukung standard, Anda tidak beruntung. Mohon maaf :)</p>
+
+<p>D3 bekerja juga dengan Node.js. Lihat <a href="https://groups.google.com/forum/#!msg/d3-js/JyldAkWkTvI/n8thanJeGvAJ">https://groups.google.com/forum/#!msg/d3-js/JyldAkWkTvI/n8thanJeGvAJ</a> untuk detailnya.</p>
+
+<h2 id="installing">Installing</h2>
+
+<p>Unduh versi terakhir di sini:</p>
+
+<ul>
+  <li><a href="https://github.com/mbostock/d3/releases">https://github.com/mbostock/d3/releases</a></li>
+</ul>
+
+<p>Atau, me-link secara langsybg ke rilis terakhir, kopi potongan kode berikut:</p>
+
+<p><code>html
+&lt;script src="http://d3js.org/d3.v3.min.js" charset="utf-8"&gt;&lt;/script&gt;
+</code></p>
+
+<p>Atau, bila Anda ingin repositori lengkapnya termasuk pengetesan-pengetesan:</p>
+
+<ul>
+  <li><a href="https://github.com/mbostock/d3/zipball/master">https://github.com/mbostock/d3/zipball/master</a></li>
+</ul>
+
+<p>Ketika membangun secara lokal, lihat bahwa perambah Anda mungkin memaksa permisi yang ketat untuk membaca file di luar <em>file system</em> lokal. <strong>Bila anda menggunakan <a href="/mbostock/d3/wiki/Requests">d3.xhr</a> secara lokal (termasuk d3.json dan lain-lain), Anda harus mempunyai server web lokal.</strong> Sebagai contoh, Anda dapat menjalankan built-in server Python:</p>
+
+<pre><code>python -m SimpleHTTPServer 8888 &amp;
+</code></pre>
+
+<p>atau untuk Python 3+</p>
+
+<pre><code>python -m http.server 8888 &amp;
+</code></pre>
+
+<p>Setelah berjalan, masuk ke <a href="http://localhost:8888/">http://localhost:8888/</a>.</p>
+
+<p>D3 mendukung API definisi modul asinkronos (asynchronous module definition - AMD). Sebagai contoh, bila Anda menggunakan <a href="http://requirejs.org/">RequireJS</a>, Anda mungkin me-load yang berikut ini:</p>
+
+<p>```js
+require.config({paths: {d3: “http://d3js.org/d3.v3.min”}});</p>
+
+<p>require([“d3”], function(d3) {
+  console.log(d3.version);
+});
+```</p>
+
+<h2 id="modifying">Modifying</h2>
+
+<p>Bila Anda ingin memodifikasi bagaimana D3 diimplementasikan, klik tombol “Fork” pada pojok kanan-atas dari halaman ini, dan kemudian <em>clone</em> menjadi <em>fork</em> Anda dengan perintah <em>command line</em> dengan mengganti <em>username</em> dengan <em>username</em> Github Anda:</p>
+
+<p><code>bash
+git clone git://github.com/username/d3.git
+</code></p>
+
+<p>Repositori D3 seharusnya dapat berjalan bila Anda hanya ingin membuat visualisasi baru menggunakan D3. Di sisi lain, bila Anda ingin memperluas D3 dengan fitur-fitur baru, memperbaiki bug, atau menjalankan pengetesan-pengetesan, Anda harus <a href="/mbostock/d3">mem-fork repositori D3</a>, dan instal <a href="http://nodejs.org/">Node.js</a> (version 0.10.x atau lebih). Dari direktori <em>root</em> dari repositori ini, Anda kemudian dapat menginstal dependensi D3:</p>
+
+<pre><code>npm install
+</code></pre>
+
+<p>Untuk menjalankan tes, gunakan:</p>
+
+<pre><code>make test
+</code></pre>
+
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,4102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>JP API-Reference</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>JP API-Reference</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ <strong>API リファレンス</strong></p>
+</blockquote>
+
+<p>D3の全てはD3のネームスコープの下に<a href="//ja.wikipedia.org/wiki/%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%97">スコープ</a>されています。D3は<a href="//semver.org/">セマンティックバージョニング</a>を使用しています。d3.バージョンで、D3の現在のバージョンをわかります。</p>
+
+<h2 id="d3-corecore"><a href="Core">d3 (core)</a></h2>
+
+<h3 id="selections">[[Selections]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.select</td>
+          <td>Selections#d3_select]] - 現在のドキュメントから1つの要素を選択する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.selectAll</td>
+          <td>Selections#d3_selectAll]] - 現在のドキュメントから複数の要素を選択する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.attr</td>
+          <td>Selections#attr]] - 属性の値を取得、または設定する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.classed</td>
+          <td>Selections#classed]] - CSSクラスを追加、または削除する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.style</td>
+          <td>Selections#style]] - スタイルプロパティを取得、または設定する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.property</td>
+          <td>Selections#property]] - get or set raw properties.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.text</td>
+          <td>Selections#text]] - 要素内のテキストを取得、または設定する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.html</td>
+          <td>Selections#html]] - 要素内のHTMLを取得、または設定する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.append</td>
+          <td>Selections#append]] - 新しい要素を末尾に追加する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.insert</td>
+          <td>Selections#insert]] - 新しい要素を指定した要素の前に挿入する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.remove</td>
+          <td>Selections#remove]] - 要素を削除する</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.data</td>
+          <td>Selections#data]] - 要素集合のためのデータを取得、または設定する（未訳　while computing a relational join.）</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.enter</td>
+          <td>Selections#enter]] - 要素が足りない場合、プレースホルダを返す</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.exit</td>
+          <td>Selections#exit]] - 不要になった要素を返す</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.filter</td>
+          <td>Selections#filter]] - データに基づいてSelectionを絞り込む</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.datum</td>
+          <td>Selections#datum]] - 個々の要素のためのデータを取得、または設定する（未訳　without computing a join.）</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.sort</td>
+          <td>Selections#sort]] - sort elements in the document based on data.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.order</td>
+          <td>Selections#order]] - reorders elements in the document to match the selection.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.on</td>
+          <td>Selections#on]] - add or remove event listeners for interaction.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.transition</td>
+          <td>Selections#transition]] - start a transition on the selected elements.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Selections#interrupt">selection.interrupt</a> - immediately interrupt the current transition, if any.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.each</td>
+          <td>Selections#each]] - call a function for each selected element.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.call</td>
+          <td>Selections#call]] - call a function passing in the current selection.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.empty</td>
+          <td>Selections#empty]] - returns true if the selection is empty.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.node</td>
+          <td>Selections#node]] - returns the first node in the selection.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Selections#size">selection.size</a> - Selectionの中の要素の数を返す</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.select</td>
+          <td>Selections#select]] - subselect a descendant element for each selected element.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[selection.selectAll</td>
+          <td>Selections#selectAll]] - subselect multiple descendants for each selected element.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.selection</td>
+          <td>Selections#d3_selection]] - augment the selection prototype, or test instance types.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.event</td>
+          <td>Selections#d3_event]] - access the current user event for interaction.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.mouse</td>
+          <td>Selections#d3_mouse]] - gets the mouse position relative to a specified container.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.touches</td>
+          <td>Selections#d3_touches]] - gets the touch positions relative to a specified container.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="transitionstransitions"><a href="Transitions">Transitions</a></h3>
+
+<ul>
+  <li><a href="Transitions#d3_transition">d3.transition</a> - start an animated transition.</li>
+  <li><a href="Transitions#delay">transition.delay</a> - specify per-element delay in milliseconds.</li>
+  <li><a href="Transitions#duration">transition.duration</a> - specify per-element duration in milliseconds.</li>
+  <li><a href="Transitions#ease">transition.ease</a> - specify transition easing function.</li>
+  <li><a href="Transitions#attr">transition.attr</a> - smoothly transition to the new attribute value.</li>
+  <li><a href="Transitions#attrTween">transition.attrTween</a> - smoothly transition between two attribute values.</li>
+  <li><a href="Transitions#style">transition.style</a> - smoothly transition to the new style property value.</li>
+  <li><a href="Transitions#styleTween">transition.styleTween</a> - smoothly transition between two style property values.</li>
+  <li><a href="Transitions#text">transition.text</a> - set the text content when the transition starts.</li>
+  <li><a href="Transitions#tween">transition.tween</a> - specify a custom tween operator to run as part of the transition.</li>
+  <li><a href="Transitions#select">transition.select</a> - start a transition on a descendant element for each selected element.</li>
+  <li><a href="Transitions#selectAll">transition.selectAll</a> - start a transition on multiple descendants for each selected element.</li>
+  <li><a href="Transitions#filter">transition.filter</a> - filter a transition based on data.</li>
+  <li><a href="Transitions#transition">transition.transition</a> - when this transition ends, start another one on the same elements.</li>
+  <li><a href="Transitions#remove">transition.remove</a> - remove selected elements at the end of a transition.</li>
+  <li><a href="Transitions#empty">transition.empty</a> - returns true if the transition is empty.</li>
+  <li><a href="Transitions#node">transition.node</a> - returns the first node in the transition.</li>
+  <li><a href="Transitions#size">transition.size</a> - returns the number of elements in the selection.</li>
+  <li><a href="Transitions#each">transition.each</a> - add a listener for transition end events.</li>
+  <li><a href="Transitions#call">transition.call</a> - call a function passing in the current transition.</li>
+  <li><a href="Transitions#d3_ease">d3.ease</a> - customize transition timing.</li>
+  <li><a href="Transitions#_ease">ease</a> - a parametric easing function.</li>
+  <li><a href="Transitions#d3_timer">d3.timer</a> - start a custom animation timer.</li>
+  <li><a href="Transitions#d3_timer_flush">d3.timer.flush</a> - immediately execute any zero-delay timers.</li>
+  <li><a href="Transitions#d3_interpolate">d3.interpolate</a> - interpolate two values.</li>
+  <li><a href="Transitions#_interpolate">interpolate</a> - a parametric interpolation function.</li>
+  <li><a href="Transitions#d3_interpolateNumber">d3.interpolateNumber</a> - interpolate two numbers.</li>
+  <li><a href="Transitions#d3_interpolateRound">d3.interpolateRound</a> - interpolate two integers.</li>
+  <li><a href="Transitions#d3_interpolateString">d3.interpolateString</a> - interpolate two strings.</li>
+  <li><a href="Transitions#d3_interpolateRgb">d3.interpolateRgb</a> - interpolate two RGB colors.</li>
+  <li><a href="Transitions#d3_interpolateHsl">d3.interpolateHsl</a> - interpolate two HSL colors.</li>
+  <li><a href="Transitions#d3_interpolateLab">d3.interpolateLab</a> - interpolate two L*a*b* colors.</li>
+  <li><a href="Transitions#d3_interpolateHcl">d3.interpolateHcl</a> - interpolate two HCL colors.</li>
+  <li><a href="Transitions#d3_interpolateArray">d3.interpolateArray</a> - interpolate two arrays of values.</li>
+  <li><a href="Transitions#d3_interpolateObject">d3.interpolateObject</a> - interpolate two arbitrary objects.</li>
+  <li><a href="Transitions#d3_interpolateTransform">d3.interpolateTransform</a> - interpolate two 2D matrix transforms.</li>
+  <li><a href="Transitions#d3_interpolateZoom">d3.interpolateZoom</a> - zoom and pan between two points smoothly.</li>
+  <li><a href="Transitions#d3_interpolators">d3.interpolators</a> - register a custom interpolator.</li>
+</ul>
+
+<h3 id="working-with-arraysarrays">[[Working with Arrays|Arrays]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.ascending</td>
+          <td>Arrays#d3_ascending]] - compare two values for sorting.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.descending</td>
+          <td>Arrays#d3_descending]] - compare two values for sorting.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.min</td>
+          <td>Arrays#d3_min]] - find the minimum value in an array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.max</td>
+          <td>Arrays#d3_max]] - find the maximum value in an array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.extent</td>
+          <td>Arrays#d3_extent]] - find the minimum and maximum value in an array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.sum</td>
+          <td>Arrays#d3_sum]] - compute the sum of an array of numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.mean</td>
+          <td>Arrays#d3_mean]] - compute the arithmetic mean of an array of numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.median</td>
+          <td>Arrays#d3_median]] - compute the median of an array of numbers (the 0.5-quantile).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.quantile</td>
+          <td>Arrays#d3_quantile]] - compute a quantile for a sorted array of numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.bisect</td>
+          <td>Arrays#d3_bisect]] - search for a value in a sorted array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.bisectRight</td>
+          <td>Arrays#d3_bisectRight]] - search for a value in a sorted array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.bisectLeft</td>
+          <td>Arrays#d3_bisectLeft]] - search for a value in a sorted array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.bisector</td>
+          <td>Arrays#d3_bisector]] - bisect using an accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Arrays#d3_shuffle">d3.shuffle</a> - randomize the order of an array.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.permute</td>
+          <td>Arrays#d3_permute]] - reorder an array of elements according to an array of indexes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.zip</td>
+          <td>Arrays#d3_zip]] - transpose a variable number of arrays.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.transpose</td>
+          <td>Arrays#d3_transpose]] - transpose an array of arrays.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.pairs</td>
+          <td>Arrays#d3_pairs]] - returns an array of adjacent pairs of elements.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.keys</td>
+          <td>Arrays#d3_keys]] - list the keys of an associative array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.values</td>
+          <td>Arrays#d3_values]] - list the values of an associated array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.entries</td>
+          <td>Arrays#d3_entries]] - list the key-value entries of an associative array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.merge</td>
+          <td>Arrays#d3_merge]] - merge multiple arrays into one array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.range</td>
+          <td>Arrays#d3_range]] - generate a range of numeric values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.nest</td>
+          <td>Arrays#d3_nest]] - group array elements hierarchically.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.key</td>
+          <td>Arrays#nest_key]] - add a level to the nest hierarchy.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.sortKeys</td>
+          <td>Arrays#nest_sortKeys]] - sort the current nest level by key.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.sortValues</td>
+          <td>Arrays#nest_sortValues]] - sort the leaf nest level by value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.rollup</td>
+          <td>Arrays#nest_rollup]] - specify a rollup function for leaf values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.map</td>
+          <td>Arrays#nest_map]] - evaluate the nest operator, returning an associative array.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[nest.entries</td>
+          <td>Arrays#nest_entries]] - evaluate the nest operator, returning an array of key-values tuples.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Arrays#d3_map">d3.map</a> - a shim for ES6 maps, since objects are not hashes!</li>
+  <li><a href="Arrays#map_has">map.has</a> - returns true if the map contains the specified key.</li>
+  <li><a href="Arrays#map_get">map.get</a> - returns the value for the specified key.</li>
+  <li><a href="Arrays#map_set">map.set</a> - sets the value for the specified key.</li>
+  <li><a href="Arrays#map_remove">map.remove</a> - removes the entry for specified key.</li>
+  <li><a href="Arrays#map_keys">map.keys</a> - returns the map’s array of keys.</li>
+  <li><a href="Arrays#map_values">map.values</a> - returns the map’s array of values.</li>
+  <li><a href="Arrays#map_entries">map.entries</a> - returns the map’s array of entries (key-values objects).</li>
+  <li><a href="Arrays#map_forEach">map.forEach</a> - calls the specified function for each entry in the map.</li>
+  <li><a href="Arrays#d3_set">d3.set</a> - a shim for ES6 sets, since objects are not hashes!</li>
+  <li><a href="Arrays#set_has">set.has</a> - returns true if the set contains the specified value.</li>
+  <li><a href="Arrays#set_add">set.add</a> - adds the specified value.</li>
+  <li><a href="Arrays#set_remove">set.remove</a> - removes the specified value.</li>
+  <li><a href="Arrays#set_values">set.values</a> - returns the set’s array of values.</li>
+  <li><a href="Arrays#set_forEach">set.forEach</a> - calls the specified function for each value in the set.</li>
+</ul>
+
+<h3 id="math">[[Math]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.random.normal</td>
+          <td>Math#random_normal]] - generate a random number with a normal distribution.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.random.logNormal</td>
+          <td>Math#random_logNormal]] - generate a random number with a log-normal distribution.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.random.bates</td>
+          <td>Math#random_bates]] - generate a random number with a Bates distribution.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.random.irwinHall</td>
+          <td>Math#random_irwinHall]] - generate a random number with an Irwin–Hall distribution.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.transform</td>
+          <td>Math#transform]] - compute the standard form of a 2D matrix transform.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="loading-external-resourcesrequests">[[Loading External Resources|Requests]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.xhr</td>
+          <td>Requests#d3_xhr]] - request a resource using XMLHttpRequest.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Requests#header">xhr.header</a> - set a request header.</li>
+  <li><a href="Requests#mimeType">xhr.mimeType</a> - set the Accept request header and override the response MIME type.</li>
+  <li><a href="Requests#response">xhr.response</a> - set a response mapping function.</li>
+  <li><a href="Requests#get">xhr.get</a> - issue a GET request.</li>
+  <li><a href="Requests#post">xhr.post</a> - issue a POST request.</li>
+  <li><a href="Requests#send">xhr.send</a> - issue a request with the specified method and data.</li>
+  <li><a href="Requests#abort">xhr.abort</a> - abort an outstanding request.</li>
+  <li><a href="Requests#on">xhr.on</a> - add an event listener for “progress”, “load” or “error” events.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.text</td>
+          <td>Requests#d3_text]] - request a text file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.json</td>
+          <td>Requests#d3_json]] - request a JSON blob.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.html</td>
+          <td>Requests#d3_html]] - request an HTML document fragment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.xml</td>
+          <td>Requests#d3_xml]] - request an XML document fragment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv</td>
+          <td>CSV]] - request a comma-separated values (CSV) file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv</td>
+          <td>CSV#tsv]] - request a tab-separated values (TSV) file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="string-formattingformatting">[[String Formatting|Formatting]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.format</td>
+          <td>Formatting#d3_format]] - format a number as a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Formatting#d3_formatPrefix">d3.formatPrefix</a> - returns the [SI prefix] for the specified value and precision.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.requote</td>
+          <td>Formatting#d3_requote]] - quote a string for use in a regular expression.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.round</td>
+          <td>Formatting#d3_round]] - rounds a value to some digits after the decimal point.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="csv-formatting-d3csvcsv">[[CSV Formatting (d3.csv)|CSV]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv</td>
+          <td>CSV#csv]] - request a comma-separated values (CSV) file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv.parse</td>
+          <td>CSV#parse]] - parse a CSV string into objects using the header row.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv.parseRows</td>
+          <td>CSV#parseRows]] - parse a CSV string into tuples, ignoring the header row.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv.format</td>
+          <td>CSV#format]] - format an array of objects into a CSV string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.csv.formatRows</td>
+          <td>CSV#formatRows]] - format an array of tuples into a CSV string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv</td>
+          <td>CSV#tsv]] - request a tab-separated values (TSV) file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv.parse</td>
+          <td>CSV#tsv_parse]] - parse a TSV string into objects using the header row.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv.parseRows</td>
+          <td>CSV#tsv_parseRows]] - parse a TSV string into tuples, ignoring the header row.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv.format</td>
+          <td>CSV#tsv_format]] - format an array of objects into a TSV string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.tsv.formatRows</td>
+          <td>CSV#tsv_formatRows]] - format an array of tuples into a TSV string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="CSV#dsv">d3.dsv</a> - create a parser/formatter for the specified delimiter and mime type.</li>
+</ul>
+
+<h3 id="colors">[[Colors]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.rgb</td>
+          <td>Colors#d3_rgb]] - specify a color in RGB space.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[rgb.brighter</td>
+          <td>Colors#rgb_brighter]] - increase RGB channels by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[rgb.darker</td>
+          <td>Colors#rgb_darker]] - decrease RGB channels by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[rgb.hsl</td>
+          <td>Colors#rgb_hsl]] - convert from RGB to HSL.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[rgb.toString</td>
+          <td>Colors#rgb_toString]] - convert an RGB color to a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.hsl</td>
+          <td>Colors#d3_hsl]] - specify a color in HSL space.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hsl.brighter</td>
+          <td>Colors#hsl_brighter]] - increase lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hsl.darker</td>
+          <td>Colors#hsl_darker]] - decrease lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hsl.rgb</td>
+          <td>Colors#hsl_rgb]] - convert from HSL to RGB.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hsl.toString</td>
+          <td>Colors#hsl_toString]] - convert an HSL color to a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.lab</td>
+          <td>Colors#d3_lab]] - specify a color in L*a*b* space.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[lab.brighter</td>
+          <td>Colors#lab_brighter]] - increase lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[lab.darker</td>
+          <td>Colors#lab_darker]] - decrease lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[lab.rgb</td>
+          <td>Colors#lab_rgb]] - convert from L*a*b* to RGB.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[lab.toString</td>
+          <td>Colors#lab_toString]] - convert a L*a*b* color to a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.hcl</td>
+          <td>Colors#d3_hcl]] - specify a color in HCL space.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hcl.brighter</td>
+          <td>Colors#hcl_brighter]] - increase lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hcl.darker</td>
+          <td>Colors#hcl_darker]] - decrease lightness by some exponential factor (gamma).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hcl.rgb</td>
+          <td>Colors#hcl_rgb]] - convert from HCL to RGB.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[hcl.toString</td>
+          <td>Colors#hcl_toString]] - convert an HCL color to a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="namespaces">[[Namespaces]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.ns.prefix</td>
+          <td>Namespaces#prefix]] - access or extend known XML namespaces.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.ns.qualify</td>
+          <td>Namespaces#qualify]] - qualify a prefixed name, such as “xlink:href”.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="internals">[[Internals]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.functor</td>
+          <td>Internals#functor]] - create a function that returns a constant.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.rebind</td>
+          <td>Internals#rebind]] - rebind an inherited getter/setter method to a subclass.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.dispatch</td>
+          <td>Internals#d3_dispatch]] - create a custom event dispatcher.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[dispatch.on</td>
+          <td>Internals#dispatch_on]] - register or unregister an event listener.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[dispatch.type</td>
+          <td>Internals#_dispatch]] - dispatch an event to registered listeners.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h2 id="d3scale-scalesscales"><a href="Scales">d3.scale (Scales)</a></h2>
+
+<h3 id="quantitativequantitative-scalesquantitative">[[Quantitative|Quantitative-Scales#quantitative]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.linear</td>
+          <td>Quantitative-Scales#linear]] - construct a linear quantitative scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear</td>
+          <td>Quantitative-Scales#_linear]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.invert</td>
+          <td>Quantitative-Scales#linear_invert]] - get the domain value corresponding to a given range value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.domain</td>
+          <td>Quantitative-Scales#linear_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.range</td>
+          <td>Quantitative-Scales#linear_range]] - get or set the scale’s output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.rangeRound</td>
+          <td>Quantitative-Scales#linear_rangeRound]] - set the scale’s output range, and enable rounding.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.interpolate</td>
+          <td>Quantitative-Scales#linear_interpolate]] - get or set the scale’s output interpolator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.clamp</td>
+          <td>Quantitative-Scales#linear_clamp]] - enable or disable clamping of the output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.nice</td>
+          <td>Quantitative-Scales#linear_nice]] - extend the scale domain to nice round numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.ticks</td>
+          <td>Quantitative-Scales#linear_ticks]] - get representative values from the input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.tickFormat</td>
+          <td>Quantitative-Scales#linear_tickFormat]] - get a formatter for displaying tick values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[linear.copy</td>
+          <td>Quantitative-Scales#linear_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.sqrt</td>
+          <td>Quantitative-Scales#sqrt]] - construct a quantitative scale with a square root transform.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.pow</td>
+          <td>Quantitative-Scales#pow]] - construct a quantitative scale with an exponential transform.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow</td>
+          <td>Quantitative-Scales#_pow]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.invert</td>
+          <td>Quantitative-Scales#pow_invert]] - get the domain value corresponding to a given range value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.domain</td>
+          <td>Quantitative-Scales#pow_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.range</td>
+          <td>Quantitative-Scales#pow_range]] - get or set the scale’s output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.rangeRound</td>
+          <td>Quantitative-Scales#pow_rangeRound]] - set the scale’s output range, and enable rounding.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.interpolate</td>
+          <td>Quantitative-Scales#pow_interpolate]] - get or set the scale’s output interpolator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.clamp</td>
+          <td>Quantitative-Scales#pow_clamp]] - enable or disable clamping of the output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.nice</td>
+          <td>Quantitative-Scales#pow_nice]] - extend the scale domain to nice round numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.ticks</td>
+          <td>Quantitative-Scales#pow_ticks]] - get representative values from the input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.tickFormat</td>
+          <td>Quantitative-Scales#pow_tickFormat]] - get a formatter for displaying tick values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.exponent</td>
+          <td>Quantitative-Scales#pow_exponent]] - get or set the exponent power.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pow.copy</td>
+          <td>Quantitative-Scales#pow_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.log</td>
+          <td>Quantitative-Scales#log]] - construct a quantitative scale with an logarithmic transform.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log</td>
+          <td>Quantitative-Scales#_log]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.invert</td>
+          <td>Quantitative-Scales#log_invert]] - get the domain value corresponding to a given range value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.domain</td>
+          <td>Quantitative-Scales#log_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.range</td>
+          <td>Quantitative-Scales#log_range]] - get or set the scale’s output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.rangeRound</td>
+          <td>Quantitative-Scales#log_rangeRound]] - set the scale’s output range, and enable rounding.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.interpolate</td>
+          <td>Quantitative-Scales#log_interpolate]] - get or set the scale’s output interpolator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.clamp</td>
+          <td>Quantitative-Scales#log_clamp]] - enable or disable clamping of the output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.nice</td>
+          <td>Quantitative-Scales#log_nice]] - extend the scale domain to nice powers of ten.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.ticks</td>
+          <td>Quantitative-Scales#log_ticks]] - get representative values from the input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.tickFormat</td>
+          <td>Quantitative-Scales#log_tickFormat]] - get a formatter for displaying tick values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[log.copy</td>
+          <td>Quantitative-Scales#log_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.quantize</td>
+          <td>Quantitative-Scales#quantize]] - construct a linear quantitative scale with a discrete output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantize</td>
+          <td>Quantitative-Scales#_quantize]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Quantitative-Scales#quantize_invertExtent">quantize.invertExtent</a> - get the domain values for the specified range value.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantize.domain</td>
+          <td>Quantitative-Scales#quantize_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantize.range</td>
+          <td>Quantitative-Scales#quantize_range]] - get or set the scale’s output range (as discrete values).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantize.copy</td>
+          <td>Quantitative-Scales#quantize_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.threshold</td>
+          <td>Quantitative-Scales#threshold]] - construct a threshold scale with a discrete output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[threshold</td>
+          <td>Quantitative-Scales#_threshold]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Quantitative-Scales#threshold_invertExtent">threshold.invertExtent</a> - get the domain values for the specified range value.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[threshold.domain</td>
+          <td>Quantitative-Scales#threshold_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[threshold.range</td>
+          <td>Quantitative-Scales#threshold_range]] - get or set the scale’s output range (as discrete values).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[threshold.copy</td>
+          <td>Quantitative-Scales#threshold_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.quantile</td>
+          <td>Quantitative-Scales#quantile]] - construct a quantitative scale mapping to quantiles.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantile</td>
+          <td>Quantitative-Scales#_quantile]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Quantitative-Scales#quantile_invertExtent">quantile.invertExtent</a> - get the domain values for the specified range value.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantile.domain</td>
+          <td>Quantitative-Scales#quantile_domain]] - get or set the scale’s input domain (as discrete values).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantile.range</td>
+          <td>Quantitative-Scales#quantile_range]] - get or set the scale’s output range (as discrete values).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantile.quantiles</td>
+          <td>Quantitative-Scales#quantile_quantiles]] - get the scale’s quantile bin thresholds.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quantile.copy</td>
+          <td>Quantitative-Scales#quantile_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.identity</td>
+          <td>Quantitative-Scales#identity]] - construct a linear identity scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity</td>
+          <td>Quantitative-Scales#_identity]] - the identity function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.invert</td>
+          <td>Quantitative-Scales#_identity]] - equivalent to identity; the identity function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.domain</td>
+          <td>Quantitative-Scales#identity_domain]] - get or set the scale’s domain and range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.range</td>
+          <td>Quantitative-Scales#identity_domain]] - equivalent to identity.domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.ticks</td>
+          <td>Quantitative-Scales#identity_ticks]] - get representative values from the domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.tickFormat</td>
+          <td>Quantitative-Scales#identity_tickFormat]] - get a formatter for displaying tick values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[identity.copy</td>
+          <td>Quantitative-Scales#identity_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="ordinalordinal-scalesordinal">[[Ordinal|Ordinal-Scales#ordinal]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.ordinal</td>
+          <td>Ordinal-Scales#ordinal]] - construct an ordinal scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal</td>
+          <td>Ordinal-Scales#_ordinal]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.domain</td>
+          <td>Ordinal-Scales#ordinal_domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.range</td>
+          <td>Ordinal-Scales#ordinal_range]] - get or set the scale’s output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.rangePoints</td>
+          <td>Ordinal-Scales#ordinal_rangePoints]] - divide a continuous output range for discrete points.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.rangeBands</td>
+          <td>Ordinal-Scales#ordinal_rangeBands]] - divide a continuous output range for discrete bands.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.rangeRoundBands</td>
+          <td>Ordinal-Scales#ordinal_rangeRoundBands]] - divide a continuous output range for discrete bands.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.rangeBand</td>
+          <td>Ordinal-Scales#ordinal_rangeBand]] - get the discrete range band width.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.rangeExtent</td>
+          <td>Ordinal-Scales#ordinal_rangeExtent]] - get the minimum and maximum values of the output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[ordinal.copy</td>
+          <td>Ordinal-Scales#ordinal_copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.category10</td>
+          <td>Ordinal-Scales#category10]] - construct an ordinal scale with ten categorical colors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.category20</td>
+          <td>Ordinal-Scales#category20]] - construct an ordinal scale with twenty categorical colors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.category20b</td>
+          <td>Ordinal-Scales#category20b]] - construct an ordinal scale with twenty categorical colors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.scale.category20c</td>
+          <td>Ordinal-Scales#category20c]] - construct an ordinal scale with twenty categorical colors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h2 id="d3svg-svgsvg"><a href="SVG">d3.svg (SVG)</a></h2>
+
+<h3 id="shapessvg-shapes">[[Shapes|SVG-Shapes]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.line</td>
+          <td>SVG-Shapes#line]] - create a new line generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line</td>
+          <td>SVG-Shapes#_line]] - generate a piecewise linear curve, as in a line chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.x</td>
+          <td>SVG-Shapes#line_x]] - get or set the <em>x</em>-coordinate accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.y</td>
+          <td>SVG-Shapes#line_y]] - get or set the <em>y</em>-coordinate accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.interpolate</td>
+          <td>SVG-Shapes#line_interpolate]] - get or set the interpolation mode.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.tension</td>
+          <td>SVG-Shapes#line_tension]] - get or set the cardinal spline tension.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="SVG-Shapes#line_defined">line.defined</a> - control whether the line is defined at a given point.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.line.radial</td>
+          <td>SVG-Shapes#line_radial]] - create a new radial line generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line</td>
+          <td>SVG-Shapes#_line_radial]] - generate a piecewise linear curve, as in a polar line chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.radius</td>
+          <td>SVG-Shapes#line_radial_radius]] - get or set the <em>radius</em> accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[line.angle</td>
+          <td>SVG-Shapes#line_radial_angle]] - get or set the <em>angle</em> accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="SVG-Shapes#line_radial_defined">line.defined</a> - control whether the line is defined at a given point.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.area</td>
+          <td>SVG-Shapes#area]] - create a new area generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area</td>
+          <td>SVG-Shapes#_area]] - generate a piecewise linear area, as in an area chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.x</td>
+          <td>SVG-Shapes#area_x]] - get or set the <em>x</em>-coordinate accessors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.x0</td>
+          <td>SVG-Shapes#area_x0]] - get or set the <em>x0</em>-coordinate (baseline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.x1</td>
+          <td>SVG-Shapes#area_x1]] - get or set the <em>x1</em>-coordinate (topline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.y</td>
+          <td>SVG-Shapes#area_y]] - get or set the <em>y</em>-coordinate accessors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.y0</td>
+          <td>SVG-Shapes#area_y0]] - get or set the <em>y0</em>-coordinate (baseline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.y1</td>
+          <td>SVG-Shapes#area_y1]] - get or set the <em>y1</em>-coordinate (topline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.interpolate</td>
+          <td>SVG-Shapes#area_interpolate]] - get or set the interpolation mode.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.tension</td>
+          <td>SVG-Shapes#area_tension]] - get or set the cardinal spline tension.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="SVG-Shapes#area_defined">area.defined</a> - control whether the area is defined at a given point.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.area.radial</td>
+          <td>SVG-Shapes#area_radial]] - create a new area generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area</td>
+          <td>SVG-Shapes#_area_radial]] - generate a piecewise linear area, as in a polar area chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.radius</td>
+          <td>SVG-Shapes#area_radial_radius]] - get or set the <em>radius</em> accessors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.innerRadius</td>
+          <td>SVG-Shapes#area_radial_innerRadius]] - get or set the inner <em>radius</em> (baseline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.outerRadius</td>
+          <td>SVG-Shapes#area_radial_outerRadius]] - get or set the outer <em>radius</em> (topline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.angle</td>
+          <td>SVG-Shapes#area_radial_angle]] - get or set the <em>angle</em> accessors.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.startAngle</td>
+          <td>SVG-Shapes#area_radial_startAngle]] - get or set the <em>angle</em> (baseline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[area.endAngle</td>
+          <td>SVG-Shapes#area_radial_endAngle]] - get or set the <em>angle</em> (topline) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="SVG-Shapes#area_radial_defined">area.defined</a> - control whether the area is defined at a given point.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.arc</td>
+          <td>SVG-Shapes#arc]] - create a new arc generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc</td>
+          <td>SVG-Shapes#_arc]] - generate a solid arc, as in a pie or donut chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc.innerRadius</td>
+          <td>SVG-Shapes#arc_innerRadius]] - get or set the inner radius accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc.outerRadius</td>
+          <td>SVG-Shapes#arc_outerRadius]] - get or set the outer radius accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc.startAngle</td>
+          <td>SVG-Shapes#arc_startAngle]] - get or set the start angle accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc.endAngle</td>
+          <td>SVG-Shapes#arc_endAngle]] - get or set the end angle accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[arc.centroid</td>
+          <td>SVG-Shapes#arc_centroid]] - compute the arc centroid.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.symbol</td>
+          <td>SVG-Shapes#symbol]] - create a new symbol generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[symbol</td>
+          <td>SVG-Shapes#_symbol]] - generate categorical symbols, as in a scatterplot.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[symbol.type</td>
+          <td>SVG-Shapes#symbol_type]] - get or set the symbol type accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[symbol.size</td>
+          <td>SVG-Shapes#symbol_size]] - get or set the symbol size (in square pixels) accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="SVG-Shapes#symbolTypes">d3.svg.symbolTypes</a> - the array of supported symbol types.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.chord</td>
+          <td>SVG-Shapes#chord]] - create a new chord generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord</td>
+          <td>SVG-Shapes#_chord]] - generate a quadratic Bézier connecting two arcs, as in a chord diagram.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.radius</td>
+          <td>SVG-Shapes#chord_radius]] - get or set the arc radius accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.startAngle</td>
+          <td>SVG-Shapes#chord_startAngle]] - get or set the arc start angle accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.endAngle</td>
+          <td>SVG-Shapes#chord_endAngle]] - get or set the arc end angle accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.source</td>
+          <td>SVG-Shapes#chord_source]] - get or set the source arc accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.target</td>
+          <td>SVG-Shapes#chord_target]] - get or set the target arc accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.diagonal</td>
+          <td>SVG-Shapes#diagonal]] - create a new diagonal generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[diagonal</td>
+          <td>SVG-Shapes#_diagonal]] - generate a two-dimensional Bézier connector, as in a node-link diagram.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[diagonal.source</td>
+          <td>SVG-Shapes#diagonal_source]] - get or set the source point accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[diagonal.target</td>
+          <td>SVG-Shapes#diagonal_target]] - get or set the target point accessor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[diagonal.projection</td>
+          <td>SVG-Shapes#diagonal_projection]] - get or set an optional point transform.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.diagonal.radial</td>
+          <td>SVG-Shapes#diagonal_radial]] - create a new diagonal generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[diagonal</td>
+          <td>SVG-Shapes#_diagonal_radial]] - generate a two-dimensional Bézier connector, as in a node-link diagram.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="axessvg-axes">[[Axes|SVG-Axes]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.svg.axis</td>
+          <td>SVG-Axes#axis]] - create a new axis generator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis</td>
+          <td>SVG-Axes#_axis]] - creates or updates an axis for the given selection or transition.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.scale</td>
+          <td>SVG-Axes#scale]] - get or set the axis scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.orient</td>
+          <td>SVG-Axes#orient]] - get or set the axis orientation.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.ticks</td>
+          <td>SVG-Axes#ticks]] - control how ticks are generated for the axis.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.tickValues</td>
+          <td>SVG-Axes#tickValues]] - specify tick values explicitly.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.tickSize</td>
+          <td>SVG-Axes#tickSize]] - specify the size of major, minor and end ticks.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.innerTickSize</td>
+          <td>SVG-Axes#innerTickSize]] - specify the size of inner ticks.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.outerTickSize</td>
+          <td>SVG-Axes#outerTickSize]] - specify the size of outer ticks.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.tickPadding</td>
+          <td>SVG-Axes#tickPadding]] - specify padding between ticks and tick labels.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[axis.tickFormat</td>
+          <td>SVG-Axes#tickFormat]] - override the tick formatting for labels.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="controlssvg-controls"><a href="SVG-Controls">Controls</a></h3>
+
+<ul>
+  <li><a href="SVG-Controls#brush">d3.svg.brush</a> - click and drag to select one- or two-dimensional regions.</li>
+  <li><a href="SVG-Controls#_brush">brush</a> - apply a brush to the given selection or transition.</li>
+  <li><a href="SVG-Controls#brush_x">brush.x</a> - the brush’s <i>x</i>-scale, for horizontal brushing.</li>
+  <li><a href="SVG-Controls#brush_y">brush.y</a> - the brush’s <i>y</i>-scale, for vertical brushing.</li>
+  <li><a href="SVG-Controls#brush_extent">brush.extent</a> - the brush’s extent in zero, one or two dimensions.</li>
+  <li><a href="SVG-Controls#brush_clear">brush.clear</a> - reset the brush extent.</li>
+  <li><a href="SVG-Controls#brush_empty">brush.empty</a> - whether or not the brush extent is empty.</li>
+  <li><a href="SVG-Controls#brush_on">brush.on</a> - listeners for when the brush is moved.</li>
+  <li><a href="SVG-Controls#brush_event">brush.event</a> - dispatch brush events after setting the extent.</li>
+</ul>
+
+<h2 id="d3time-timetime"><a href="Time">d3.time (Time)</a></h2>
+
+<h3 id="time-formatting">[[Time Formatting]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.format</td>
+          <td>Time-Formatting#format]] - create a new local time formatter for a given specifier.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[format</td>
+          <td>Time-Formatting#_format]] - format a date into a string.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[format.parse</td>
+          <td>Time-Formatting#parse]] - parse a string into a date.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.format.utc</td>
+          <td>Time-Formatting#format_utc]] - create a new UTC time formatter for a given specifier.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.format.iso</td>
+          <td>Time-Formatting#format_iso]] - the ISO 8601 UTC time formatter.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="time-scales">[[Time Scales]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.scale</td>
+          <td>Time-Scales#scale]] - construct a linear time scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale</td>
+          <td>Time-Scales#_scale]] - get the range value corresponding to a given domain value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.invert</td>
+          <td>Time-Scales#invert]] - get the domain value corresponding to a given range value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.domain</td>
+          <td>Time-Scales#domain]] - get or set the scale’s input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.nice</td>
+          <td>Time-Scales#nice]] - extend the scale domain to nice round numbers.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.range</td>
+          <td>Time-Scales#range]] - get or set the scale’s output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.rangeRound</td>
+          <td>Time-Scales#rangeRound]] - set the scale’s output range, and enable rounding.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.interpolate</td>
+          <td>Time-Scales#interpolate]] - get or set the scale’s output interpolator.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.clamp</td>
+          <td>Time-Scales#clamp]] - enable or disable clamping of the output range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.ticks</td>
+          <td>Time-Scales#ticks]] - get representative values from the input domain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.tickFormat</td>
+          <td>Time-Scales#tickFormat]] - get a formatter for displaying tick values.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[scale.copy</td>
+          <td>Time-Scales#copy]] - create a new scale from an existing scale.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="time-intervals">[[Time Intervals]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.interval</td>
+          <td>Time-Intervals#interval]] - a time interval in local time.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval</td>
+          <td>Time-Intervals#_interval]] - alias for interval.floor.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.range</td>
+          <td>Time-Intervals#interval_range]] - returns dates within the specified range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.floor</td>
+          <td>Time-Intervals#interval_floor]] - rounds down to the nearest interval.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.round</td>
+          <td>Time-Intervals#interval_round]] - rounds up or down to the nearest interval.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.ceil</td>
+          <td>Time-Intervals#interval_ceil]] - rounds up to the nearest interval.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.offset</td>
+          <td>Time-Intervals#interval_offset]] - returns a date offset by some interval.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[interval.utc</td>
+          <td>Time-Intervals#interval_utc]] - returns the UTC-equivalent time interval.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.day</td>
+          <td>Time-Intervals#day]] - every day (12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.days</td>
+          <td>Time-Intervals#day]] - alias for day.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#dayOfYear">d3.time.dayOfYear</a> - computes the day number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.hour</td>
+          <td>Time-Intervals#hour]] - every hour (e.g., 1:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.hours</td>
+          <td>Time-Intervals#hours]] - alias for hour.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.minute</td>
+          <td>Time-Intervals#minute]] - every minute (e.g., 1:02 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.minutes</td>
+          <td>Time-Intervals#minutes]] - alias for minute.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.month</td>
+          <td>Time-Intervals#month]] - every month (e.g., February 1, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.months</td>
+          <td>Time-Intervals#months]] - alias for month.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.second</td>
+          <td>Time-Intervals#second]] - every second (e.g., 1:02:03 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.seconds</td>
+          <td>Time-Intervals#seconds]] - alias for second.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.sunday</td>
+          <td>Time-Intervals#sunday]] - every Sunday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.sundays</td>
+          <td>Time-Intervals#sundays]] - alias for sunday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#sundayOfYear">d3.time.sundayOfYear</a> - computes the sunday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.monday</td>
+          <td>Time-Intervals#monday]] - every Monday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.mondays</td>
+          <td>Time-Intervals#mondays]] - alias for monday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#mondayOfYear">d3.time.mondayOfYear</a> - computes the monday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.tuesday</td>
+          <td>Time-Intervals#tuesday]] - every Tuesday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.tuesdays</td>
+          <td>Time-Intervals#tuesdays]] - alias for tuesday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#tuesdayOfYear">d3.time.tuesdayOfYear</a> - computes the tuesday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.wednesday</td>
+          <td>Time-Intervals#wednesday]] - every Wednesday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.wednesdays</td>
+          <td>Time-Intervals#wednesdays]] - alias for wednesday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#tuesdayOfYear">d3.time.wednesdayOfYear</a> - computes the wednesday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.thursday</td>
+          <td>Time-Intervals#thursday]] - every Thursday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.thursdays</td>
+          <td>Time-Intervals#thursdays]] - alias for thursday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#thursdayOfYear">d3.time.thursdayOfYear</a> - computes the thursday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.friday</td>
+          <td>Time-Intervals#friday]] - every Friday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.fridays</td>
+          <td>Time-Intervals#fridays]] - alias for friday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#fridayOfYear">d3.time.fridayOfYear</a> - computes the friday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.saturday</td>
+          <td>Time-Intervals#saturday]] - every Saturday (e.g., February 5, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.saturdays</td>
+          <td>Time-Intervals#saturdays]] - alias for saturday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#saturdayOfYear">d3.time.saturdayOfYear</a> - computes the saturday-based week number.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.week</td>
+          <td>Time-Intervals#week]] - alias for sunday.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.weeks</td>
+          <td>Time-Intervals#weeks]] - alias for sunday.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><a href="Time-Intervals#weekOfYear">d3.time.weekOfYear</a> - alias for sundayOfYear.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.year</td>
+          <td>Time-Intervals#year]] - every year (e.g., January 1, 12:00 AM).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.time.years</td>
+          <td>Time-Intervals#years]] - alias for year.range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h2 id="d3layout-layoutslayouts"><a href="Layouts">d3.layout (Layouts)</a></h2>
+
+<h3 id="bundlebundle-layout">[[Bundle|Bundle-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.bundle</td>
+          <td>Bundle-Layout#bundle]] - construct a new default bundle layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[bundle</td>
+          <td>Bundle-Layout#_bundle]] - apply Holten’s <em>hierarchical bundling</em> algorithm to edges.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="chordchord-layout">[[Chord|Chord-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.chord</td>
+          <td>Chord-Layout#chord]] - produce a chord diagram from a matrix of relationships.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.matrix</td>
+          <td>Chord-Layout#matrix]] - get or set the matrix data backing the layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.padding</td>
+          <td>Chord-Layout#padding]] - get or set the angular padding between chord segments.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.sortGroups</td>
+          <td>Chord-Layout#sortGroups]] - get or set the comparator function for groups.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.sortSubgroups</td>
+          <td>Chord-Layout#sortSubgroups]] - get or set the comparator function for subgroups.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.sortChords</td>
+          <td>Chord-Layout#sortChords]] - get or set the comparator function for chords (z-order).</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.chords</td>
+          <td>Chord-Layout#chords]] - retrieve the computed chord angles.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[chord.groups</td>
+          <td>Chord-Layout#groups]] - retrieve the computed group angles.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="clustercluster-layout"><a href="Cluster-Layout">Cluster</a></h3>
+
+<ul>
+  <li><a href="Cluster-Layout#cluster">d3.layout.cluster</a> - cluster entities into a dendrogram.</li>
+  <li><a href="Cluster-Layout#_cluster">cluster</a> - alias for cluster.nodes.</li>
+  <li><a href="Cluster-Layout#nodes">cluster.nodes</a> - compute the cluster layout and return the array of nodes.</li>
+  <li><a href="Cluster-Layout#links">cluster.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Cluster-Layout#children">cluster.children</a> - get or set the accessor function for child nodes.</li>
+  <li><a href="Cluster-Layout#sort">cluster.sort</a> - get or set the comparator function for sibling nodes.</li>
+  <li><a href="Cluster-Layout#separation">cluster.separation</a> - get or set the spacing function between neighboring nodes.</li>
+  <li><a href="Cluster-Layout#size">cluster.size</a> - get or set the layout size in <em>x</em> and <em>y</em>.</li>
+  <li><a href="Cluster-Layout#nodeSize">cluster.nodeSize</a> - specify a fixed size for each node.</li>
+</ul>
+
+<h3 id="forceforce-layout">[[Force|Force-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.force</td>
+          <td>Force-Layout#force]] - position linked nodes using physical simulation.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.on</td>
+          <td>Force-Layout#on]] - listen to updates in the computed layout positions.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.nodes</td>
+          <td>Force-Layout#nodes]] - get or set the array of nodes to layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.links</td>
+          <td>Force-Layout#links]] - get or set the array of links between nodes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.size</td>
+          <td>Force-Layout#size]] - get or set the layout size in <em>x</em> and <em>y</em>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.linkDistance</td>
+          <td>Force-Layout#linkDistance]] - get or set the link distance.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.linkStrength</td>
+          <td>Force-Layout#linkStrength]] - get or set the link strength.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.friction</td>
+          <td>Force-Layout#friction]] - get or set the friction coefficient.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.charge</td>
+          <td>Force-Layout#charge]] - get or set the charge strength.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.gravity</td>
+          <td>Force-Layout#gravity]] - get or set the gravity strength.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.theta</td>
+          <td>Force-Layout#theta]] - get or set the accuracy of the charge interaction.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.start</td>
+          <td>Force-Layout#start]] - start or restart the simulation when the nodes change.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.resume</td>
+          <td>Force-Layout#resume]] - reheat the cooling parameter and restart simulation.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.stop</td>
+          <td>Force-Layout#stop]] - immediately terminate the simulation.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.alpha</td>
+          <td>Force-Layout#alpha]] - get or set the layout’s cooling parameter.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.tick</td>
+          <td>Force-Layout#tick]] - run the layout simulation one step.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[force.drag</td>
+          <td>Force-Layout#drag]] - bind a behavior to nodes to allow interactive dragging.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="hierarchyhierarchy-layout"><a href="Hierarchy-Layout">Hierarchy</a></h3>
+
+<ul>
+  <li><a href="Hierarchy-Layout#hierarchy">d3.layout.hierarchy</a> - derive a custom hierarchical layout implementation.</li>
+  <li><a href="Hierarchy-Layout#_hierarchy">hierarchy</a> - alias for hierarchy.nodes.</li>
+  <li><a href="Hierarchy-Layout#nodes">hierarchy.nodes</a> - compute the layout and return the array of nodes.</li>
+  <li><a href="Hierarchy-Layout#links">hierarchy.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Hierarchy-Layout#children">hierarchy.children</a> - get or set the accessor function for child nodes.</li>
+  <li><a href="Hierarchy-Layout#sort">hierarchy.sort</a> - get or set the comparator function for sibling nodes.</li>
+  <li><a href="Hierarchy-Layout#value">hierarchy.value</a> - get or set the value accessor function.</li>
+  <li><a href="Hierarchy-Layout#revalue">hierarchy.revalue</a> - recompute the hierarchy values.</li>
+</ul>
+
+<h3 id="histogramhistogram-layout">[[Histogram|Histogram-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.histogram</td>
+          <td>Histogram-Layout#histogram]] - construct a new default histogram layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[histogram</td>
+          <td>Histogram-Layout#_histogram]] - compute the distribution of data using quantized bins.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[histogram.value</td>
+          <td>Histogram-Layout#value]] - get or set the value accessor function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[histogram.range</td>
+          <td>Histogram-Layout#range]] - get or set the considered value range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[histogram.bins</td>
+          <td>Histogram-Layout#bins]] - specify how values are organized into bins.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[histogram.frequency</td>
+          <td>Histogram-Layout#frequency]] - compute the distribution as counts or probabilities.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="packpack-layout"><a href="Pack-Layout">Pack</a></h3>
+
+<ul>
+  <li><a href="Pack-Layout#pack">d3.layout.pack</a> - produce a hierarchical layout using recursive circle-packing.</li>
+  <li><a href="Pack-Layout#_pack">pack</a> - alias for pack.nodes.</li>
+  <li><a href="Pack-Layout#nodes">pack.nodes</a> - compute the pack layout and return the array of nodes.</li>
+  <li><a href="Pack-Layout#links">pack.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Pack-Layout#children">pack.children</a> - get or set the children accessor function.</li>
+  <li><a href="Pack-Layout#sort">pack.sort</a> - control the order in which sibling nodes are traversed.</li>
+  <li><a href="Pack-Layout#value">pack.value</a> - get or set the value accessor used to size circles.</li>
+  <li><a href="Pack-Layout#size">pack.size</a> - specify the layout size in <em>x</em> and <em>y</em>.</li>
+  <li><a href="Pack-Layout#radius">pack.radius</a> - specify the node radius, rather than deriving it from value.</li>
+  <li><a href="Pack-Layout#padding">pack.padding</a> - specify the layout padding in (approximate) pixels.</li>
+</ul>
+
+<h3 id="partitionpartition-layout"><a href="Partition-Layout">Partition</a></h3>
+
+<ul>
+  <li><a href="Partition-Layout#partition">d3.layout.partition</a> - recursively partition a node tree into a sunburst or icicle.</li>
+  <li><a href="Partition-Layout#_partition">partition</a> - alias for partition.nodes.</li>
+  <li><a href="Partition-Layout#nodes">partition.nodes</a> - compute the partition layout and return the array of nodes.</li>
+  <li><a href="Partition-Layout#links">partition.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Partition-Layout#children">partition.children</a> - get or set the children accessor function.</li>
+  <li><a href="Partition-Layout#sort">partition.sort</a> - control the order in which sibling nodes are traversed.</li>
+  <li><a href="Partition-Layout#value">partition.value</a> - get or set the value accessor used to size circles.</li>
+  <li><a href="Partition-Layout#size">partition.size</a> - specify the layout size in <em>x</em> and <em>y</em>.</li>
+</ul>
+
+<h3 id="piepie-layout">[[Pie|Pie-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.pie</td>
+          <td>Pie-Layout#pie]] - construct a new default pie layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pie</td>
+          <td>Pie-Layout#_pie]] - compute the start and end angles for arcs in a pie or donut chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pie.value</td>
+          <td>Pie-Layout#value]] - get or set the value accessor function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pie.sort</td>
+          <td>Pie-Layout#sort]] - control the clockwise order of pie slices.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pie.startAngle</td>
+          <td>Pie-Layout#startAngle]] - get or set the overall start angle of the pie.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[pie.endAngle</td>
+          <td>Pie-Layout#endAngle]] - get or set the overall end angle of the pie.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="stackstack-layout">[[Stack|Stack-Layout]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.layout.stack</td>
+          <td>Stack-Layout#stack]] - construct a new default stack layout.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack</td>
+          <td>Stack-Layout#_stack]] - compute the baseline for each series in a stacked bar or area chart.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.values</td>
+          <td>Stack-Layout#values]] - get or set the values accessor function per series.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.order</td>
+          <td>Stack-Layout#order]] - control the order in which series are stacked.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.offset</td>
+          <td>Stack-Layout#offset]] - specify the overall baseline algorithm.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.x</td>
+          <td>Stack-Layout#x]] - get or set the <em>x</em>-dimension accessor function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.y</td>
+          <td>Stack-Layout#y]] - get or set the <em>y</em>-dimension accessor function.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[stack.out</td>
+          <td>Stack-Layout#out]] - get or set the output function for storing the baseline.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="treetree-layout"><a href="Tree-Layout">Tree</a></h3>
+
+<ul>
+  <li><a href="Tree-Layout#tree">d3.layout.tree</a> - position a tree of nodes tidily.</li>
+  <li><a href="Tree-Layout#_tree">tree</a> - alias for tree.nodes.</li>
+  <li><a href="Tree-Layout#nodes">tree.nodes</a> - compute the tree layout and return the array of nodes.</li>
+  <li><a href="Tree-Layout#links">tree.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Tree-Layout#children">tree.children</a> - get or set the children accessor function.</li>
+  <li><a href="Tree-Layout#sort">tree.sort</a> - control the order in which sibling nodes are traversed.</li>
+  <li><a href="Tree-Layout#separation">tree.separation</a> - get or set the spacing function between neighboring nodes.</li>
+  <li><a href="Tree-Layout#size">tree.size</a> - specify the layout size in <em>x</em> and <em>y</em>.</li>
+  <li><a href="Tree-Layout#nodeSize">tree.nodeSize</a> - specify a fixed size for each node.</li>
+</ul>
+
+<h3 id="treemaptreemap-layout"><a href="Treemap-Layout">Treemap</a></h3>
+
+<ul>
+  <li><a href="Treemap-Layout#treemap">d3.layout.treemap</a> - use recursive spatial subdivision to display a tree of nodes.</li>
+  <li><a href="Treemap-Layout#_treemap">treemap</a> - alias for treemap.nodes.</li>
+  <li><a href="Treemap-Layout#nodes">treemap.nodes</a> - compute the treemap layout and return the array of nodes.</li>
+  <li><a href="Treemap-Layout#links">treemap.links</a> - compute the parent-child links between tree nodes.</li>
+  <li><a href="Treemap-Layout#children">treemap.children</a> - get or set the children accessor function.</li>
+  <li><a href="Treemap-Layout#sort">treemap.sort</a> - control the order in which sibling nodes are traversed.</li>
+  <li><a href="Treemap-Layout#value">treemap.value</a> - get or set the value accessor used to size treemap cells.</li>
+  <li><a href="Treemap-Layout#size">treemap.size</a> - specify the layout size in <em>x</em> and <em>y</em>.</li>
+  <li><a href="Treemap-Layout#padding">treemap.padding</a> - specify the padding between a parent and its children.</li>
+  <li><a href="Treemap-Layout#round">treemap.round</a> - enable or disable rounding to exact pixels.</li>
+  <li><a href="Treemap-Layout#sticky">treemap.sticky</a> - make the layout sticky for stable updates.</li>
+  <li><a href="Treemap-Layout#mode">treemap.mode</a> - change the treemap layout algorithm.</li>
+</ul>
+
+<h2 id="d3geo-geographygeo"><a href="Geo">d3.geo (Geography)</a></h2>
+
+<h3 id="pathsgeo-paths"><a href="Geo-Paths">Paths</a></h3>
+
+<ul>
+  <li><a href="Geo-Paths#path">d3.geo.path</a> - create a new geographic path generator.</li>
+  <li><a href="Geo-Paths#_path">path</a> - project the specified feature and render it to the context.</li>
+  <li><a href="Geo-Paths#path_projection">path.projection</a> - get or set the geographic projection.</li>
+  <li><a href="Geo-Paths#path_context">path.context</a> - get or set the render context.</li>
+  <li><a href="Geo-Paths#path_pointRadius">path.pointRadius</a> - get or set the radius to display point features.</li>
+  <li><a href="Geo-Paths#path_area">path.area</a> - compute the projected area of a given feature.</li>
+  <li><a href="Geo-Paths#path_centroid">path.centroid</a> - compute the projected centroid of a given feature.</li>
+  <li><a href="Geo-Paths#path_bounds">path.bounds</a> - compute the projected bounds of a given feature.</li>
+  <li><a href="Geo-Paths#graticule">d3.geo.graticule</a> - create a graticule generator.</li>
+  <li><a href="Geo-Paths#_graticule">graticule</a> - generate a MultiLineString of meridians and parallels.</li>
+  <li><a href="Geo-Paths#graticule_lines">graticule.lines</a> - generate an array of LineStrings of meridians and parallels.</li>
+  <li><a href="Geo-Paths#graticule_outline">graticule.outline</a> - generate a Polygon of the graticule’s extent.</li>
+  <li><a href="Geo-Paths#graticule_extent">graticule.extent</a> - get or set the major &amp; minor extents.</li>
+  <li><a href="Geo-Paths#graticule_majorExtent">graticule.majorExtent</a> - get or set the major extent.</li>
+  <li><a href="Geo-Paths#graticule_minorExtent">graticule.minorExtent</a> - get or set the minor extent.</li>
+  <li><a href="Geo-Paths#graticule_step">graticule.step</a> - get or set the major &amp; minor step intervals.</li>
+  <li><a href="Geo-Paths#graticule_majorStep">graticule.majorStep</a> - get or set the major step intervals.</li>
+  <li><a href="Geo-Paths#graticule_minorStep">graticule.minorStep</a> - get or set the minor step intervals.</li>
+  <li><a href="Geo-Paths#graticule_precision">graticule.precision</a> - get or set the latitudinal precision.</li>
+  <li><a href="Geo-Paths#circle">d3.geo.circle</a> - create a circle generator.</li>
+  <li><a href="Geo-Paths#_circle">circle</a> - generate a piecewise circle as a Polygon. </li>
+  <li><a href="Geo-Paths#circle_origin">circle.origin</a> - specify the origin in latitude and longitude.</li>
+  <li><a href="Geo-Paths#circle_angle">circle.angle</a> - specify the angular radius in degrees.</li>
+  <li><a href="Geo-Paths#circle_precision">circle.precision</a> - specify the precision of the piecewise circle.</li>
+  <li><a href="Geo-Paths#area">d3.geo.area</a> - compute the spherical area of a given feature.</li>
+  <li><a href="Geo-Paths#bounds">d3.geo.bounds</a> - compute the latitude-longitude bounding box for a given feature.</li>
+  <li><a href="Geo-Paths#centroid">d3.geo.centroid</a> - compute the spherical centroid of a given feature.</li>
+  <li><a href="Geo-Paths#distance">d3.geo.distance</a> - compute the great-arc distance between two points.</li>
+  <li><a href="Geo-Paths#interpolate">d3.geo.interpolate</a> - interpolate between two points along a great arc.</li>
+  <li><a href="Geo-Paths#length">d3.geo.length</a> - compute the length of a line string or the circumference of a polygon.</li>
+  <li><a href="Geo-Paths#rotation">d3.geo.rotation</a> - create a rotation function for the specified angles [λ, φ, γ].</li>
+  <li><a href="Geo-Paths#_rotation">rotation</a> - rotate the given location around the sphere.</li>
+  <li><a href="Geo-Paths#rotation_invert">rotation.invert</a> - inverse-rotate the given location around the sphere.</li>
+</ul>
+
+<h3 id="projectionsgeo-projections">[[Projections|Geo-Projections]]</h3>
+
+<ul>
+  <li><a href="Geo-Projections#projection">d3.geo.projection</a> - create a standard projection from a raw projection.</li>
+  <li><a href="Geo-Projections#_projection">projection</a> - project the specified location.</li>
+  <li><a href="Geo-Projections#invert">projection.invert</a> - invert the projection for the specified point.</li>
+  <li><a href="Geo-Projections#rotate">projection.rotate</a> - get or set the projection’s three-axis rotation.</li>
+  <li><a href="Geo-Projections#center">projection.center</a> - get or set the projection’s center location.</li>
+  <li><a href="Geo-Projections#translate">projection.translate</a> - get or set the projection’s translation position.</li>
+  <li><a href="Geo-Projections#scale">projection.scale</a> - get or set the projection’s scale factor.</li>
+  <li><a href="Geo-Projections#clipAngle">projection.clipAngle</a> - get or set the radius of the projection’s clip circle.</li>
+  <li><a href="Geo-Projections#clipExtent">projection.clipExtent</a> - get or set the projection’s viewport clip extent, in pixels.</li>
+  <li><a href="Geo-Projections#precision">projection.precision</a> - get or set the precision threshold for adaptive resampling.</li>
+  <li><a href="Geo-Projections#stream">projection.stream</a> - wrap the specified stream listener, projecting input geometry.</li>
+  <li><a href="Geo-Projections#projectionMutator">d3.geo.projectionMutator</a> - create a standard projection from a mutable raw projection.</li>
+  <li><a href="Geo-Projections#albers">d3.geo.albers</a> - the Albers equal-area conic projection.</li>
+  <li><a href="Geo-Projections#albers_parallels">albers.parallels</a> - get or set the projection’s two standard parallels.</li>
+  <li><a href="Geo-Projections#albersUsa">d3.geo.albersUsa</a> - a composite Albers projection for the United States.</li>
+  <li><a href="Geo-Projections#azimuthalEqualArea">d3.geo.azimuthalEqualArea</a> - the azimuthal equal-area projection.</li>
+  <li><a href="Geo-Projections#azimuthalEquidistant">d3.geo.azimuthalEquidistant</a> - the azimuthal equidistant projection.</li>
+  <li><a href="Geo-Projections#conicConformal">d3.geo.conicConformal</a> - the conic conformal projection.</li>
+  <li><a href="Geo-Projections#conicEquidistant">d3.geo.conicEquidistant</a> - the conic equidistant projection.</li>
+  <li><a href="Geo-Projections#conicEqualArea">d3.geo.conicEqualArea</a> the conic equal-area (a.k.a. Albers) projection.</li>
+  <li><a href="Geo-Projections#equirectangular">d3.geo.equirectangular</a> - the equirectangular (plate carreé) projection.</li>
+  <li><a href="Geo-Projections#gnomonic">d3.geo.gnomonic</a> - the gnomonic projection.</li>
+  <li><a href="Geo-Projections#mercator">d3.geo.mercator</a> - the spherical Mercator projection.</li>
+  <li><a href="Geo-Projections#orthographic">d3.geo.orthographic</a> - the azimuthal orthographic projection.</li>
+  <li><a href="Geo-Projections#stereographic">d3.geo.stereographic</a> - the azimuthal stereographic projection.</li>
+  <li><a href="Geo-Projections#azimuthalEqualArea_raw">d3.geo.azimuthalEqualArea.raw</a> - the raw azimuthal equal-area projection.</li>
+  <li><a href="Geo-Projections#azimuthalEquidistant_raw">d3.geo.azimuthalEquidistant.raw</a> - the azimuthal equidistant projection.</li>
+  <li><a href="Geo-Projections#conicConformal_raw">d3.geo.conicConformal.raw</a> - the raw conic conformal projection.</li>
+  <li><a href="Geo-Projections#conicEquidistant_raw">d3.geo.conicEquidistant.raw</a> - the raw conic equidistant projection.</li>
+  <li><a href="Geo-Projections#conicEqualArea_raw">d3.geo.conicEqualArea.raw</a> the raw conic equal-area (a.k.a. Albers) projection.</li>
+  <li><a href="Geo-Projections#equirectangular_raw">d3.geo.equirectangular.raw</a> - the raw equirectangular (plate carrée) projection.</li>
+  <li><a href="Geo-Projections#gnomonic_raw">d3.geo.gnomonic.raw</a> - the raw gnomonic projection.</li>
+  <li><a href="Geo-Projections#mercator_raw">d3.geo.mercator.raw</a> - the raw Mercator projection.</li>
+  <li><a href="Geo-Projections#orthographic_raw">d3.geo.orthographic.raw</a> - the raw azimuthal orthographic projection.</li>
+  <li><a href="Geo-Projections#stereographic_raw">d3.geo.stereographic.raw</a> - the raw azimuthal stereographic projection.</li>
+  <li><a href="Geo-Projections#transverseMercator_raw">d3.geo.transverseMercator.raw</a> - the raw transverse Mercator projection.</li>
+</ul>
+
+<h3 id="streamsgeo-streams"><a href="Geo-Streams">Streams</a></h3>
+
+<ul>
+  <li><a href="Geo-Streams#stream">d3.geo.stream</a> - convert a GeoJSON object to a geometry stream.</li>
+  <li><a href="Geo-Streams#stream_point">stream.point</a> - indicate an <em>x</em>, <em>y</em> (and optionally <em>z</em>) coordinate.</li>
+  <li><a href="Geo-Streams#stream_lineStart">stream.lineStart</a> - indicate the start of a line or ring.</li>
+  <li><a href="Geo-Streams#stream_lineEnd">stream.lineEnd</a> - indicate the end of a line or ring.</li>
+  <li><a href="Geo-Streams#stream_polygonStart">stream.polygonStart</a> - indicate the start of a polygon.</li>
+  <li><a href="Geo-Streams#stream_polygonEnd">stream.polygonEnd</a> - indicate the end of a polygon.</li>
+  <li><a href="Geo-Streams#stream_sphere">stream.sphere</a> - indicate a sphere.</li>
+  <li><a href="Geo-Streams#transform">d3.geo.transform</a> - transform streaming geometries.</li>
+  <li><a href="Geo-Streams#transform_stream">transform.stream</a> - wraps a given stream.</li>
+  <li><a href="Geo-Streams#clipExtent">d3.geo.clipExtent</a> - a stream transform that clips geometries to a given axis-aligned rectangle.</li>
+  <li><a href="Geo-Streams#clipExtent_extent">clipExtent.extent</a> - sets the clip extent.</li>
+</ul>
+
+<h2 id="d3geom-geometrygeometry"><a href="Geometry">d3.geom (Geometry)</a></h2>
+
+<h3 id="voronoivoronoi-geom">[[Voronoi|Voronoi-Geom]]</h3>
+
+<ul>
+  <li><a href="Voronoi-Geom#voronoi">d3.geom.voronoi</a> - create a Voronoi layout with default accessors.</li>
+  <li><a href="Voronoi-Geom#_voronoi">voronoi</a> - compute the Voronoi tessellation for the specified points.</li>
+  <li><a href="Voronoi-Geom#x">voronoi.x</a> - get or set the x-coordinate accessor for each point.</li>
+  <li><a href="Voronoi-Geom#y">voronoi.y</a> - get or set the y-coordinate accessor for each point.</li>
+  <li><a href="Voronoi-Geom#clipExtent">voronoi.clipExent</a> - get or set the clip extent for the tesselation.</li>
+  <li><a href="Voronoi-Geom#links">voronoi.links</a> - compute the Delaunay mesh as a network of links.</li>
+  <li><a href="Voronoi-Geom#triangles">voronoi.triangles</a> - compute the Delaunay mesh as a triangular tessellation.</li>
+</ul>
+
+<h3 id="quadtreequadtree-geom">[[Quadtree|Quadtree-Geom]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.geom.quadtree</td>
+          <td>Quadtree-Geom#quadtree]] - constructs a quadtree for an array of points.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quadtree.add</td>
+          <td>Quadtree-Geom#add]] - add a point to the quadtree.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[quadtree.visit</td>
+          <td>Quadtree-Geom#visit]] - recursively visit nodes in the quadtree.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="polygonpolygon-geom">[[Polygon|Polygon-Geom]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.geom.polygon</td>
+          <td>Polygon-Geom#polygon]] - create a polygon from the specified array of points.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[polygon.area</td>
+          <td>Polygon-Geom#area]] - compute the counterclockwise area of this polygon.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[polygon.centroid</td>
+          <td>Polygon-Geom#centroid]] - compute the area centroid of this polygon.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[polygon.clip</td>
+          <td>Polygon-Geom#clip]] - clip the specified polygon to this polygon.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="hullhull-geom">[[Hull|Hull-Geom]]</h3>
+
+<ul>
+  <li><a href="Hull-Geom#hull">d3.geom.hull</a> - create a convex hull layout with default accessors.</li>
+  <li><a href="Hull-Geom#_hull">hull</a> - compute the convex hull for the given array of points.</li>
+  <li><a href="Hull-Geom#x">hull.x</a> - get or set the <em>x</em>-coordinate accessor.</li>
+  <li><a href="Hull-Geom#y">hull.y</a> - get or set the <em>y</em>-coordinate accessor.</li>
+</ul>
+
+<h2 id="d3behavior-behaviorsbehaviors">[[d3.behavior (Behaviors)|Behaviors]]</h2>
+
+<h3 id="dragdrag-behavior">[[Drag|Drag-Behavior]]</h3>
+
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[d3.behavior.drag</td>
+          <td>Drag-Behavior#drag]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[drag.origin</td>
+          <td>Drag-Behavior#origin]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[drag.on</td>
+          <td>Drag-Behavior#on]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<h3 id="zoomzoom-behavior"><a href="Zoom-Behavior">Zoom</a></h3>
+
+<ul>
+  <li><a href="Zoom-Behavior#zoom">d3.behavior.zoom</a> - create a zoom behavior.</li>
+  <li><a href="Zoom-Behavior#_zoom">zoom</a> - apply the zoom behavior to the selected elements.</li>
+  <li><a href="Zoom-Behavior#scale">zoom.scale</a> - the current scale factor.</li>
+  <li><a href="Zoom-Behavior#translate">zoom.translate</a> - the current translate offset.</li>
+  <li><a href="Zoom-Behavior#scaleExtent">zoom.scaleExtent</a> - optional limits on the scale factor.</li>
+  <li><a href="Zoom-Behavior#center">zoom.center</a> - an optional focal point for mousewheel zooming.</li>
+  <li><a href="Zoom-Behavior#size">zoom.size</a> - the dimensions of the viewport.</li>
+  <li><a href="Zoom-Behavior#x">zoom.x</a> - an optional scale whose domain is bound to the <em>x</em> extent of the viewport.</li>
+  <li><a href="Zoom-Behavior#y">zoom.y</a> - an optional scale whose domain is bound to the <em>y</em> extent of the viewport.</li>
+  <li><a href="Zoom-Behavior#on">zoom.on</a> - listeners for when the scale or translate changes.</li>
+  <li><a href="Zoom-Behavior#event">zoom.event</a> - dispatch zoom events after setting the scale or translate.</li>
+</ul>
+
+    </div>
+  </body>
+</html>

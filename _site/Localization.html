@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Localization</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Localization</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Core]] ▸ <strong>Localization</strong></p>
+</blockquote>
+
+<p>The formatting of numbers, dates and currencies varies by language and locale. While the default build of D3 is intended for U.S. English, you can change the behavior of D3’s formatters by loading new locales as needed.</p>
+
+<p><a name="locale" href="#locale">#</a> d3.<b>locale</b>(<i>definition</i>)</p>
+
+<p>Returns a new locale given the specified <em>definition</em>. The locale definition must include the following properties for number formatting:</p>
+
+<ul>
+  <li>decimal - the decimal place string (e.g., <code>"."</code>).</li>
+  <li>thousands - the group separator string (e.g., <code>","</code>).</li>
+  <li>grouping - the array of group sizes (e.g., <code>[3]</code>), cycled as needed.</li>
+  <li>currency - the currency prefix and suffix strings (e.g., <code>["$", ""]</code>).</li>
+</ul>
+
+<p>(Note that the <em>thousands</em> property is a slight misnomer, as the grouping definition allows groups other than thousands.)</p>
+
+<p>The locale definition must also include the following properties for time formatting:</p>
+
+<ul>
+  <li>dateTime - the date and time (%c) format string (e.g., <code>"%a %b %e %X %Y")</code>.</li>
+  <li>date - the date (%x) format string (e.g., <code>"%m/%d/%Y"</code>).</li>
+  <li>time - the time (%X) format string (e.g., <code>"%H:%M:%S"</code>).</li>
+  <li>periods - the locale’s A.M. and P.M. equivalents (e.g., <code>["AM", "PM"]</code>).</li>
+  <li>days - the full names of the weekdays, starting with Sunday.</li>
+  <li>shortDays - the abbreviated names of the weekdays, starting with Sunday.</li>
+  <li>months - the full names of the months (starting with January).</li>
+  <li>shortMonths - the abbreviated names of the months (starting with January).</li>
+</ul>
+
+<p>For example, the default U.S. English (en_US) locale is defined as:</p>
+
+<p><code>json
+{
+  "decimal": ".",
+  "thousands": ",",
+  "grouping": [3],
+  "currency": ["$", ""],
+  "dateTime": "%a %b %e %X %Y",
+  "date": "%m/%d/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+}
+</code></p>
+
+<p>A locale for Russian (ru_RU) might be defined as:</p>
+
+<p><code>json
+{
+  "decimal": ",",
+  "thousands": "\xa0",
+  "grouping": [3],
+  "currency": ["", " руб."],
+  "dateTime": "%A, %e %B %Y г. %X",
+  "date": "%d.%m.%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"],
+  "shortDays": ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+  "months": ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+  "shortMonths": ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
+}
+</code></p>
+
+<p><a name="locale_numberFormat" href="#locale_numberFormat">#</a> locale.<b>numberFormat</b>(<i>specifier</i>)</p>
+
+<p>The locale’s equivalent of <a href="Formatting#d3_format">d3.format</a>.</p>
+
+<p><a name="locale_timeFormat" href="#locale_timeFormat">#</a> locale.<b>timeFormat</b>(<i>specifier</i>)</p>
+
+<p>The locale’s equivalent of <a href="Time-Formatting#format">d3.time.format</a>.</p>
+
+<p><a name="locale_timeFormat_utc" href="#locale_timeFormat_utc">#</a> locale.timeFormat.<b>utc</b>(<i>specifier</i>)</p>
+
+<p>The locale’s equivalent of <a href="Time-Formatting#format_utc">d3.time.format.utc</a>.</p>
+
+    </div>
+  </body>
+</html>
