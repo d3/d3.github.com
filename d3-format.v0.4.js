@@ -295,6 +295,13 @@
     currency: ["", "\xa0€"]
   });
 
+  var csCZ = locale({
+    decimal: ",",
+    thousands: "\xa0",
+    grouping: [3],
+    currency: ["", "\xa0Kč"],
+  });
+
   var deCH = locale({
     decimal: ",",
     thousands: "'",
@@ -444,19 +451,21 @@
   };
 
   function precisionRound(step, max) {
-    return Math.max(0, exponent(Math.abs(max)) - exponent(Math.abs(step))) + 1;
+    step = Math.abs(step), max = Math.abs(max) - step;
+    return Math.max(0, exponent(max) - exponent(step)) + 1;
   };
 
   var format = defaultLocale.format;
   var formatPrefix = defaultLocale.formatPrefix;
 
-  var version = "0.4.1";
+  var version = "0.4.2";
 
   exports.version = version;
   exports.format = format;
   exports.formatPrefix = formatPrefix;
   exports.locale = locale;
   exports.localeCaEs = caES;
+  exports.localeCsCz = csCZ;
   exports.localeDeCh = deCH;
   exports.localeDeDe = deDE;
   exports.localeEnCa = enCA;
