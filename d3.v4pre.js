@@ -5170,7 +5170,7 @@
 	var pads = {"-": "", "_": " ", "0": "0"};
 	var numberRe = /^\s*\d+/;
 	var percentRe = /^%/;
-	var requoteRe$1 = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+	var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 	function pad(value, fill, width) {
 	  var sign = value < 0 ? "-" : "",
 	      string = (sign ? -value : value) + "",
@@ -5178,12 +5178,12 @@
 	  return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string);
 	}
 
-	function requote$1(s) {
-	  return s.replace(requoteRe$1, "\\$&");
+	function requote(s) {
+	  return s.replace(requoteRe, "\\$&");
 	}
 
 	function formatRe(names) {
-	  return new RegExp("^(?:" + names.map(requote$1).join("|") + ")", "i");
+	  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i");
 	}
 
 	function formatLookup(names) {
@@ -6540,10 +6540,10 @@
 	  return ramp(rangePlasma);
 	};
 
-	var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+	var requoteRe$1 = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 
-	function requote(string) {
-	  return string.replace(requoteRe, "\\$&");
+	function requote$1(string) {
+	  return string.replace(requoteRe$1, "\\$&");
 	};
 
 	var filterEvents = {};
@@ -6588,7 +6588,7 @@
 	  }
 
 	  function removeAll() {
-	    var re = new RegExp("^__on([^.]+)" + requote(type) + "$"), match;
+	    var re = new RegExp("^__on([^.]+)" + requote$1(type) + "$"), match;
 	    for (var name in this) {
 	      if (match = name.match(re)) {
 	        var l = this[name];
@@ -6817,7 +6817,7 @@
 	}
 
 	function classedRe(name) {
-	  return new RegExp("(?:^|\\s+)" + requote(name) + "(?:\\s+|$)", "g");
+	  return new RegExp("(?:^|\\s+)" + requote$1(name) + "(?:\\s+|$)", "g");
 	}
 
 	function selection_property(name, value) {
@@ -7852,7 +7852,7 @@
 	exports.scaleQuantize = quantize;
 	exports.scaleThreshold = threshold;
 	exports.scaleTime = time;
-	exports.scaleUtcTime = utcTime;
+	exports.scaleUtc = utcTime;
 	exports.scaleCategory10 = category10;
 	exports.scaleCategory20b = category20b;
 	exports.scaleCategory20c = category20c;
@@ -7868,7 +7868,7 @@
 	exports.mouse = mouse;
 	exports.namespace = namespace;
 	exports.namespaces = namespaces;
-	exports.requote = requote;
+	exports.requote = requote$1;
 	exports.select = select;
 	exports.selectAll = selectAll;
 	exports.selection = selection;
