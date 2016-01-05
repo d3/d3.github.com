@@ -2695,17 +2695,17 @@
 	function color(format) {
 	  var m;
 	  format = (format + "").trim().toLowerCase();
-	  return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), rgb$1((m >> 8 & 0xf) | (m >> 4 & 0x0f0), (m >> 4 & 0xf) | (m & 0xf0), ((m & 0xf) << 4) | (m & 0xf))) // #f00
+	  return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), rgb((m >> 8 & 0xf) | (m >> 4 & 0x0f0), (m >> 4 & 0xf) | (m & 0xf0), ((m & 0xf) << 4) | (m & 0xf))) // #f00
 	      : (m = reHex6.exec(format)) ? rgbn(parseInt(m[1], 16)) // #ff0000
-	      : (m = reRgbInteger.exec(format)) ? rgb$1(m[1], m[2], m[3]) // rgb(255,0,0)
-	      : (m = reRgbPercent.exec(format)) ? rgb$1(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100) // rgb(100%,0%,0%)
-	      : (m = reHslPercent.exec(format)) ? hsl$1(m[1], m[2] / 100, m[3] / 100) // hsl(120,50%,50%)
+	      : (m = reRgbInteger.exec(format)) ? rgb(m[1], m[2], m[3]) // rgb(255,0,0)
+	      : (m = reRgbPercent.exec(format)) ? rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100) // rgb(100%,0%,0%)
+	      : (m = reHslPercent.exec(format)) ? hsl(m[1], m[2] / 100, m[3] / 100) // hsl(120,50%,50%)
 	      : named.hasOwnProperty(format) ? rgbn(named[format])
 	      : null;
 	};
 
 	function rgbn(n) {
-	  return rgb$1(n >> 16 & 0xff, n >> 8 & 0xff, n & 0xff);
+	  return rgb(n >> 16 & 0xff, n >> 8 & 0xff, n & 0xff);
 	}
 
 	var named = {
@@ -2862,7 +2862,7 @@
 	var darker = .7;
 	var brighter = 1 / darker;
 
-	function rgb$1(r, g, b) {
+	function rgb(r, g, b) {
 	  if (arguments.length === 1) {
 	    if (!(r instanceof Color)) r = color(r);
 	    if (r) {
@@ -2883,7 +2883,7 @@
 	  this.b = +b;
 	};
 
-	var prototype = rgb$1.prototype = Rgb.prototype = new Color;
+	var prototype = rgb.prototype = Rgb.prototype = new Color;
 
 	prototype.brighter = function(k) {
 	  k = k == null ? brighter : Math.pow(brighter, k);
@@ -2915,7 +2915,7 @@
 	      + (isNaN(b) || b <= 0 ? "00" : b < 16 ? "0" + b.toString(16) : b >= 255 ? "ff" : b.toString(16));
 	};
 
-	function hsl$1(h, s, l) {
+	function hsl(h, s, l) {
 	  if (arguments.length === 1) {
 	    if (h instanceof Hsl) {
 	      l = h.l;
@@ -2957,7 +2957,7 @@
 	  this.l = +l;
 	};
 
-	var prototype$1 = hsl$1.prototype = Hsl.prototype = new Color;
+	var prototype$1 = hsl.prototype = Hsl.prototype = new Color;
 
 	prototype$1.brighter = function(k) {
 	  k = k == null ? brighter : Math.pow(brighter, k);
@@ -2996,19 +2996,19 @@
 	}
 
 	var deg2rad = Math.PI / 180;
-	var rad2deg$1 = 180 / Math.PI;
+	var rad2deg = 180 / Math.PI;
 
-	function hcl$1(h, c, l) {
+	function hcl(h, c, l) {
 	  if (arguments.length === 1) {
 	    if (h instanceof Hcl) {
 	      l = h.l;
 	      c = h.c;
 	      h = h.h;
 	    } else {
-	      if (!(h instanceof Lab)) h = lab$1(h);
+	      if (!(h instanceof Lab)) h = lab(h);
 	      l = h.l;
 	      c = Math.sqrt(h.a * h.a + h.b * h.b);
-	      h = Math.atan2(h.b, h.a) * rad2deg$1;
+	      h = Math.atan2(h.b, h.a) * rad2deg;
 	      if (h < 0) h += 360;
 	    }
 	  }
@@ -3021,7 +3021,7 @@
 	  this.l = +l;
 	};
 
-	var prototype$3 = hcl$1.prototype = Hcl.prototype = new Color;
+	var prototype$3 = hcl.prototype = Hcl.prototype = new Color;
 
 	prototype$3.brighter = function(k) {
 	  return new Hcl(this.h, this.c, this.l + Kn * (k == null ? 1 : k));
@@ -3032,7 +3032,7 @@
 	};
 
 	prototype$3.rgb = function() {
-	  return lab$1(this).rgb();
+	  return lab(this).rgb();
 	};
 
 	var Kn = 18;
@@ -3044,7 +3044,7 @@
 	var t1 = 6 / 29;
 	var t2 = 3 * t1 * t1;
 	var t3 = t1 * t1 * t1;
-	function lab$1(l, a, b) {
+	function lab(l, a, b) {
 	  if (arguments.length === 1) {
 	    if (l instanceof Lab) {
 	      b = l.b;
@@ -3056,7 +3056,7 @@
 	      a = Math.cos(h) * l.c;
 	      l = l.l;
 	    } else {
-	      if (!(l instanceof Rgb)) l = rgb$1(l);
+	      if (!(l instanceof Rgb)) l = rgb(l);
 	      var r = rgb2xyz(l.r),
 	          g = rgb2xyz(l.g),
 	          b = rgb2xyz(l.b),
@@ -3077,7 +3077,7 @@
 	  this.b = +b;
 	};
 
-	var prototype$2 = lab$1.prototype = Lab.prototype = new Color;
+	var prototype$2 = lab.prototype = Lab.prototype = new Color;
 
 	prototype$2.brighter = function(k) {
 	  return new Lab(this.l + Kn * (k == null ? 1 : k), this.a, this.b);
@@ -3125,19 +3125,19 @@
 	var ED = E * D;
 	var EB = E * B;
 	var BC_DA = B * C - D * A;
-	function cubehelix$1(h, s, l) {
+	function cubehelix(h, s, l) {
 	  if (arguments.length === 1) {
 	    if (h instanceof Cubehelix) {
 	      l = h.l;
 	      s = h.s;
 	      h = h.h;
 	    } else {
-	      if (!(h instanceof Rgb)) h = rgb$1(h);
+	      if (!(h instanceof Rgb)) h = rgb(h);
 	      var r = h.r / 255, g = h.g / 255, b = h.b / 255;
 	      l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB);
 	      var bl = b - l, k = (E * (g - l) - C * bl) / D;
 	      s = Math.sqrt(k * k + bl * bl) / (E * l * (1 - l)); // NaN if l=0 or l=1
-	      h = s ? Math.atan2(k, bl) * rad2deg$1 - 120 : NaN;
+	      h = s ? Math.atan2(k, bl) * rad2deg - 120 : NaN;
 	      if (h < 0) h += 360;
 	    }
 	  }
@@ -3150,7 +3150,7 @@
 	  this.l = +l;
 	};
 
-	var prototype$4 = cubehelix$1.prototype = Cubehelix.prototype = new Color;
+	var prototype$4 = cubehelix.prototype = Cubehelix.prototype = new Color;
 
 	prototype$4.brighter = function(k) {
 	  k = k == null ? brighter : Math.pow(brighter, k);
@@ -3175,9 +3175,9 @@
 	  );
 	};
 
-	function rgb(a, b) {
-	  a = rgb$1(a);
-	  b = rgb$1(b);
+	function rgb$1(a, b) {
+	  a = rgb(a);
+	  b = rgb(b);
 	  var ar = a.r,
 	      ag = a.g,
 	      ab = a.b,
@@ -3288,8 +3288,8 @@
 	var values$1 = [
 	  function(a, b) {
 	    var t = typeof b, c;
-	    return (t === "string" ? ((c = color(b)) ? (b = c, rgb) : string)
-	        : b instanceof color ? rgb
+	    return (t === "string" ? ((c = color(b)) ? (b = c, rgb$1) : string)
+	        : b instanceof color ? rgb$1
 	        : Array.isArray(b) ? array
 	        : t === "object" && isNaN(b) ? object
 	        : reinterpolate)(a, b);
@@ -3327,7 +3327,7 @@
 	  };
 	};
 
-	var rad2deg = 180 / Math.PI;
+	var rad2deg$1 = 180 / Math.PI;
 	var identity = {a: 1, b: 0, c: 0, d: 1, e: 0, f: 0};
 	var g;
 	// Compute x-scale and normalize the first row.
@@ -3353,10 +3353,10 @@
 	    kz *= -1;
 	  }
 
-	  this.rotate = (kx ? Math.atan2(r0[1], r0[0]) : Math.atan2(-r1[0], r1[1])) * rad2deg;
+	  this.rotate = (kx ? Math.atan2(r0[1], r0[0]) : Math.atan2(-r1[0], r1[1])) * rad2deg$1;
 	  this.translate = [m.e, m.f];
 	  this.scale = [kx, ky];
-	  this.skew = ky ? Math.atan2(kz, ky) * rad2deg : 0;
+	  this.skew = ky ? Math.atan2(kz, ky) * rad2deg$1 : 0;
 	}
 
 	function dot(a, b) {
@@ -3501,9 +3501,9 @@
 	      : delta;
 	};
 
-	function hsl(a, b) {
-	  a = hsl$1(a);
-	  b = hsl$1(b);
+	function hsl$1(a, b) {
+	  a = hsl(a);
+	  b = hsl(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      as = isNaN(a.s) ? b.s : a.s,
 	      al = a.l,
@@ -3519,8 +3519,8 @@
 	};
 
 	function hslLong(a, b) {
-	  a = hsl$1(a);
-	  b = hsl$1(b);
+	  a = hsl(a);
+	  b = hsl(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      as = isNaN(a.s) ? b.s : a.s,
 	      al = a.l,
@@ -3535,9 +3535,9 @@
 	  };
 	};
 
-	function lab(a, b) {
-	  a = lab$1(a);
-	  b = lab$1(b);
+	function lab$1(a, b) {
+	  a = lab(a);
+	  b = lab(b);
 	  var al = a.l,
 	      aa = a.a,
 	      ab = a.b,
@@ -3552,9 +3552,9 @@
 	  };
 	};
 
-	function hcl(a, b) {
-	  a = hcl$1(a);
-	  b = hcl$1(b);
+	function hcl$1(a, b) {
+	  a = hcl(a);
+	  b = hcl(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      ac = isNaN(a.c) ? b.c : a.c,
 	      al = a.l,
@@ -3570,8 +3570,8 @@
 	};
 
 	function hclLong(a, b) {
-	  a = hcl$1(a);
-	  b = hcl$1(b);
+	  a = hcl(a);
+	  b = hcl(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      ac = isNaN(a.c) ? b.c : a.c,
 	      al = a.l,
@@ -3586,10 +3586,10 @@
 	  };
 	};
 
-	function cubehelix(a, b, gamma) {
+	function cubehelix$1(a, b, gamma) {
 	  if (arguments.length < 3) gamma = 1;
-	  a = cubehelix$1(a);
-	  b = cubehelix$1(b);
+	  a = cubehelix(a);
+	  b = cubehelix(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      as = isNaN(a.s) ? b.s : a.s,
 	      al = a.l,
@@ -3606,8 +3606,8 @@
 
 	function cubehelixLong(a, b, gamma) {
 	  if (arguments.length < 3) gamma = 1;
-	  a = cubehelix$1(a);
-	  b = cubehelix$1(b);
+	  a = cubehelix(a);
+	  b = cubehelix(b);
 	  var ah = isNaN(a.h) ? b.h : a.h,
 	      as = isNaN(a.s) ? b.s : a.s,
 	      al = a.l,
@@ -5170,7 +5170,7 @@
 	var pads = {"-": "", "_": " ", "0": "0"};
 	var numberRe = /^\s*\d+/;
 	var percentRe = /^%/;
-	var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+	var requoteRe$1 = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 	function pad(value, fill, width) {
 	  var sign = value < 0 ? "-" : "",
 	      string = (sign ? -value : value) + "",
@@ -5178,12 +5178,12 @@
 	  return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string);
 	}
 
-	function requote(s) {
-	  return s.replace(requoteRe, "\\$&");
+	function requote$1(s) {
+	  return s.replace(requoteRe$1, "\\$&");
 	}
 
 	function formatRe(names) {
-	  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i");
+	  return new RegExp("^(?:" + names.map(requote$1).join("|") + ")", "i");
 	}
 
 	function formatLookup(names) {
@@ -6459,7 +6459,7 @@
 	function cubehelix$2() {
 	  return linear()
 	      .interpolate(cubehelixLong)
-	      .range([cubehelix$1(300, 0.5, 0.0), cubehelix$1(-240, 0.5, 1.0)]);
+	      .range([cubehelix(300, 0.5, 0.0), cubehelix(-240, 0.5, 1.0)]);
 	};
 
 	function sequential$1(interpolate) {
@@ -6487,10 +6487,10 @@
 	  return linearish(scale);
 	};
 
-	var a = cubehelix$1(-100, 0.75, 0.35);
-	var b = cubehelix$1(80, 1.50, 0.8);
-	var c = cubehelix$1(260, 0.75, 0.35);
-	var d = cubehelix$1();
+	var a = cubehelix(-100, 0.75, 0.35);
+	var b = cubehelix(80, 1.50, 0.8);
+	var c = cubehelix(260, 0.75, 0.35);
+	var d = cubehelix();
 	var interpolateWarm = cubehelixLong(a, b);
 	var interpolateCool = cubehelixLong(c, b);
 	function interpolateRainbow(t) {
@@ -6540,10 +6540,10 @@
 	  return ramp(rangePlasma);
 	};
 
-	var requoteRe$1 = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+	var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 
-	function requote$1(string) {
-	  return string.replace(requoteRe$1, "\\$&");
+	function requote(string) {
+	  return string.replace(requoteRe, "\\$&");
 	};
 
 	var filterEvents = {};
@@ -6588,7 +6588,7 @@
 	  }
 
 	  function removeAll() {
-	    var re = new RegExp("^__on([^.]+)" + requote$1(type) + "$"), match;
+	    var re = new RegExp("^__on([^.]+)" + requote(type) + "$"), match;
 	    for (var name in this) {
 	      if (match = name.match(re)) {
 	        var l = this[name];
@@ -6817,7 +6817,7 @@
 	}
 
 	function classedRe(name) {
-	  return new RegExp("(?:^|\\s+)" + requote$1(name) + "(?:\\s+|$)", "g");
+	  return new RegExp("(?:^|\\s+)" + requote(name) + "(?:\\s+|$)", "g");
 	}
 
 	function selection_property(name, value) {
@@ -7686,11 +7686,11 @@
 	exports.stackOrderNone = none$1;
 	exports.stackOrderReverse = reverse;
 	exports.color = color;
-	exports.rgb = rgb$1;
-	exports.hsl = hsl$1;
-	exports.lab = lab$1;
-	exports.hcl = hcl$1;
-	exports.cubehelix = cubehelix$1;
+	exports.rgb = rgb;
+	exports.hsl = hsl;
+	exports.lab = lab;
+	exports.hcl = hcl;
+	exports.cubehelix = cubehelix;
 	exports.interpolateBind = bind$1;
 	exports.interpolate = value;
 	exports.interpolators = values$1;
@@ -7701,13 +7701,13 @@
 	exports.interpolateString = string;
 	exports.interpolateTransform = transform;
 	exports.interpolateZoom = zoom;
-	exports.interpolateRgb = rgb;
-	exports.interpolateHsl = hsl;
+	exports.interpolateRgb = rgb$1;
+	exports.interpolateHsl = hsl$1;
 	exports.interpolateHslLong = hslLong;
-	exports.interpolateLab = lab;
-	exports.interpolateHcl = hcl;
+	exports.interpolateLab = lab$1;
+	exports.interpolateHcl = hcl$1;
 	exports.interpolateHclLong = hclLong;
-	exports.interpolateCubehelix = cubehelix;
+	exports.interpolateCubehelix = cubehelix$1;
 	exports.interpolateCubehelixLong = cubehelixLong;
 	exports.dispatch = dispatch;
 	exports.dsv = dsv;
@@ -7814,8 +7814,8 @@
 	exports.precisionPrefix = precisionPrefix;
 	exports.precisionRound = precisionRound;
 	exports.timeFormat = format$1;
-	exports.timeIsoFormat = formatIso;
-	exports.timeUtcFormat = utcFormat;
+	exports.utcFormat = utcFormat;
+	exports.isoFormat = formatIso;
 	exports.timeFormatLocale = locale$1;
 	exports.timeFormatCaEs = caES$1;
 	exports.timeFormatDeCh = deCH$1;
@@ -7868,7 +7868,7 @@
 	exports.mouse = mouse;
 	exports.namespace = namespace;
 	exports.namespaces = namespaces;
-	exports.requote = requote$1;
+	exports.requote = requote;
 	exports.select = select;
 	exports.selectAll = selectAll;
 	exports.selection = selection;
