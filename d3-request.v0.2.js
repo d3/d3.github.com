@@ -1,17 +1,18 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-dispatch'), require('d3-dsv')) :
-  typeof define === 'function' && define.amd ? define('d3-request', ['exports', 'd3-array', 'd3-dispatch', 'd3-dsv'], factory) :
-  factory((global.d3_request = {}),global.d3_array,global.d3_dispatch,global.d3_dsv);
-}(this, function (exports,d3Array,d3Dispatch,d3Dsv) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-dispatch'), require('d3-dsv')) :
+  typeof define === 'function' && define.amd ? define('d3-request', ['exports', 'd3-collection', 'd3-dispatch', 'd3-dsv'], factory) :
+  factory((global.d3_request = {}),global.d3_collection,global.d3_dispatch,global.d3_dsv);
+}(this, function (exports,d3Collection,d3Dispatch,d3Dsv) { 'use strict';
 
   function request(url, callback) {
     var request,
         event = d3Dispatch.dispatch("beforesend", "progress", "load", "error"),
         mimeType,
-        headers = d3Array.map(),
+        headers = d3Collection.map(),
         xhr = new XMLHttpRequest,
         response,
-        responseType;
+        responseType,
+        timeout = 0;
 
     // If IE does not support CORS, use XDomainRequest.
     if (typeof XDomainRequest !== "undefined"
@@ -19,7 +20,7 @@
         && /^(http(s)?:)?\/\//.test(url)) xhr = new XDomainRequest;
 
     "onload" in xhr
-        ? xhr.onload = xhr.onerror = respond
+        ? xhr.onload = xhr.onerror = xhr.ontimeout = respond
         : xhr.onreadystatechange = function() { xhr.readyState > 3 && respond(); };
 
     function respond() {
@@ -71,6 +72,12 @@
         return request;
       },
 
+      timeout: function(value) {
+        if (!arguments.length) return timeout;
+        timeout = +value;
+        return request;
+      },
+
       // Specify how to convert the response content to a specific type;
       // changes the callback value on "load" events.
       response: function(value) {
@@ -97,6 +104,7 @@
         if (xhr.setRequestHeader) headers.each(function(value, name) { xhr.setRequestHeader(name, value); });
         if (mimeType != null && xhr.overrideMimeType) xhr.overrideMimeType(mimeType);
         if (responseType != null) xhr.responseType = responseType;
+        if (timeout > 0) xhr.timeout = timeout;
         if (callback) request.on("error", callback).on("load", function(xhr) { callback(null, xhr); });
         event.beforesend.call(request, xhr);
         xhr.send(data == null ? null : data);
@@ -177,7 +185,7 @@
 
   var tsv = requestDsv("text/tab-separated-values", d3Dsv.tsv);
 
-  var version = "0.2.4";
+  var version = "0.2.6";
 
   exports.version = version;
   exports.request = request;
