@@ -177,10 +177,10 @@
         : 2 - a * Math.pow(2, -10 * t) * Math.sin((s + t) / p)) / 2;
   };
 
-  var version = "0.5.0";
+  var version = "0.5.1";
 
   exports.version = version;
-  exports.bind = bind;
+  exports.easeBind = bind;
   exports.easeLinearIn = linearIn;
   exports.easeLinearOut = linearIn;
   exports.easeLinearInOut = linearIn;
