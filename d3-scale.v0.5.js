@@ -9,7 +9,7 @@
   var map = array.map;
   var slice = array.slice;
 
-  var implicit = {};
+  var implicit = {name: "implicit"};
 
   function ordinal() {
     var index = d3Collection.map(),
@@ -272,29 +272,27 @@
   function tickFormat(domain, count, specifier) {
     var start = domain[0],
         stop = domain[domain.length - 1],
-        step = d3Array.tickStep(start, stop, count == null ? 10 : count);
-    if (specifier == null) {
-      specifier = ",." + d3Format.precisionFixed(step) + "f";
-    } else {
-      switch (specifier = d3Format.formatSpecifier(specifier), specifier.type) {
-        case "s": {
-          var value = Math.max(Math.abs(start), Math.abs(stop));
-          if (specifier.precision == null) specifier.precision = d3Format.precisionPrefix(step, value);
-          return d3Format.formatPrefix(specifier, value);
-        }
-        case "":
-        case "e":
-        case "g":
-        case "p":
-        case "r": {
-          if (specifier.precision == null) specifier.precision = d3Format.precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))) - (specifier.type === "e");
-          break;
-        }
-        case "f":
-        case "%": {
-          if (specifier.precision == null) specifier.precision = d3Format.precisionFixed(step) - (specifier.type === "%") * 2;
-          break;
-        }
+        step = d3Array.tickStep(start, stop, count == null ? 10 : count),
+        precision;
+    specifier = d3Format.formatSpecifier(specifier == null ? ",f" : specifier);
+    switch (specifier.type) {
+      case "s": {
+        var value = Math.max(Math.abs(start), Math.abs(stop));
+        if (specifier.precision == null && !isNaN(precision = d3Format.precisionPrefix(step, value))) specifier.precision = precision;
+        return d3Format.formatPrefix(specifier, value);
+      }
+      case "":
+      case "e":
+      case "g":
+      case "p":
+      case "r": {
+        if (specifier.precision == null && !isNaN(precision = d3Format.precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+        break;
+      }
+      case "f":
+      case "%": {
+        if (specifier.precision == null && !isNaN(precision = d3Format.precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+        break;
       }
     }
     return d3Format.format(specifier);
@@ -440,13 +438,6 @@
       return arguments.length ? (domain(_), rescale()) : domain();
     };
 
-    scale.nice = function() {
-      return domain(nice(domain(), {
-        floor: function(x) { return pows(Math.floor(logs(x))); },
-        ceil: function(x) { return pows(Math.ceil(logs(x))); }
-      }));
-    };
-
     scale.ticks = function(count) {
       var d = domain(),
           u = d[0],
@@ -498,6 +489,13 @@
         if (i * base < base - 0.5) i *= base;
         return i <= k ? specifier(d) : "";
       };
+    };
+
+    scale.nice = function() {
+      return domain(nice(domain(), {
+        floor: function(x) { return pows(Math.floor(logs(x))); },
+        ceil: function(x) { return pows(Math.ceil(logs(x))); }
+      }));
     };
 
     scale.copy = function() {
@@ -755,13 +753,6 @@
       return arguments.length ? domain(_) : domain().map(newDate);
     };
 
-    scale.nice = function(interval, step) {
-      var d = domain();
-      return (interval = tickInterval(interval, d[0], d[d.length - 1], step))
-          ? domain(nice(d, interval))
-          : scale;
-    };
-
     scale.ticks = function(interval, step) {
       var d = domain(),
           t0 = d[0],
@@ -776,6 +767,13 @@
 
     scale.tickFormat = function(specifier) {
       return specifier == null ? tickFormat : format(specifier);
+    };
+
+    scale.nice = function(interval, step) {
+      var d = domain();
+      return (interval = tickInterval(interval, d[0], d[d.length - 1], step))
+          ? domain(nice(d, interval))
+          : scale;
     };
 
     scale.copy = function() {
@@ -899,7 +897,7 @@
     return ramp(rangePlasma);
   };
 
-  var version = "0.5.0";
+  var version = "0.5.1";
 
   exports.version = version;
   exports.scaleBand = band;

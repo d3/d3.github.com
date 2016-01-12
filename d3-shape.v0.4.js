@@ -1572,11 +1572,11 @@
     };
 
     stack.order = function(_) {
-      return arguments.length ? (order = _ == null ? orderDefault : typeof _ === "function" ? _ : constant(slice$1.call(_)), stack) : order;
+      return arguments.length ? (order = _ == null ? none$1 : typeof _ === "function" ? _ : constant(slice$1.call(_)), stack) : order;
     };
 
     stack.offset = function(_) {
-      return arguments.length ? (offset = _ == null ? offsetZero : _, stack) : offset;
+      return arguments.length ? (offset = _ == null ? none : _, stack) : offset;
     };
 
     return stack;
