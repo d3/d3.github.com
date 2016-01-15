@@ -545,7 +545,7 @@
         node = circles._;
 
     while (node) {
-      if (circle.y < node[1] || (circle.y === node[1] && circle.x <= node[0])) {
+      if (circle.y < node.y || (circle.y === node.y && circle.x <= node.x)) {
         if (node.L) node = node.L;
         else { before = node.P; break; }
       } else {
@@ -926,7 +926,7 @@
     return voronoi;
   };
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.voronoi = voronoi;
