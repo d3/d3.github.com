@@ -1,5 +1,12 @@
-(function() {
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define('queue', factory) :
+  (global.queue = factory());
+}(this, function () { 'use strict';
+
   var slice = [].slice;
+  var running = {};
+  function noop() {}
 
   function queue(parallelism) {
     var q,
@@ -9,24 +16,28 @@
         remaining = 0, // number of tasks not yet finished
         popping, // inside a synchronous task callback?
         error = null,
-        await = noop,
-        all;
+        callback = noop,
+        callbackAll;
 
-    if (!parallelism) parallelism = Infinity;
+    parallelism = arguments.length ? +parallelism : Infinity;
 
     function pop() {
       while (popping = started < tasks.length && active < parallelism) {
         var i = started++,
             t = tasks[i],
-            a = slice.call(t, 1);
-        a.push(callback(i));
+            j = t.length - 1,
+            c = t[j];
+        tasks[i] = running;
         ++active;
-        t[0].apply(null, a);
+        t[j] = finished(i);
+        c.apply(null, t);
       }
     }
 
-    function callback(i) {
+    function finished(i) {
       return function(e, r) {
+        if (tasks[i] !== running) throw new Error;
+        tasks[i] = null;
         --active;
         if (error != null) return;
         if (e != null) {
@@ -41,40 +52,45 @@
       };
     }
 
+    function check() {
+      if (callback !== noop) throw new Error;
+    }
+
     function notify() {
-      if (error != null) await(error);
-      else if (all) await(error, tasks);
-      else await.apply(null, [error].concat(tasks));
+      if (error != null) callback(error);
+      else if (callbackAll) callback(error, tasks);
+      else callback.apply(null, [error].concat(tasks));
     }
 
     return q = {
-      defer: function() {
+      defer: function(f) {
+        check();
         if (!error) {
-          tasks.push(arguments);
+          var t = slice.call(arguments, 1);
+          t.push(f);
+          tasks.push(t);
           ++remaining;
           pop();
         }
         return q;
       },
       await: function(f) {
-        await = f;
-        all = false;
+        check();
+        callback = f, callbackAll = false;
         if (!remaining) notify();
         return q;
       },
       awaitAll: function(f) {
-        await = f;
-        all = true;
+        check();
+        callback = f, callbackAll = true;
         if (!remaining) notify();
         return q;
       }
     };
   }
 
-  function noop() {}
+  queue.version = "1.1.0";
 
-  queue.version = "1.0.7";
-  if (typeof define === "function" && define.amd) define(function() { return queue; });
-  else if (typeof module === "object" && module.exports) module.exports = queue;
-  else this.queue = queue;
-})();
+  return queue;
+
+}));
