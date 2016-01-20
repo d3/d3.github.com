@@ -8,11 +8,12 @@
 
   function requote(string) {
     return string.replace(requoteRe, "\\$&");
-  };
+  }
 
-  function noop() {};
+  function noop() {}
 
   var filterEvents = {};
+
   exports.event = null;
 
   if (typeof document !== "undefined") {
@@ -68,14 +69,13 @@
   }
 
   function onAdd(filter, key, type, listener, capture) {
-    if (capture == null) capture = false;
     return function(d, i, group) {
       var value = this[key];
       if (value) this.removeEventListener(type, value, value._capture);
       value = contextListener(listener, i, group);
       if (filter) value = filterListener(value);
-      this.addEventListener(type, this[key] = value, value._capture = capture);
       value._listener = listener;
+      this.addEventListener(type, this[key] = value, value._capture = capture);
     };
   }
 
@@ -90,25 +90,25 @@
     if (filter = filterEvents.hasOwnProperty(name)) name = filterEvents[name];
 
     return this.each(listener
-        ? (value ? onAdd(filter, key, type, listener, capture) : noop) // Attempt to add untyped listener is ignored.
+        ? (value ? onAdd(filter, key, name, listener, capture == null ? false : capture) : noop) // Attempt to add untyped listener is ignored.
         : (value ? onRemove(key, name) : onRemoveAll(name)));
-  };
+  }
 
   function sourceEvent() {
     var current = exports.event, source;
     while (source = current.sourceEvent) current = source;
     return current;
-  };
+  }
 
-  function defaultView$1(node) {
+  function defaultView(node) {
     return node
         && ((node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
             || (node.document && node) // node is a Window
             || node.defaultView); // node is a Document
-  };
+  }
 
   function dispatchEvent(node, type, params) {
-    var window = defaultView$1(node),
+    var window = defaultView(node),
         event = window.CustomEvent;
 
     if (event) {
@@ -138,13 +138,13 @@
     return this.each((typeof params === "function"
         ? dispatchFunction
         : dispatchConstant)(type, params));
-  };
+  }
 
   function selection_datum(value) {
     return arguments.length
         ? this.property("__data__", value)
         : this.node().__data__;
-  };
+  }
 
   function remove() {
     var parent = this.parentNode;
@@ -153,7 +153,7 @@
 
   function selection_remove() {
     return this.each(remove);
-  };
+  }
 
   var namespaces = {
     svg: "http://www.w3.org/2000/svg",
@@ -167,13 +167,13 @@
     var prefix = name += "", i = prefix.indexOf(":");
     if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
     return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
-  };
+  }
 
   function selector(selector) {
     return function() {
       return this.querySelector(selector);
     };
-  };
+  }
 
   function creatorInherit(name) {
     return function() {
@@ -210,12 +210,19 @@
     };
   }
 
+  function constantNull() {
+    return null;
+  }
+
   function selection_append(name, before) {
     var create = typeof name === "function" ? name : creator(name);
     return this.select(arguments.length < 2
         ? append(create)
-        : insert(create, typeof before === "function" ? before : selector(before)));
-  };
+        : insert(create, before == null
+            ? constantNull : typeof before === "function"
+            ? before
+            : selector(before)));
+  }
 
   function lower() {
     this.parentNode.insertBefore(this, this.parentNode.firstChild);
@@ -223,7 +230,7 @@
 
   function selection_lower() {
     return this.each(lower);
-  };
+  }
 
   function raise() {
     this.parentNode.appendChild(this);
@@ -231,10 +238,13 @@
 
   function selection_raise() {
     return this.each(raise);
-  };
+  }
+
+  function htmlRemove() {
+    this.innerHTML = "";
+  }
 
   function htmlConstant(value) {
-    if (value == null) value = "";
     return function() {
       this.innerHTML = value;
     };
@@ -249,11 +259,22 @@
 
   function selection_html(value) {
     return arguments.length
-        ? this.each((typeof value === "function"
+        ? this.each(value == null
+            ? htmlRemove : (typeof value === "function"
             ? htmlFunction
             : htmlConstant)(value))
         : this.node().innerHTML;
-  };
+  }
+
+  function textRemove() {
+    this.textContent = "";
+  }
+
+  function textConstant(value) {
+    return function() {
+      this.textContent = value;
+    };
+  }
 
   function textFunction(value) {
     return function() {
@@ -264,56 +285,88 @@
 
   function selection_text(value) {
     return arguments.length
-        ? this.each((typeof value === "function"
+        ? this.each(value == null
+            ? textRemove : (typeof value === "function"
             ? textFunction
-            : textContent)(value))
+            : textConstant)(value))
         : this.node().textContent;
-  };
-
-  function collapse(string) {
-    return string.trim().replace(/\s+/g, " ");
   }
 
-  function classer(name) {
-    var re;
-    return function(node, value) {
-      if (classes = node.classList) return value ? classes.add(name) : classes.remove(name);
-      if (!re) re = classedRe(name); // Create only if classList is missing.
-      var classes = node.getAttribute("class") || "";
-      if (value) {
-        re.lastIndex = 0;
-        if (!re.test(classes)) node.setAttribute("class", collapse(classes + " " + name));
-      } else {
-        node.setAttribute("class", collapse(classes.replace(re, " ")));
+  function classArray(string) {
+    return string.trim().split(/^|\s+/);
+  }
+
+  function classList(node) {
+    return node.classList || new ClassList(node);
+  }
+
+  function ClassList(node) {
+    this._node = node;
+    this._names = classArray(node.getAttribute("class") || "");
+  }
+
+  ClassList.prototype = {
+    add: function(name) {
+      var i = this._names.indexOf(name);
+      if (i < 0) {
+        this._names.push(name);
+        this._node.setAttribute("class", this._names.join(" "));
       }
+    },
+    remove: function(name) {
+      var i = this._names.indexOf(name);
+      if (i >= 0) {
+        this._names.splice(i, 1);
+        this._node.setAttribute("class", this._names.join(" "));
+      }
+    },
+    contains: function(name) {
+      return this._names.indexOf(name) >= 0;
+    }
+  };
+
+  function classedAdd(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.add(names[i]);
+  }
+
+  function classedRemove(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.remove(names[i]);
+  }
+
+  function classedTrue(names) {
+    return function() {
+      classedAdd(this, names);
     };
   }
 
-  function classedRe(name) {
-    return new RegExp("(?:^|\\s+)" + requote(name) + "(?:\\s+|$)", "g");
+  function classedFalse(names) {
+    return function() {
+      classedRemove(this, names);
+    };
+  }
+
+  function classedFunction(names, value) {
+    return function() {
+      (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
+    };
   }
 
   function selection_classed(name, value) {
-    var names = (name + "").trim().split(/^|\s+/);
+    var names = classArray(name + "");
 
     if (arguments.length < 2) {
-      var node = this.node(),
-          i = -1,
-          n = names.length,
-          classes = node.classList;
-      if (classes) { // SVG elements may not support DOMTokenList!
-        while (++i < n) if (!classes.contains(names[i])) return false;
-      } else {
-        classes = node.getAttribute("class") || "";
-        while (++i < n) if (!classedRe(names[i]).test(classes)) return false;
-      }
+      var list = classList(this.node()), i = -1, n = names.length;
+      while (++i < n) if (!list.contains(names[i])) return false;
       return true;
     }
 
     return this.each((typeof value === "function"
-        ? setFunction
-        : setConstant)(names.map(classer), value));
-  };
+        ? classedFunction : value
+        ? classedTrue
+        : classedFalse)(names, value));
+  }
 
   function propertyRemove(name) {
     return function() {
@@ -342,7 +395,7 @@
             ? propertyFunction
             : propertyConstant)(name, value))
         : this.node()[name];
-  };
+  }
 
   function styleRemove(name) {
     return function() {
@@ -371,10 +424,10 @@
               ? styleRemove : typeof value === "function"
               ? styleFunction
               : styleConstant)(name, value, priority == null ? "" : priority))
-        : defaultView$1(node = this.node())
+        : defaultView(node = this.node())
             .getComputedStyle(node, null)
             .getPropertyValue(name);
-  };
+  }
 
   function attrRemove(name) {
     return function() {
@@ -430,32 +483,32 @@
         ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
         ? (fullname.local ? attrFunctionNS : attrFunction)
         : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
-  };
+  }
 
   function selection_each(callback) {
 
-    for (var groups = this._, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
       for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
         if (node = group[i]) callback.call(node, node.__data__, i, group);
       }
     }
 
     return this;
-  };
+  }
 
   function selection_empty() {
     return !this.node();
-  };
+  }
 
   function selection_size() {
     var size = 0;
     this.each(function() { ++size; });
     return size;
-  };
+  }
 
   function selection_node() {
 
-    for (var groups = this._, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
       for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
         var node = group[i];
         if (node) return node;
@@ -463,48 +516,47 @@
     }
 
     return null;
-  };
+  }
 
   function selection_nodes() {
     var nodes = new Array(this.size()), i = -1;
     this.each(function() { nodes[++i] = this; });
     return nodes;
-  };
+  }
 
   function selection_call() {
     var callback = arguments[0];
     arguments[0] = this;
     callback.apply(null, arguments);
     return this;
-  };
+  }
 
   function arrayify(selection) {
 
-    for (var groups = selection._, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = selection._nodes, j = 0, m = groups.length; j < m; ++j) {
       if (!Array.isArray(group = groups[j])) {
         for (var n = group.length, array = groups[j] = new Array(n), group, i = 0; i < n; ++i) {
           array[i] = group[i];
         }
-        array._parent = group._parent;
       }
     }
 
     return groups;
-  };
+  }
 
   function selection_sort(compare) {
     if (!compare) compare = ascending;
 
-    function compare(a, b) {
+    function compareNode(a, b) {
       return a && b ? compare(a.__data__, b.__data__) : !a - !b;
     }
 
     for (var groups = arrayify(this), j = 0, m = groups.length; j < m; ++j) {
-      groups[j].sort(compare);
+      groups[j].sort(compareNode);
     }
 
     return this.order();
-  };
+  }
 
   function ascending(a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -512,7 +564,7 @@
 
   function selection_order() {
 
-    for (var groups = this._, j = -1, m = groups.length; ++j < m;) {
+    for (var groups = this._nodes, j = -1, m = groups.length; ++j < m;) {
       for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
         if (node = group[i]) {
           if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
@@ -522,37 +574,35 @@
     }
 
     return this;
-  };
+  }
 
   function sparse(update) {
-    var group = new Array(update.length);
-    group._parent = update._parent;
-    return group;
-  };
+    return new Array(update.length);
+  }
 
   function selection_exit() {
     var exit = this._exit;
     if (exit) return this._exit = null, exit;
-    return new Selection(arrayify(this).map(sparse));
-  };
+    return new Selection(this._nodes.map(sparse), this._parents);
+  }
 
   function selection_enter() {
     var enter = this._enter;
     if (enter) return this._enter = null, enter;
-    enter = new Selection(arrayify(this).map(sparse));
+    enter = new Selection(this._nodes.map(sparse), this._parents);
     enter._update = this;
     return enter;
-  };
+  }
 
   function constant(x) {
     return function() {
       return x;
     };
-  };
+  }
 
   var keyPrefix = "$"; // Protect against keys like “__proto__”.
 
-  function bindIndex(update, enter, exit, data) {
+  function bindIndex(parent, update, enter, exit, data) {
     var i = 0,
         node,
         nodeLength = update.length,
@@ -567,14 +617,14 @@
       if (node = update[i]) {
         node.__data__ = data[i];
       } else {
-        enter[i] = new EnterNode(update._parent, data[i]);
+        enter[i] = new EnterNode(parent, data[i]);
       }
     }
 
     // Note: we don’t need to delete update[i] here because this loop only
     // runs when the data length is greater than the node length.
     for (; i < dataLength; ++i) {
-      enter[i] = new EnterNode(update._parent, data[i]);
+      enter[i] = new EnterNode(parent, data[i]);
     }
 
     // Note: and, we don’t need to delete update[i] here because immediately
@@ -588,7 +638,7 @@
     update.length = dataLength;
   }
 
-  function bindKey(update, enter, exit, data, key) {
+  function bindKey(parent, update, enter, exit, data, key) {
     var i,
         node,
         dataLength = data.length,
@@ -624,12 +674,12 @@
 
     // Compute the keys for each datum.
     for (i = 0; i < dataLength; ++i) {
-      keyValue = keyPrefix + key.call(update._parent, data[i], i, data);
+      keyValue = keyPrefix + key.call(parent, data[i], i, data);
 
       // Is there a node associated with this key?
       // If not, this datum is added to the enter selection.
       if (!(node = nodeByKeyValue[keyValue])) {
-        enter[i] = new EnterNode(update._parent, data[i]);
+        enter[i] = new EnterNode(parent, data[i]);
       }
 
       // Did we already bind a node using this key? (Or is a duplicate?)
@@ -661,17 +711,18 @@
     }
 
     var bind = key ? bindKey : bindIndex,
-        update = this._,
-        enter = (this._enter = this.enter())._, // Note: arrayify’s!
-        exit = (this._exit = this.exit())._;
+        parents = this._parents,
+        update = arrayify(this),
+        enter = (this._enter = this.enter())._nodes,
+        exit = (this._exit = this.exit())._nodes;
 
     if (typeof value !== "function") value = constant(value);
 
     for (var m = update.length, j = 0; j < m; ++j) {
       var group = update[j],
-          parent = group._parent;
+          parent = parents[j];
 
-      bind(group, enter[j], exit[j], value.call(parent, parent && parent.__data__, j, group), key);
+      bind(parent, group, enter[j], exit[j], value.call(parent, parent && parent.__data__, j, parents), key);
 
       // Now connect the enter nodes to their following update node, such that
       // appendChild can insert the materialized enter node before this node,
@@ -686,7 +737,7 @@
     }
 
     return this;
-  };
+  }
 
   function EnterNode(parent, datum) {
     this.ownerDocument = parent.ownerDocument;
@@ -698,7 +749,7 @@
 
   EnterNode.prototype = {
     appendChild: function(child) { return this._parent.insertBefore(child, this._next); },
-    insertBefore: function(child, next) { return this._parent.insertBefore(child, next || this._next); },
+    insertBefore: function(child, next) { return this._parent.insertBefore(child, next); },
     querySelector: function(selector) { return this._parent.querySelector(selector); },
     querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
   };
@@ -729,62 +780,63 @@
   function selection_filter(match) {
     if (typeof match !== "function") match = matcher$1(match);
 
-    for (var groups = this._, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var groups = this._nodes, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
         if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
           subgroup.push(node);
         }
       }
-      subgroup._parent = group._parent;
     }
 
-    return new Selection(subgroups);
-  };
+    return new Selection(subgroups, this._parents);
+  }
 
   function selectorAll(selector) {
     return function() {
       return this.querySelectorAll(selector);
     };
-  };
+  }
 
   function selection_selectAll(select) {
     if (typeof select !== "function") select = selectorAll(select);
 
-    for (var groups = this._, m = groups.length, subgroups = [], j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, subgroup, node, i = 0; i < n; ++i) {
+    for (var groups = this._nodes, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if (node = group[i]) {
-          subgroups.push(subgroup = select.call(node, node.__data__, i, group));
-          subgroup._parent = node;
+          subgroups.push(select.call(node, node.__data__, i, group));
+          parents.push(node);
         }
       }
     }
 
-    return new Selection(subgroups);
-  };
+    return new Selection(subgroups, parents);
+  }
 
   function selection_select(select) {
     if (typeof select !== "function") select = selector(select);
 
-    for (var groups = this._, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var groups = this._nodes, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
         if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
           if ("__data__" in node) subnode.__data__ = node.__data__;
-          if (update) update._[j][i] = subnode;
+          if (update) update._nodes[j][i] = subnode;
           subgroup[i] = subnode;
         }
       }
-      subgroup._parent = group._parent;
     }
 
-    return new Selection(subgroups);
-  };
+    return new Selection(subgroups, this._parents);
+  }
 
-  function Selection(groups) {
-    this._ = groups;
-  };
+  var root = [null];
+
+  function Selection(nodes, parents) {
+    this._nodes = nodes;
+    this._parents = parents;
+  }
 
   function selection() {
-    return new Selection([[document.documentElement]]);
+    return new Selection([[document.documentElement]], root);
   }
 
   Selection.prototype = selection.prototype = {
@@ -818,15 +870,19 @@
   };
 
   function select(selector) {
-    return new Selection([[typeof selector === "string" ? document.querySelector(selector) : selector]]);
-  };
+    return typeof selector === "string"
+        ? new Selection([[document.querySelector(selector)]], [document.documentElement])
+        : new Selection([[selector]], root);
+  }
 
   var bug44083 = typeof navigator !== "undefined" && /WebKit/.test(navigator.userAgent) ? -1 : 0; // https://bugs.webkit.org/show_bug.cgi?id=44083
 
   function point(node, event) {
     var svg = node.ownerSVGElement || node;
+
     if (svg.createSVGPoint) {
       var point = svg.createSVGPoint();
+
       if (bug44083 < 0) {
         var window = defaultView(node);
         if (window.scrollX || window.scrollY) {
@@ -836,44 +892,53 @@
           svg.remove();
         }
       }
+
       if (bug44083) point.x = event.pageX, point.y = event.pageY;
       else point.x = event.clientX, point.y = event.clientY;
+
       point = point.matrixTransform(node.getScreenCTM().inverse());
       return [point.x, point.y];
     }
+
     var rect = node.getBoundingClientRect();
     return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
-  };
+  }
 
   function mouse(node, event) {
     if (event == null) event = sourceEvent();
     if (event.changedTouches) event = event.changedTouches[0];
     return point(node, event);
-  };
+  }
 
   function selectAll(selector) {
-    return new Selection([typeof selector === "string" ? document.querySelectorAll(selector) : selector]);
-  };
+    return typeof selector === "string"
+        ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
+        : new Selection([selector], root);
+  }
 
   function touch(node, touches, identifier) {
-    if (identifier == null) identifier = touches, touches = sourceEvent().changedTouches;
+    if (arguments.length < 3) identifier = touches, touches = sourceEvent().changedTouches;
+
     for (var i = 0, n = touches ? touches.length : 0, touch; i < n; ++i) {
       if ((touch = touches[i]).identifier === identifier) {
         return point(node, touch);
       }
     }
+
     return null;
-  };
+  }
 
   function touches(node, touches) {
     if (touches == null) touches = sourceEvent().touches;
+
     for (var i = 0, n = touches ? touches.length : 0, points = new Array(n); i < n; ++i) {
       points[i] = point(node, touches[i]);
     }
-    return points;
-  };
 
-  var version = "0.6.0";
+    return points;
+  }
+
+  var version = "0.6.2";
 
   exports.version = version;
   exports.mouse = mouse;
