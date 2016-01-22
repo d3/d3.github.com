@@ -21,9 +21,9 @@
 
     "onload" in xhr
         ? xhr.onload = xhr.onerror = xhr.ontimeout = respond
-        : xhr.onreadystatechange = function() { xhr.readyState > 3 && respond(); };
+        : xhr.onreadystatechange = function(o) { xhr.readyState > 3 && respond(o); };
 
-    function respond() {
+    function respond(o) {
       var status = xhr.status, result;
       if (!status && hasResponse(xhr)
           || status >= 200 && status < 300
@@ -40,7 +40,7 @@
         }
         event.load.call(request, result);
       } else {
-        event.error.call(request, xhr);
+        event.error.call(request, o);
       }
     }
 
@@ -125,7 +125,7 @@
     return callback
         ? request.get(callback)
         : request;
-  };
+  }
 
   function fixCallback(callback) {
     return function(error, xhr) {
@@ -145,7 +145,7 @@
       var r = request(url).mimeType(defaultMimeType).response(response);
       return callback ? r.get(callback) : r;
     };
-  };
+  }
 
   var html = requestType("text/html", function(xhr) {
     return document.createRange().createContextualFragment(xhr.responseText);
@@ -173,7 +173,7 @@
       r.row(row);
       return callback ? r.get(callback) : r;
     };
-  };
+  }
 
   function responseOf(dsv, row) {
     return function(request) {
@@ -185,7 +185,7 @@
 
   var tsv = requestDsv("text/tab-separated-values", d3Dsv.tsv);
 
-  var version = "0.3.0";
+  var version = "0.3.1";
 
   exports.version = version;
   exports.request = request;
