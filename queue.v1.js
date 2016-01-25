@@ -8,13 +8,14 @@
 
   function noop() {}
 
-  var running = {};
+  var noabort = {};
   var success = [null];
-  function newQueue(parallelism) {
-    if (!(parallelism >= 1)) throw new Error;
+  function newQueue(concurrency) {
+    if (!(concurrency >= 1)) throw new Error;
 
     var q,
         tasks = [],
+        results = [],
         waiting = 0,
         active = 0,
         ended = 0,
@@ -23,71 +24,99 @@
         callback = noop,
         callbackAll = true;
 
+    function poke() {
+      if (!starting) try { start(); } // let the current task complete
+      catch (e) { if (tasks[ended + active - 1]) abort(e); } // task errored synchronously
+    }
+
     function start() {
-      if (starting) return; // let the current task complete
-      while (starting = waiting && active < parallelism) {
+      while (starting = waiting && active < concurrency) {
         var i = ended + active,
             t = tasks[i],
             j = t.length - 1,
             c = t[j];
-        tasks[i] = running, --waiting, ++active;
         t[j] = end(i);
-        c.apply(null, t);
+        --waiting, ++active;
+        t = c.apply(null, t);
+        if (!tasks[i]) continue; // task finished synchronously
+        tasks[i] = t || noabort;
       }
     }
 
     function end(i) {
       return function(e, r) {
-        if (tasks[i] !== running) throw new Error; // detect multiple callbacks
-        tasks[i] = null, --active, ++ended;
-        if (error != null) return; // only report the first error
+        if (!tasks[i]) return; // ignore multiple callbacks
+        --active, ++ended;
+        tasks[i] = null;
+        if (error != null) return; // ignore secondary errors
         if (e != null) {
-          error = e; // ignore new tasks and squelch active callbacks
-          waiting = NaN; // stop queued tasks from starting
-          notify();
+          abort(e);
         } else {
-          tasks[i] = r;
-          if (waiting) start();
+          results[i] = r;
+          if (waiting) poke();
           else if (!active) notify();
         }
       };
     }
 
+    function abort(e) {
+      var i = tasks.length, t;
+      error = e; // ignore active callbacks
+      results = null; // allow gc
+      waiting = NaN; // prevent starting
+
+      while (--i >= 0) {
+        if (t = tasks[i]) {
+          tasks[i] = null;
+          if (t.abort) try { t.abort(); }
+          catch (e) { /* ignore */ }
+        }
+      }
+
+      active = NaN; // allow notification
+      notify();
+    }
+
     function notify() {
       if (error != null) callback(error);
-      else if (callbackAll) callback(null, tasks);
-      else callback.apply(null, success.concat(tasks));
+      else if (callbackAll) callback(null, results);
+      else callback.apply(null, success.concat(results));
     }
 
     return q = {
       defer: function(f) {
         if (callback !== noop) throw new Error;
+        if (error != null) return q;
         var t = slice.call(arguments, 1);
         t.push(f);
-        tasks.push(t), ++waiting;
-        start();
+        ++waiting, tasks.push(t);
+        poke();
+        return q;
+      },
+      abort: function() {
+        if (error == null) abort(new Error("abort"));
         return q;
       },
       await: function(f) {
         if (callback !== noop) throw new Error;
         callback = f, callbackAll = false;
-        if (!waiting && !active) notify();
+        if (!active) notify();
         return q;
       },
       awaitAll: function(f) {
         if (callback !== noop) throw new Error;
         callback = f, callbackAll = true;
-        if (!waiting && !active) notify();
+        if (!active) notify();
         return q;
       }
     };
   }
 
-  function queue(parallelism) {
-    return newQueue(arguments.length ? +parallelism : Infinity);
+  function queue(concurrency) {
+    return newQueue(arguments.length ? +concurrency : Infinity);
   }
 
-  queue.version = "1.1.1";
+  queue.version = "1.2.1";
 
   return queue;
 
