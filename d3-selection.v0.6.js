@@ -179,7 +179,7 @@
     return function() {
       var document = this.ownerDocument,
           uri = this.namespaceURI;
-      return uri
+      return uri && uri !== document.documentElement.namespaceURI
           ? document.createElementNS(uri, name)
           : document.createElement(name);
     };
@@ -938,7 +938,7 @@
     return points;
   }
 
-  var version = "0.6.2";
+  var version = "0.6.3";
 
   exports.version = version;
   exports.mouse = mouse;
