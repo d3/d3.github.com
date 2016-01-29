@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-path', ['exports'], factory) :
-  factory((global.d3_path = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_path = {})));
 }(this, function (exports) { 'use strict';
 
   var pi = Math.PI;
@@ -146,7 +146,7 @@
     }
   };
 
-  var version = "0.1.3";
+  var version = "0.1.4";
 
   exports.version = version;
   exports.path = path;
