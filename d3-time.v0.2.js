@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-time', ['exports'], factory) :
-  factory((global.d3_time = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_time = {})));
 }(this, function (exports) { 'use strict';
 
   var t0 = new Date;
@@ -67,7 +67,7 @@
     }
 
     return interval;
-  };
+  }
 
   var millisecond = newInterval(function() {
     // noop
@@ -286,7 +286,7 @@
   var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.timeMilliseconds = timeMilliseconds;
