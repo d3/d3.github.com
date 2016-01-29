@@ -1,6 +1,6 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-voronoi', ['exports'], factory) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.d3_voronoi = {})));
 }(this, function (exports) { 'use strict';
 
@@ -8,15 +8,15 @@
     return function() {
       return x;
     };
-  };
+  }
 
   function x(d) {
     return d[0];
-  };
+  }
 
   function y(d) {
     return d[1];
-  };
+  }
 
   function RedBlackTree() {
     this._ = null; // root node
@@ -29,7 +29,7 @@
     node.R = // right node
     node.P = // previous node
     node.N = null; // next node
-  };
+  }
 
   RedBlackTree.prototype = {
 
@@ -264,13 +264,13 @@
     cells[left.index].halfedges.push(index);
     cells[right.index].halfedges.push(index);
     return edge;
-  };
+  }
 
   function createBorderEdge(left, v0, v1) {
     var edge = [v0, v1];
     edge.left = left;
     return edge;
-  };
+  }
 
   function setEdgeEnd(edge, left, right, vertex) {
     if (!edge[0] && !edge[1]) {
@@ -282,7 +282,7 @@
     } else {
       edge[0] = vertex;
     }
-  };
+  }
 
   // Liang–Barsky line clipping.
   function clippedEdge(edge, x0, y0, x1, y1) {
@@ -296,6 +296,7 @@
         t1 = 1,
         dx = bx - ax,
         dy = by - ay,
+        l,
         r;
 
     r = x0 - ax;
@@ -344,7 +345,7 @@
 
     if (!(t0 > 0) && !(t1 < 1)) return edge; // TODO Better check?
 
-    var l = edge.left, r = edge.right;
+    l = edge.left, r = edge.right;
     if (t0 > 0) a = [ax + t0 * dx, ay + t0 * dy];
     if (t1 < 1) b = [ax + t1 * dx, ay + t1 * dy];
     edge = [a, b];
@@ -427,14 +428,14 @@
     }
 
     return clippedEdges;
-  };
+  }
 
   function createCell(site) {
     return cells[site.index] = {
       site: site,
       halfedges: []
     };
-  };
+  }
 
   function cellHalfedgeAngle(cell, edge) {
     var site = cell.site,
@@ -449,24 +450,24 @@
 
   function cellHalfedgeStart(cell, edge) {
     return edge[+(edge.left !== cell.site)];
-  };
+  }
 
   function cellHalfedgeEnd(cell, edge) {
     return edge[+(edge.left === cell.site)];
-  };
+  }
 
   function sortCellHalfedges() {
-    for (var i = 0, n = cells.length, cell, halfedges, m; i < n; ++i) {
+    for (var i = 0, n = cells.length, cell, halfedges, j, m; i < n; ++i) {
       if ((cell = cells[i]) && (m = (halfedges = cell.halfedges).length)) {
         var index = new Array(m),
             array = new Array(m);
-        for (var j = 0; j < m; ++j) index[j] = j, array[j] = cellHalfedgeAngle(cell, edges[halfedges[j]]);
+        for (j = 0; j < m; ++j) index[j] = j, array[j] = cellHalfedgeAngle(cell, edges[halfedges[j]]);
         index.sort(function(i, j) { return array[j] - array[i]; });
-        for (var j = 0; j < m; ++j) array[j] = halfedges[index[j]];
-        for (var j = 0; j < m; ++j) halfedges[j] = array[j];
+        for (j = 0; j < m; ++j) array[j] = halfedges[index[j]];
+        for (j = 0; j < m; ++j) halfedges[j] = array[j];
       }
     }
-  };
+  }
 
   function clipCells(edges, x0, y0, x1, y1) {
     var iCell = cells.length,
@@ -510,7 +511,7 @@
         }
       }
     }
-  };
+  }
 
   var circlePool = [];
 
@@ -550,15 +551,13 @@
     var ha = ax * ax + ay * ay,
         hc = cx * cx + cy * cy,
         x = (cy * ha - ay * hc) / d,
-        y = (ax * hc - cx * ha) / d,
-        cy = y + by;
+        y = (ax * hc - cx * ha) / d;
 
     var circle = circlePool.pop() || new Circle;
     circle.arc = arc;
     circle.site = cSite;
     circle.x = x + bx;
-    circle.y = cy + Math.sqrt(x * x + y * y); // y bottom
-    circle.cy = cy;
+    circle.y = (circle.cy = y + by) + Math.sqrt(x * x + y * y); // y bottom
 
     arc.circle = circle;
 
@@ -577,7 +576,7 @@
 
     circles.insert(before, circle);
     if (!before) firstCircle = circle;
-  };
+  }
 
   function detachCircle(arc) {
     var circle = arc.circle;
@@ -588,7 +587,7 @@
       RedBlackNode(circle);
       arc.circle = null;
     }
-  };
+  }
 
   var beachPool = [];
 
@@ -663,7 +662,7 @@
 
     attachCircle(lArc);
     attachCircle(rArc);
-  };
+  }
 
   function addBeach(site) {
     var x = site[0],
@@ -742,7 +741,7 @@
     rArc.edge = createEdge(site, rSite, null, vertex);
     attachCircle(lArc);
     attachCircle(rArc);
-  };
+  }
 
   function leftBreakPoint(arc, directrix) {
     var site = arc.site,
@@ -841,7 +840,7 @@
     circles =
     edges =
     cells = null;
-  };
+  }
 
   Diagram.prototype = {
     polygons: function() {
@@ -876,13 +875,11 @@
             halfedges = cell.halfedges,
             j = -1,
             m = halfedges.length,
-            e0,
             s0,
             e1 = edges[halfedges[m - 1]],
             s1 = e1.left === site ? e1.right : e1.left;
 
         while (++j < m) {
-          e0 = e1;
           s0 = s1;
           e1 = edges[halfedges[j]];
           s1 = e1.left === site ? e1.right : e1.left;
@@ -948,9 +945,9 @@
     };
 
     return voronoi;
-  };
+  }
 
-  var version = "0.3.0";
+  var version = "0.3.1";
 
   exports.version = version;
   exports.voronoi = voronoi;
