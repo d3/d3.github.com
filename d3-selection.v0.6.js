@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-selection', ['exports'], factory) :
-  factory((global.d3_selection = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_selection = {})));
 }(this, function (exports) { 'use strict';
 
   var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
@@ -107,428 +107,84 @@
             || node.defaultView); // node is a Document
   }
 
-  function dispatchEvent(node, type, params) {
-    var window = defaultView(node),
-        event = window.CustomEvent;
-
-    if (event) {
-      event = new event(type, params);
-    } else {
-      event = window.document.createEvent("Event");
-      if (params) event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail;
-      else event.initEvent(type, false, false);
-    }
-
-    node.dispatchEvent(event);
-  }
-
-  function dispatchConstant(type, params) {
-    return function() {
-      return dispatchEvent(this, type, params);
-    };
-  }
-
-  function dispatchFunction(type, params) {
-    return function() {
-      return dispatchEvent(this, type, params.apply(this, arguments));
-    };
-  }
-
-  function selection_dispatch(type, params) {
-    return this.each((typeof params === "function"
-        ? dispatchFunction
-        : dispatchConstant)(type, params));
-  }
-
-  function selection_datum(value) {
-    return arguments.length
-        ? this.property("__data__", value)
-        : this.node().__data__;
-  }
-
-  function remove() {
-    var parent = this.parentNode;
-    if (parent) parent.removeChild(this);
-  }
-
-  function selection_remove() {
-    return this.each(remove);
-  }
-
-  var namespaces = {
-    svg: "http://www.w3.org/2000/svg",
-    xhtml: "http://www.w3.org/1999/xhtml",
-    xlink: "http://www.w3.org/1999/xlink",
-    xml: "http://www.w3.org/XML/1998/namespace",
-    xmlns: "http://www.w3.org/2000/xmlns/"
-  };
-
-  function namespace(name) {
-    var prefix = name += "", i = prefix.indexOf(":");
-    if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
-    return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
-  }
-
   function selector(selector) {
     return function() {
       return this.querySelector(selector);
     };
   }
 
-  function creatorInherit(name) {
-    return function() {
-      var document = this.ownerDocument,
-          uri = this.namespaceURI;
-      return uri && uri !== document.documentElement.namespaceURI
-          ? document.createElementNS(uri, name)
-          : document.createElement(name);
-    };
-  }
+  function selection_select(select) {
+    if (typeof select !== "function") select = selector(select);
 
-  function creatorFixed(fullname) {
-    return function() {
-      return this.ownerDocument.createElementNS(fullname.space, fullname.local);
-    };
-  }
-
-  function creator(name) {
-    var fullname = namespace(name);
-    return (fullname.local
-        ? creatorFixed
-        : creatorInherit)(fullname);
-  }
-
-  function append(create) {
-    return function() {
-      return this.appendChild(create.apply(this, arguments));
-    };
-  }
-
-  function insert(create, select) {
-    return function() {
-      return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
-    };
-  }
-
-  function constantNull() {
-    return null;
-  }
-
-  function selection_append(name, before) {
-    var create = typeof name === "function" ? name : creator(name);
-    return this.select(arguments.length < 2
-        ? append(create)
-        : insert(create, before == null
-            ? constantNull : typeof before === "function"
-            ? before
-            : selector(before)));
-  }
-
-  function lower() {
-    this.parentNode.insertBefore(this, this.parentNode.firstChild);
-  }
-
-  function selection_lower() {
-    return this.each(lower);
-  }
-
-  function raise() {
-    this.parentNode.appendChild(this);
-  }
-
-  function selection_raise() {
-    return this.each(raise);
-  }
-
-  function htmlRemove() {
-    this.innerHTML = "";
-  }
-
-  function htmlConstant(value) {
-    return function() {
-      this.innerHTML = value;
-    };
-  }
-
-  function htmlFunction(value) {
-    return function() {
-      var v = value.apply(this, arguments);
-      this.innerHTML = v == null ? "" : v;
-    };
-  }
-
-  function selection_html(value) {
-    return arguments.length
-        ? this.each(value == null
-            ? htmlRemove : (typeof value === "function"
-            ? htmlFunction
-            : htmlConstant)(value))
-        : this.node().innerHTML;
-  }
-
-  function textRemove() {
-    this.textContent = "";
-  }
-
-  function textConstant(value) {
-    return function() {
-      this.textContent = value;
-    };
-  }
-
-  function textFunction(value) {
-    return function() {
-      var v = value.apply(this, arguments);
-      this.textContent = v == null ? "" : v;
-    };
-  }
-
-  function selection_text(value) {
-    return arguments.length
-        ? this.each(value == null
-            ? textRemove : (typeof value === "function"
-            ? textFunction
-            : textConstant)(value))
-        : this.node().textContent;
-  }
-
-  function classArray(string) {
-    return string.trim().split(/^|\s+/);
-  }
-
-  function classList(node) {
-    return node.classList || new ClassList(node);
-  }
-
-  function ClassList(node) {
-    this._node = node;
-    this._names = classArray(node.getAttribute("class") || "");
-  }
-
-  ClassList.prototype = {
-    add: function(name) {
-      var i = this._names.indexOf(name);
-      if (i < 0) {
-        this._names.push(name);
-        this._node.setAttribute("class", this._names.join(" "));
+    for (var groups = this._nodes, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
+        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
+          if ("__data__" in node) subnode.__data__ = node.__data__;
+          if (update) update._nodes[j][i] = subnode;
+          subgroup[i] = subnode;
+        }
       }
-    },
-    remove: function(name) {
-      var i = this._names.indexOf(name);
-      if (i >= 0) {
-        this._names.splice(i, 1);
-        this._node.setAttribute("class", this._names.join(" "));
-      }
-    },
-    contains: function(name) {
-      return this._names.indexOf(name) >= 0;
     }
+
+    return new Selection(subgroups, this._parents);
+  }
+
+  function selectorAll(selector) {
+    return function() {
+      return this.querySelectorAll(selector);
+    };
+  }
+
+  function selection_selectAll(select) {
+    if (typeof select !== "function") select = selectorAll(select);
+
+    for (var groups = this._nodes, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+        if (node = group[i]) {
+          subgroups.push(select.call(node, node.__data__, i, group));
+          parents.push(node);
+        }
+      }
+    }
+
+    return new Selection(subgroups, parents);
+  }
+
+  var matcher = function(selector) {
+    return function() {
+      return this.matches(selector);
+    };
   };
 
-  function classedAdd(node, names) {
-    var list = classList(node), i = -1, n = names.length;
-    while (++i < n) list.add(names[i]);
-  }
-
-  function classedRemove(node, names) {
-    var list = classList(node), i = -1, n = names.length;
-    while (++i < n) list.remove(names[i]);
-  }
-
-  function classedTrue(names) {
-    return function() {
-      classedAdd(this, names);
-    };
-  }
-
-  function classedFalse(names) {
-    return function() {
-      classedRemove(this, names);
-    };
-  }
-
-  function classedFunction(names, value) {
-    return function() {
-      (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
-    };
-  }
-
-  function selection_classed(name, value) {
-    var names = classArray(name + "");
-
-    if (arguments.length < 2) {
-      var list = classList(this.node()), i = -1, n = names.length;
-      while (++i < n) if (!list.contains(names[i])) return false;
-      return true;
+  if (typeof document !== "undefined") {
+    var element$1 = document.documentElement;
+    if (!element$1.matches) {
+      var vendorMatches = element$1.webkitMatchesSelector
+          || element$1.msMatchesSelector
+          || element$1.mozMatchesSelector
+          || element$1.oMatchesSelector;
+      matcher = function(selector) {
+        return function() {
+          return vendorMatches.call(this, selector);
+        };
+      };
     }
-
-    return this.each((typeof value === "function"
-        ? classedFunction : value
-        ? classedTrue
-        : classedFalse)(names, value));
   }
 
-  function propertyRemove(name) {
-    return function() {
-      delete this[name];
-    };
-  }
+  var matcher$1 = matcher;
 
-  function propertyConstant(name, value) {
-    return function() {
-      this[name] = value;
-    };
-  }
+  function selection_filter(match) {
+    if (typeof match !== "function") match = matcher$1(match);
 
-  function propertyFunction(name, value) {
-    return function() {
-      var v = value.apply(this, arguments);
-      if (v == null) delete this[name];
-      else this[name] = v;
-    };
-  }
-
-  function selection_property(name, value) {
-    return arguments.length > 1
-        ? this.each((value == null
-            ? propertyRemove : typeof value === "function"
-            ? propertyFunction
-            : propertyConstant)(name, value))
-        : this.node()[name];
-  }
-
-  function styleRemove(name) {
-    return function() {
-      this.style.removeProperty(name);
-    };
-  }
-
-  function styleConstant(name, value, priority) {
-    return function() {
-      this.style.setProperty(name, value, priority);
-    };
-  }
-
-  function styleFunction(name, value, priority) {
-    return function() {
-      var v = value.apply(this, arguments);
-      if (v == null) this.style.removeProperty(name);
-      else this.style.setProperty(name, v, priority);
-    };
-  }
-
-  function selection_style(name, value, priority) {
-    var node;
-    return arguments.length > 1
-        ? this.each((value == null
-              ? styleRemove : typeof value === "function"
-              ? styleFunction
-              : styleConstant)(name, value, priority == null ? "" : priority))
-        : defaultView(node = this.node())
-            .getComputedStyle(node, null)
-            .getPropertyValue(name);
-  }
-
-  function attrRemove(name) {
-    return function() {
-      this.removeAttribute(name);
-    };
-  }
-
-  function attrRemoveNS(fullname) {
-    return function() {
-      this.removeAttributeNS(fullname.space, fullname.local);
-    };
-  }
-
-  function attrConstant(name, value) {
-    return function() {
-      this.setAttribute(name, value);
-    };
-  }
-
-  function attrConstantNS(fullname, value) {
-    return function() {
-      this.setAttributeNS(fullname.space, fullname.local, value);
-    };
-  }
-
-  function attrFunction(name, value) {
-    return function() {
-      var v = value.apply(this, arguments);
-      if (v == null) this.removeAttribute(name);
-      else this.setAttribute(name, v);
-    };
-  }
-
-  function attrFunctionNS(fullname, value) {
-    return function() {
-      var v = value.apply(this, arguments);
-      if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
-      else this.setAttributeNS(fullname.space, fullname.local, v);
-    };
-  }
-
-  function selection_attr(name, value) {
-    var fullname = namespace(name);
-
-    if (arguments.length < 2) {
-      var node = this.node();
-      return fullname.local
-          ? node.getAttributeNS(fullname.space, fullname.local)
-          : node.getAttribute(fullname);
-    }
-
-    return this.each((value == null
-        ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
-        ? (fullname.local ? attrFunctionNS : attrFunction)
-        : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
-  }
-
-  function selection_each(callback) {
-
-    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
-      for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-        if (node = group[i]) callback.call(node, node.__data__, i, group);
+    for (var groups = this._nodes, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
+        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
+          subgroup.push(node);
+        }
       }
     }
 
-    return this;
-  }
-
-  function selection_empty() {
-    return !this.node();
-  }
-
-  function selection_size() {
-    var size = 0;
-    this.each(function() { ++size; });
-    return size;
-  }
-
-  function selection_node() {
-
-    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
-      for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
-        var node = group[i];
-        if (node) return node;
-      }
-    }
-
-    return null;
-  }
-
-  function selection_nodes() {
-    var nodes = new Array(this.size()), i = -1;
-    this.each(function() { nodes[++i] = this; });
-    return nodes;
-  }
-
-  function selection_call() {
-    var callback = arguments[0];
-    arguments[0] = this;
-    callback.apply(null, arguments);
-    return this;
+    return new Selection(subgroups, this._parents);
   }
 
   function arrayify(selection) {
@@ -542,56 +198,6 @@
     }
 
     return groups;
-  }
-
-  function selection_sort(compare) {
-    if (!compare) compare = ascending;
-
-    function compareNode(a, b) {
-      return a && b ? compare(a.__data__, b.__data__) : !a - !b;
-    }
-
-    for (var groups = arrayify(this), j = 0, m = groups.length; j < m; ++j) {
-      groups[j].sort(compareNode);
-    }
-
-    return this.order();
-  }
-
-  function ascending(a, b) {
-    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-  }
-
-  function selection_order() {
-
-    for (var groups = this._nodes, j = -1, m = groups.length; ++j < m;) {
-      for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
-        if (node = group[i]) {
-          if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
-          next = node;
-        }
-      }
-    }
-
-    return this;
-  }
-
-  function sparse(update) {
-    return new Array(update.length);
-  }
-
-  function selection_exit() {
-    var exit = this._exit;
-    if (exit) return this._exit = null, exit;
-    return new Selection(this._nodes.map(sparse), this._parents);
-  }
-
-  function selection_enter() {
-    var enter = this._enter;
-    if (enter) return this._enter = null, enter;
-    enter = new Selection(this._nodes.map(sparse), this._parents);
-    enter._update = this;
-    return enter;
   }
 
   function constant(x) {
@@ -754,78 +360,472 @@
     querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
   };
 
-  var matcher = function(selector) {
-    return function() {
-      return this.matches(selector);
-    };
+  function sparse(update) {
+    return new Array(update.length);
+  }
+
+  function selection_enter() {
+    var enter = this._enter;
+    if (enter) return this._enter = null, enter;
+    enter = new Selection(this._nodes.map(sparse), this._parents);
+    enter._update = this;
+    return enter;
+  }
+
+  function selection_exit() {
+    var exit = this._exit;
+    if (exit) return this._exit = null, exit;
+    return new Selection(this._nodes.map(sparse), this._parents);
+  }
+
+  function selection_order() {
+
+    for (var groups = this._nodes, j = -1, m = groups.length; ++j < m;) {
+      for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
+        if (node = group[i]) {
+          if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
+          next = node;
+        }
+      }
+    }
+
+    return this;
+  }
+
+  function selection_sort(compare) {
+    if (!compare) compare = ascending;
+
+    function compareNode(a, b) {
+      return a && b ? compare(a.__data__, b.__data__) : !a - !b;
+    }
+
+    for (var groups = arrayify(this), j = 0, m = groups.length; j < m; ++j) {
+      groups[j].sort(compareNode);
+    }
+
+    return this.order();
+  }
+
+  function ascending(a, b) {
+    return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+  }
+
+  function selection_call() {
+    var callback = arguments[0];
+    arguments[0] = this;
+    callback.apply(null, arguments);
+    return this;
+  }
+
+  function selection_nodes() {
+    var nodes = new Array(this.size()), i = -1;
+    this.each(function() { nodes[++i] = this; });
+    return nodes;
+  }
+
+  function selection_node() {
+
+    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
+      for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
+        var node = group[i];
+        if (node) return node;
+      }
+    }
+
+    return null;
+  }
+
+  function selection_size() {
+    var size = 0;
+    this.each(function() { ++size; });
+    return size;
+  }
+
+  function selection_empty() {
+    return !this.node();
+  }
+
+  function selection_each(callback) {
+
+    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
+      for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+        if (node = group[i]) callback.call(node, node.__data__, i, group);
+      }
+    }
+
+    return this;
+  }
+
+  var namespaces = {
+    svg: "http://www.w3.org/2000/svg",
+    xhtml: "http://www.w3.org/1999/xhtml",
+    xlink: "http://www.w3.org/1999/xlink",
+    xml: "http://www.w3.org/XML/1998/namespace",
+    xmlns: "http://www.w3.org/2000/xmlns/"
   };
 
-  if (typeof document !== "undefined") {
-    var element$1 = document.documentElement;
-    if (!element$1.matches) {
-      var vendorMatches = element$1.webkitMatchesSelector
-          || element$1.msMatchesSelector
-          || element$1.mozMatchesSelector
-          || element$1.oMatchesSelector;
-      matcher = function(selector) {
-        return function() {
-          return vendorMatches.call(this, selector);
-        };
-      };
-    }
+  function namespace(name) {
+    var prefix = name += "", i = prefix.indexOf(":");
+    if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+    return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
   }
 
-  var matcher$1 = matcher;
-
-  function selection_filter(match) {
-    if (typeof match !== "function") match = matcher$1(match);
-
-    for (var groups = this._nodes, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
-        if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-          subgroup.push(node);
-        }
-      }
-    }
-
-    return new Selection(subgroups, this._parents);
-  }
-
-  function selectorAll(selector) {
+  function attrRemove(name) {
     return function() {
-      return this.querySelectorAll(selector);
+      this.removeAttribute(name);
     };
   }
 
-  function selection_selectAll(select) {
-    if (typeof select !== "function") select = selectorAll(select);
-
-    for (var groups = this._nodes, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-        if (node = group[i]) {
-          subgroups.push(select.call(node, node.__data__, i, group));
-          parents.push(node);
-        }
-      }
-    }
-
-    return new Selection(subgroups, parents);
+  function attrRemoveNS(fullname) {
+    return function() {
+      this.removeAttributeNS(fullname.space, fullname.local);
+    };
   }
 
-  function selection_select(select) {
-    if (typeof select !== "function") select = selector(select);
+  function attrConstant(name, value) {
+    return function() {
+      this.setAttribute(name, value);
+    };
+  }
 
-    for (var groups = this._nodes, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-      for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
-        if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
-          if ("__data__" in node) subnode.__data__ = node.__data__;
-          if (update) update._nodes[j][i] = subnode;
-          subgroup[i] = subnode;
-        }
-      }
+  function attrConstantNS(fullname, value) {
+    return function() {
+      this.setAttributeNS(fullname.space, fullname.local, value);
+    };
+  }
+
+  function attrFunction(name, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.removeAttribute(name);
+      else this.setAttribute(name, v);
+    };
+  }
+
+  function attrFunctionNS(fullname, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
+      else this.setAttributeNS(fullname.space, fullname.local, v);
+    };
+  }
+
+  function selection_attr(name, value) {
+    var fullname = namespace(name);
+
+    if (arguments.length < 2) {
+      var node = this.node();
+      return fullname.local
+          ? node.getAttributeNS(fullname.space, fullname.local)
+          : node.getAttribute(fullname);
     }
 
-    return new Selection(subgroups, this._parents);
+    return this.each((value == null
+        ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
+        ? (fullname.local ? attrFunctionNS : attrFunction)
+        : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
+  }
+
+  function styleRemove(name) {
+    return function() {
+      this.style.removeProperty(name);
+    };
+  }
+
+  function styleConstant(name, value, priority) {
+    return function() {
+      this.style.setProperty(name, value, priority);
+    };
+  }
+
+  function styleFunction(name, value, priority) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) this.style.removeProperty(name);
+      else this.style.setProperty(name, v, priority);
+    };
+  }
+
+  function selection_style(name, value, priority) {
+    var node;
+    return arguments.length > 1
+        ? this.each((value == null
+              ? styleRemove : typeof value === "function"
+              ? styleFunction
+              : styleConstant)(name, value, priority == null ? "" : priority))
+        : defaultView(node = this.node())
+            .getComputedStyle(node, null)
+            .getPropertyValue(name);
+  }
+
+  function propertyRemove(name) {
+    return function() {
+      delete this[name];
+    };
+  }
+
+  function propertyConstant(name, value) {
+    return function() {
+      this[name] = value;
+    };
+  }
+
+  function propertyFunction(name, value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) delete this[name];
+      else this[name] = v;
+    };
+  }
+
+  function selection_property(name, value) {
+    return arguments.length > 1
+        ? this.each((value == null
+            ? propertyRemove : typeof value === "function"
+            ? propertyFunction
+            : propertyConstant)(name, value))
+        : this.node()[name];
+  }
+
+  function classArray(string) {
+    return string.trim().split(/^|\s+/);
+  }
+
+  function classList(node) {
+    return node.classList || new ClassList(node);
+  }
+
+  function ClassList(node) {
+    this._node = node;
+    this._names = classArray(node.getAttribute("class") || "");
+  }
+
+  ClassList.prototype = {
+    add: function(name) {
+      var i = this._names.indexOf(name);
+      if (i < 0) {
+        this._names.push(name);
+        this._node.setAttribute("class", this._names.join(" "));
+      }
+    },
+    remove: function(name) {
+      var i = this._names.indexOf(name);
+      if (i >= 0) {
+        this._names.splice(i, 1);
+        this._node.setAttribute("class", this._names.join(" "));
+      }
+    },
+    contains: function(name) {
+      return this._names.indexOf(name) >= 0;
+    }
+  };
+
+  function classedAdd(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.add(names[i]);
+  }
+
+  function classedRemove(node, names) {
+    var list = classList(node), i = -1, n = names.length;
+    while (++i < n) list.remove(names[i]);
+  }
+
+  function classedTrue(names) {
+    return function() {
+      classedAdd(this, names);
+    };
+  }
+
+  function classedFalse(names) {
+    return function() {
+      classedRemove(this, names);
+    };
+  }
+
+  function classedFunction(names, value) {
+    return function() {
+      (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
+    };
+  }
+
+  function selection_classed(name, value) {
+    var names = classArray(name + "");
+
+    if (arguments.length < 2) {
+      var list = classList(this.node()), i = -1, n = names.length;
+      while (++i < n) if (!list.contains(names[i])) return false;
+      return true;
+    }
+
+    return this.each((typeof value === "function"
+        ? classedFunction : value
+        ? classedTrue
+        : classedFalse)(names, value));
+  }
+
+  function textRemove() {
+    this.textContent = "";
+  }
+
+  function textConstant(value) {
+    return function() {
+      this.textContent = value;
+    };
+  }
+
+  function textFunction(value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      this.textContent = v == null ? "" : v;
+    };
+  }
+
+  function selection_text(value) {
+    return arguments.length
+        ? this.each(value == null
+            ? textRemove : (typeof value === "function"
+            ? textFunction
+            : textConstant)(value))
+        : this.node().textContent;
+  }
+
+  function htmlRemove() {
+    this.innerHTML = "";
+  }
+
+  function htmlConstant(value) {
+    return function() {
+      this.innerHTML = value;
+    };
+  }
+
+  function htmlFunction(value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      this.innerHTML = v == null ? "" : v;
+    };
+  }
+
+  function selection_html(value) {
+    return arguments.length
+        ? this.each(value == null
+            ? htmlRemove : (typeof value === "function"
+            ? htmlFunction
+            : htmlConstant)(value))
+        : this.node().innerHTML;
+  }
+
+  function raise() {
+    this.parentNode.appendChild(this);
+  }
+
+  function selection_raise() {
+    return this.each(raise);
+  }
+
+  function lower() {
+    this.parentNode.insertBefore(this, this.parentNode.firstChild);
+  }
+
+  function selection_lower() {
+    return this.each(lower);
+  }
+
+  function creatorInherit(name) {
+    return function() {
+      var document = this.ownerDocument,
+          uri = this.namespaceURI;
+      return uri && uri !== document.documentElement.namespaceURI
+          ? document.createElementNS(uri, name)
+          : document.createElement(name);
+    };
+  }
+
+  function creatorFixed(fullname) {
+    return function() {
+      return this.ownerDocument.createElementNS(fullname.space, fullname.local);
+    };
+  }
+
+  function creator(name) {
+    var fullname = namespace(name);
+    return (fullname.local
+        ? creatorFixed
+        : creatorInherit)(fullname);
+  }
+
+  function append(create) {
+    return function() {
+      return this.appendChild(create.apply(this, arguments));
+    };
+  }
+
+  function insert(create, select) {
+    return function() {
+      return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
+    };
+  }
+
+  function constantNull() {
+    return null;
+  }
+
+  function selection_append(name, before) {
+    var create = typeof name === "function" ? name : creator(name);
+    return this.select(arguments.length < 2
+        ? append(create)
+        : insert(create, before == null
+            ? constantNull : typeof before === "function"
+            ? before
+            : selector(before)));
+  }
+
+  function remove() {
+    var parent = this.parentNode;
+    if (parent) parent.removeChild(this);
+  }
+
+  function selection_remove() {
+    return this.each(remove);
+  }
+
+  function selection_datum(value) {
+    return arguments.length
+        ? this.property("__data__", value)
+        : this.node().__data__;
+  }
+
+  function dispatchEvent(node, type, params) {
+    var window = defaultView(node),
+        event = window.CustomEvent;
+
+    if (event) {
+      event = new event(type, params);
+    } else {
+      event = window.document.createEvent("Event");
+      if (params) event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail;
+      else event.initEvent(type, false, false);
+    }
+
+    node.dispatchEvent(event);
+  }
+
+  function dispatchConstant(type, params) {
+    return function() {
+      return dispatchEvent(this, type, params);
+    };
+  }
+
+  function dispatchFunction(type, params) {
+    return function() {
+      return dispatchEvent(this, type, params.apply(this, arguments));
+    };
+  }
+
+  function selection_dispatch(type, params) {
+    return this.each((typeof params === "function"
+        ? dispatchFunction
+        : dispatchConstant)(type, params));
   }
 
   var root = [null];
@@ -938,7 +938,7 @@
     return points;
   }
 
-  var version = "0.6.3";
+  var version = "0.6.5";
 
   exports.version = version;
   exports.mouse = mouse;
