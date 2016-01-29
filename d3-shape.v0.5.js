@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
-  typeof define === 'function' && define.amd ? define('d3-shape', ['exports', 'd3-path'], factory) :
-  factory((global.d3_shape = {}),global.d3_path);
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
+  (factory((global.d3_shape = {}),global.d3_path));
 }(this, function (exports,d3Path) { 'use strict';
 
   function constant(x) {
@@ -614,40 +614,43 @@
     return l.curve(curveLinear);
   }
 
-  var c = -0.5;
-  var s = Math.sqrt(3) / 2;
-  var k = 1 / Math.sqrt(12);
-  var a = (k / 2 + 1) * 3;
-  var wye = {
+  var circle = {
     draw: function(context, size) {
-      var r = Math.sqrt(size / a),
-          x0 = r / 2,
-          y0 = r * k,
-          x1 = x0,
-          y1 = r * k + r,
-          x2 = -x1,
-          y2 = y1;
-      context.moveTo(x0, y0);
-      context.lineTo(x1, y1);
-      context.lineTo(x2, y2);
-      context.lineTo(c * x0 - s * y0, s * x0 + c * y0);
-      context.lineTo(c * x1 - s * y1, s * x1 + c * y1);
-      context.lineTo(c * x2 - s * y2, s * x2 + c * y2);
-      context.lineTo(c * x0 + s * y0, c * y0 - s * x0);
-      context.lineTo(c * x1 + s * y1, c * y1 - s * x1);
-      context.lineTo(c * x2 + s * y2, c * y2 - s * x2);
+      var r = Math.sqrt(size / pi);
+      context.moveTo(r, 0);
+      context.arc(0, 0, r, 0, tau);
+    }
+  };
+
+  var cross = {
+    draw: function(context, size) {
+      var r = Math.sqrt(size / 5) / 2;
+      context.moveTo(-3 * r, -r);
+      context.lineTo(-r, -r);
+      context.lineTo(-r, -3 * r);
+      context.lineTo(r, -3 * r);
+      context.lineTo(r, -r);
+      context.lineTo(3 * r, -r);
+      context.lineTo(3 * r, r);
+      context.lineTo(r, r);
+      context.lineTo(r, 3 * r);
+      context.lineTo(-r, 3 * r);
+      context.lineTo(-r, r);
+      context.lineTo(-3 * r, r);
       context.closePath();
     }
   };
 
-  var sqrt3 = Math.sqrt(3);
-
-  var triangle = {
+  var tan30 = Math.sqrt(1 / 3);
+  var tan30_2 = tan30 * 2;
+  var diamond = {
     draw: function(context, size) {
-      var y = -Math.sqrt(size / (sqrt3 * 3));
-      context.moveTo(0, y * 2);
-      context.lineTo(-sqrt3 * y, -y);
-      context.lineTo(sqrt3 * y, -y);
+      var y = Math.sqrt(size / tan30_2),
+          x = y * tan30;
+      context.moveTo(0, -y);
+      context.lineTo(x, 0);
+      context.lineTo(0, y);
+      context.lineTo(-x, 0);
       context.closePath();
     }
   };
@@ -682,44 +685,41 @@
     }
   };
 
-  var tan30 = Math.sqrt(1 / 3);
-  var tan30_2 = tan30 * 2;
-  var diamond = {
+  var sqrt3 = Math.sqrt(3);
+
+  var triangle = {
     draw: function(context, size) {
-      var y = Math.sqrt(size / tan30_2),
-          x = y * tan30;
-      context.moveTo(0, -y);
-      context.lineTo(x, 0);
-      context.lineTo(0, y);
-      context.lineTo(-x, 0);
+      var y = -Math.sqrt(size / (sqrt3 * 3));
+      context.moveTo(0, y * 2);
+      context.lineTo(-sqrt3 * y, -y);
+      context.lineTo(sqrt3 * y, -y);
       context.closePath();
     }
   };
 
-  var cross = {
+  var c = -0.5;
+  var s = Math.sqrt(3) / 2;
+  var k = 1 / Math.sqrt(12);
+  var a = (k / 2 + 1) * 3;
+  var wye = {
     draw: function(context, size) {
-      var r = Math.sqrt(size / 5) / 2;
-      context.moveTo(-3 * r, -r);
-      context.lineTo(-r, -r);
-      context.lineTo(-r, -3 * r);
-      context.lineTo(r, -3 * r);
-      context.lineTo(r, -r);
-      context.lineTo(3 * r, -r);
-      context.lineTo(3 * r, r);
-      context.lineTo(r, r);
-      context.lineTo(r, 3 * r);
-      context.lineTo(-r, 3 * r);
-      context.lineTo(-r, r);
-      context.lineTo(-3 * r, r);
+      var r = Math.sqrt(size / a),
+          x0 = r / 2,
+          y0 = r * k,
+          x1 = x0,
+          y1 = r * k + r,
+          x2 = -x1,
+          y2 = y1;
+      context.moveTo(x0, y0);
+      context.lineTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.lineTo(c * x0 - s * y0, s * x0 + c * y0);
+      context.lineTo(c * x1 - s * y1, s * x1 + c * y1);
+      context.lineTo(c * x2 - s * y2, s * x2 + c * y2);
+      context.lineTo(c * x0 + s * y0, c * y0 - s * x0);
+      context.lineTo(c * x1 + s * y1, c * y1 - s * x1);
+      context.lineTo(c * x2 + s * y2, c * y2 - s * x2);
       context.closePath();
-    }
-  };
-
-  var circle = {
-    draw: function(context, size) {
-      var r = Math.sqrt(size / pi);
-      context.moveTo(r, 0);
-      context.arc(0, 0, r, 0, tau);
     }
   };
 
@@ -1697,7 +1697,7 @@
     return none$1(series).reverse();
   }
 
-  var version = "0.5.0";
+  var version = "0.5.1";
 
   exports.version = version;
   exports.arc = arc;
