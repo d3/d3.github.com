@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
-  typeof define === 'function' && define.amd ? define('d3-time-format', ['exports', 'd3-time'], factory) :
-  factory((global.d3_time_format = {}),global.d3_time);
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
+  (factory((global.d3_time_format = {}),global.d3_time));
 }(this, function (exports,d3Time) { 'use strict';
 
   function localDate(d) {
@@ -315,7 +315,7 @@
         return p;
       }
     };
-  };
+  }
 
   var pads = {"-": "", "_": " ", "0": "0"};
   var numberRe = /^\s*\d+/;
@@ -797,7 +797,7 @@
   var utcFormat = locale.utcFormat;
   var utcParse = locale.utcParse;
 
-  var version = "0.3.0";
+  var version = "0.3.1";
 
   exports.version = version;
   exports.timeFormat = timeFormat;
