@@ -1,12 +1,12 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-collection'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
-  typeof define === 'function' && define.amd ? define('d3-scale', ['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-collection', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
-  factory((global.d3_scale = {}),global.d3_array,global.d3_interpolate,global.d3_format,global.d3_collection,global.d3_time,global.d3_time_format,global.d3_color);
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-collection', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
+  (factory((global.d3_scale = {}),global.d3_array,global.d3_interpolate,global.d3_format,global.d3_collection,global.d3_time,global.d3_time_format,global.d3_color));
 }(this, function (exports,d3Array,d3Interpolate,d3Format,d3Collection,d3Time,d3TimeFormat,d3Color) { 'use strict';
 
   var array = Array.prototype;
 
-  var map = array.map;
+  var map$1 = array.map;
   var slice = array.slice;
 
   var implicit = {name: "implicit"};
@@ -247,7 +247,7 @@
     };
 
     scale.domain = function(_) {
-      return arguments.length ? (domain = map.call(_, number), rescale()) : domain.slice();
+      return arguments.length ? (domain = map$1.call(_, number), rescale()) : domain.slice();
     };
 
     scale.range = function(_) {
@@ -351,7 +351,7 @@
     scale.invert = scale;
 
     scale.domain = scale.range = function(_) {
-      return arguments.length ? (domain = map.call(_, number), scale) : domain.slice();
+      return arguments.length ? (domain = map$1.call(_, number), scale) : domain.slice();
     };
 
     scale.copy = function() {
@@ -541,7 +541,7 @@
     return pow().exponent(0.5);
   }
 
-  function quantile() {
+  function quantile$1() {
     var domain = [],
         range = [],
         thresholds = [];
@@ -582,7 +582,7 @@
     };
 
     scale.copy = function() {
-      return quantile()
+      return quantile$1()
           .domain(domain)
           .range(range);
     };
@@ -814,7 +814,7 @@
     return ordinal().range(colors("1f77b4aec7e8ff7f0effbb782ca02c98df8ad62728ff98969467bdc5b0d58c564bc49c94e377c2f7b6d27f7f7fc7c7c7bcbd22dbdb8d17becf9edae5"));
   }
 
-  function cubehelix() {
+  function cubehelix$1() {
     return linear()
         .interpolate(d3Interpolate.interpolateCubehelixLong)
         .range([d3Color.cubehelix(300, 0.5, 0.0), d3Color.cubehelix(-240, 0.5, 1.0)]);
@@ -898,7 +898,7 @@
     return ramp(rangePlasma);
   }
 
-  var version = "0.5.2";
+  var version = "0.5.3";
 
   exports.version = version;
   exports.scaleBand = band;
@@ -910,7 +910,7 @@
   exports.scaleImplicit = implicit;
   exports.scalePow = pow;
   exports.scaleSqrt = sqrt;
-  exports.scaleQuantile = quantile;
+  exports.scaleQuantile = quantile$1;
   exports.scaleQuantize = quantize;
   exports.scaleThreshold = threshold;
   exports.scaleTime = time;
@@ -919,7 +919,7 @@
   exports.scaleCategory20b = category20b;
   exports.scaleCategory20c = category20c;
   exports.scaleCategory20 = category20;
-  exports.scaleCubehelix = cubehelix;
+  exports.scaleCubehelix = cubehelix$1;
   exports.scaleRainbow = rainbow;
   exports.scaleWarm = warm;
   exports.scaleCool = cool;
