@@ -1,10 +1,10 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
-  typeof define === 'function' && define.amd ? define('d3-interpolate', ['exports', 'd3-color'], factory) :
-  factory((global.d3_interpolate = {}),global.d3_color);
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
+  (factory((global.d3_interpolate = {}),global.d3_color));
 }(this, function (exports,d3Color) { 'use strict';
 
-  function rgb(a, b) {
+  function rgb$1(a, b) {
     a = d3Color.rgb(a);
     b = d3Color.rgb(b);
     var ar = a.r,
@@ -19,7 +19,7 @@
       a.b = ab + bb * t;
       return a + "";
     };
-  };
+  }
 
   // TODO sparse arrays?
   function array(a, b) {
@@ -38,13 +38,13 @@
       for (i = 0; i < n0; ++i) c[i] = x[i](t);
       return c;
     };
-  };
+  }
 
   function number(a, b) {
     return a = +a, b -= a, function(t) {
       return a + b * t;
     };
-  };
+  }
 
   function object(a, b) {
     var i = {},
@@ -72,7 +72,7 @@
       for (k in i) c[k] = i[k](t);
       return c;
     };
-  };
+  }
 
   var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g;
   var reB = new RegExp(reA.source, "g");
@@ -134,13 +134,13 @@
             for (var i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t);
             return s.join("");
           });
-  };
+  }
 
   var values = [
     function(a, b) {
       var t = typeof b, c;
-      return (t === "string" ? ((c = d3Color.color(b)) ? (b = c, rgb) : string)
-          : b instanceof d3Color.color ? rgb
+      return (t === "string" ? ((c = d3Color.color(b)) ? (b = c, rgb$1) : string)
+          : b instanceof d3Color.color ? rgb$1
           : Array.isArray(b) ? array
           : t === "object" && isNaN(b) ? object
           : number)(a, b);
@@ -151,13 +151,13 @@
     var i = values.length, f;
     while (--i >= 0 && !(f = values[i](a, b)));
     return f;
-  };
+  }
 
   function round(a, b) {
     return a = +a, b -= a, function(t) {
       return Math.round(a + b * t);
     };
-  };
+  }
 
   var rad2deg = 180 / Math.PI;
   var identity = {a: 1, b: 0, c: 0, d: 1, e: 0, f: 0};
@@ -260,7 +260,7 @@
       while (++i < n) s[(o = q[i]).i] = o.x(t);
       return s.join("");
     };
-  };
+  }
 
   var rho = Math.SQRT2;
   var rho2 = 2;
@@ -324,16 +324,16 @@
     i.duration = S * 1000;
 
     return i;
-  };
+  }
 
   function deltaHue(h1, h0) {
     var delta = h1 - h0;
     return delta > 180 || delta < -180
         ? delta - 360 * Math.round(delta / 360)
         : delta;
-  };
+  }
 
-  function hsl(a, b) {
+  function hsl$1(a, b) {
     a = d3Color.hsl(a);
     b = d3Color.hsl(b);
     var ah = isNaN(a.h) ? b.h : a.h,
@@ -348,7 +348,7 @@
       a.l = al + bl * t;
       return a + "";
     };
-  };
+  }
 
   function hslLong(a, b) {
     a = d3Color.hsl(a);
@@ -365,9 +365,9 @@
       a.l = al + bl * t;
       return a + "";
     };
-  };
+  }
 
-  function lab(a, b) {
+  function lab$1(a, b) {
     a = d3Color.lab(a);
     b = d3Color.lab(b);
     var al = a.l,
@@ -382,9 +382,9 @@
       a.b = ab + bb * t;
       return a + "";
     };
-  };
+  }
 
-  function hcl(a, b) {
+  function hcl$1(a, b) {
     a = d3Color.hcl(a);
     b = d3Color.hcl(b);
     var ah = isNaN(a.h) ? b.h : a.h,
@@ -399,7 +399,7 @@
       a.l = al + bl * t;
       return a + "";
     };
-  };
+  }
 
   function hclLong(a, b) {
     a = d3Color.hcl(a);
@@ -416,10 +416,10 @@
       a.l = al + bl * t;
       return a + "";
     };
-  };
+  }
 
-  function cubehelix(a, b, gamma) {
-    if (arguments.length < 3) gamma = 1;
+  function cubehelix$1(a, b, gamma) {
+    gamma = gamma == null ? 1 : +gamma;
     a = d3Color.cubehelix(a);
     b = d3Color.cubehelix(b);
     var ah = isNaN(a.h) ? b.h : a.h,
@@ -434,10 +434,10 @@
       a.l = al + bl * Math.pow(t, gamma);
       return a + "";
     };
-  };
+  }
 
   function cubehelixLong(a, b, gamma) {
-    if (arguments.length < 3) gamma = 1;
+    gamma = gamma == null ? 1 : +gamma;
     a = d3Color.cubehelix(a);
     b = d3Color.cubehelix(b);
     var ah = isNaN(a.h) ? b.h : a.h,
@@ -452,7 +452,7 @@
       a.l = al + bl * Math.pow(t, gamma);
       return a + "";
     };
-  };
+  }
 
   var slice = Array.prototype.slice;
 
@@ -469,9 +469,9 @@
 
   function bind(type) {
     return arguments.length === 1 ? type : bindN(type, arguments);
-  };
+  }
 
-  var version = "0.4.0";
+  var version = "0.4.1";
 
   exports.version = version;
   exports.interpolate = value;
@@ -483,13 +483,13 @@
   exports.interpolateString = string;
   exports.interpolateTransform = transform;
   exports.interpolateZoom = zoom;
-  exports.interpolateRgb = rgb;
-  exports.interpolateHsl = hsl;
+  exports.interpolateRgb = rgb$1;
+  exports.interpolateHsl = hsl$1;
   exports.interpolateHslLong = hslLong;
-  exports.interpolateLab = lab;
-  exports.interpolateHcl = hcl;
+  exports.interpolateLab = lab$1;
+  exports.interpolateHcl = hcl$1;
   exports.interpolateHclLong = hclLong;
-  exports.interpolateCubehelix = cubehelix;
+  exports.interpolateCubehelix = cubehelix$1;
   exports.interpolateCubehelixLong = cubehelixLong;
   exports.interpolateBind = bind;
 
