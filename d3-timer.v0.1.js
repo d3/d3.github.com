@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-timer', ['exports'], factory) :
-  factory((global.d3_timer = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_timer = {})));
 }(this, function (exports) { 'use strict';
 
   var frame = 0;
@@ -49,7 +49,7 @@
 
   function timer(callback, delay, time) {
     return new Timer(callback, delay, time);
-  };
+  }
 
   function timerFlush(time) {
     time = time == null ? Date.now() : +time;
@@ -63,7 +63,7 @@
     } finally {
       --frame;
     }
-  };
+  }
 
   function wake() {
     frame = timeout = 0;
@@ -92,7 +92,7 @@
     else frame = 1, setFrame(wake);
   }
 
-  var version = "0.1.0";
+  var version = "0.1.1";
 
   exports.version = version;
   exports.timer = timer;
