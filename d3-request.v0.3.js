@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-dispatch'), require('d3-dsv')) :
-  typeof define === 'function' && define.amd ? define('d3-request', ['exports', 'd3-collection', 'd3-dispatch', 'd3-dsv'], factory) :
-  factory((global.d3_request = {}),global.d3_collection,global.d3_dispatch,global.d3_dsv);
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-dispatch', 'd3-dsv'], factory) :
+  (factory((global.d3_request = {}),global.d3_collection,global.d3_dispatch,global.d3_dsv));
 }(this, function (exports,d3Collection,d3Dispatch,d3Dsv) { 'use strict';
 
   function request(url, callback) {
@@ -181,11 +181,11 @@
     };
   }
 
-  var csv = requestDsv("text/csv", d3Dsv.csv);
+  var csv$1 = requestDsv("text/csv", d3Dsv.csv);
 
-  var tsv = requestDsv("text/tab-separated-values", d3Dsv.tsv);
+  var tsv$1 = requestDsv("text/tab-separated-values", d3Dsv.tsv);
 
-  var version = "0.3.1";
+  var version = "0.3.2";
 
   exports.version = version;
   exports.request = request;
@@ -193,7 +193,7 @@
   exports.requestJson = json;
   exports.requestText = text;
   exports.requestXml = xml;
-  exports.requestCsv = csv;
-  exports.requestTsv = tsv;
+  exports.requestCsv = csv$1;
+  exports.requestTsv = tsv$1;
 
 }));
