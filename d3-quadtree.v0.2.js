@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-quadtree', ['exports'], factory) :
-  factory((global.d3_quadtree = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_quadtree = {})));
 }(this, function (exports) { 'use strict';
 
   function pointX(p) {
@@ -239,9 +239,9 @@
     };
 
     return quadtree;
-  };
+  }
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.quadtree = quadtree;
