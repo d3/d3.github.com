@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-format', ['exports'], factory) :
-  factory((global.d3_format = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_format = {})));
 }(this, function (exports) { 'use strict';
 
   // Computes the decimal coefficient and exponent of the specified number x with
@@ -17,11 +17,11 @@
       coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient,
       +x.slice(i + 1)
     ];
-  };
+  }
 
   function exponent(x) {
     return x = formatDecimal(Math.abs(x)), x ? x[1] : NaN;
-  };
+  }
 
   function formatGroup(grouping, thousands) {
     return function(value, width) {
@@ -40,32 +40,7 @@
 
       return t.reverse().join(thousands);
     };
-  };
-
-  var prefixExponent;
-
-  function formatPrefixAuto(x, p) {
-    var d = formatDecimal(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0],
-        exponent = d[1],
-        i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
-        n = coefficient.length;
-    return i === n ? coefficient
-        : i > n ? coefficient + new Array(i - n + 1).join("0")
-        : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i)
-        : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
-  };
-
-  function formatRounded(x, p) {
-    var d = formatDecimal(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0],
-        exponent = d[1];
-    return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient
-        : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
-        : coefficient + new Array(exponent - coefficient.length + 2).join("0");
-  };
+  }
 
   function formatDefault(x, p) {
     x = x.toPrecision(p);
@@ -80,7 +55,32 @@
     }
 
     return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
-  };
+  }
+
+  var prefixExponent;
+
+  function formatPrefixAuto(x, p) {
+    var d = formatDecimal(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0],
+        exponent = d[1],
+        i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
+        n = coefficient.length;
+    return i === n ? coefficient
+        : i > n ? coefficient + new Array(i - n + 1).join("0")
+        : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i)
+        : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
+  }
+
+  function formatRounded(x, p) {
+    var d = formatDecimal(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0],
+        exponent = d[1];
+    return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient
+        : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
+        : coefficient + new Array(exponent - coefficient.length + 2).join("0");
+  }
 
   var formatTypes = {
     "": formatDefault,
@@ -104,7 +104,7 @@
 
   function formatSpecifier(specifier) {
     return new FormatSpecifier(specifier);
-  };
+  }
 
   function FormatSpecifier(specifier) {
     if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
@@ -197,7 +197,8 @@
 
       function format(value) {
         var valuePrefix = prefix,
-            valueSuffix = suffix;
+            valueSuffix = suffix,
+            i, n, c;
 
         if (type === "c") {
           valueSuffix = formatType(value) + valueSuffix;
@@ -215,7 +216,7 @@
           // If the original value was negative, it may be rounded to zero during
           // formatting; treat this as (positive) zero.
           if (valueNegative) {
-            var i = -1, n = value.length, c;
+            i = -1, n = value.length;
             valueNegative = false;
             while (++i < n) {
               if (c = value.charCodeAt(i), (48 < c && c < 58)
@@ -234,7 +235,7 @@
           // Break the formatted value into the integer “value” part that can be
           // grouped, and fractional or exponential “suffix” part that is not.
           if (maybeSuffix) {
-            var i = -1, n = value.length, c;
+            i = -1, n = value.length;
             while (++i < n) {
               if (c = value.charCodeAt(i), 48 > c || c > 57) {
                 valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
@@ -262,7 +263,7 @@
           case "^": return padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);
         }
         return padding + valuePrefix + value + valueSuffix;
-      };
+      }
 
       format.toString = function() {
         return specifier + "";
@@ -285,7 +286,7 @@
       format: newFormat,
       formatPrefix: formatPrefix
     };
-  };
+  }
 
   var defaultLocale = locale({
     decimal: ".",
@@ -305,7 +306,7 @@
     decimal: ",",
     thousands: "\xa0",
     grouping: [3],
-    currency: ["", "\xa0Kč"],
+    currency: ["", "\xa0Kč"]
   });
 
   var deCH = locale({
@@ -450,21 +451,21 @@
 
   function precisionFixed(step) {
     return Math.max(0, -exponent(Math.abs(step)));
-  };
+  }
 
   function precisionPrefix(step, value) {
     return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)));
-  };
+  }
 
   function precisionRound(step, max) {
     step = Math.abs(step), max = Math.abs(max) - step;
     return Math.max(0, exponent(max) - exponent(step)) + 1;
-  };
+  }
 
   var format = defaultLocale.format;
   var formatPrefix = defaultLocale.formatPrefix;
 
-  var version = "0.5.0";
+  var version = "0.5.1";
 
   exports.version = version;
   exports.format = format;
