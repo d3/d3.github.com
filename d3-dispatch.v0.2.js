@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-dispatch', ['exports'], factory) :
-  factory((global.d3_dispatch = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_dispatch = {})));
 }(this, function (exports) { 'use strict';
 
   function dispatch() {
@@ -51,7 +51,8 @@
         for (var otherType in callbacksByType) {
           if (callback = callbackByName[otherType + type.name]) {
             callback.value = null;
-            var callbacks = callbacksByType[otherType], i = callbacks.indexOf(callback);
+            callbacks = callbacksByType[otherType];
+            i = callbacks.indexOf(callback);
             callbacksByType[otherType] = callbacks.slice(0, i).concat(callbacks.slice(i + 1));
             delete callbackByName[callback.name];
           }
@@ -78,13 +79,12 @@
     function applier(type) {
       return function() {
         var callbacks = callbacksByType[type], // Defensive reference; copy-on-remove.
-            callback,
             callbackValue,
             i = -1,
             n = callbacks.length;
 
         while (++i < n) {
-          if (callbackValue = (callback = callbacks[i]).value) {
+          if (callbackValue = callbacks[i].value) {
             callbackValue.apply(this, arguments);
           }
         }
@@ -96,7 +96,7 @@
 
   dispatch.prototype = Dispatch.prototype;
 
-  var version = "0.2.5";
+  var version = "0.2.6";
 
   exports.version = version;
   exports.dispatch = dispatch;
