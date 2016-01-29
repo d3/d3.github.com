@@ -1,6 +1,6 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('topojson', ['exports'], factory) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.topojson = {})));
 }(this, function (exports) { 'use strict';
 
@@ -534,7 +534,7 @@
     return topology;
   }
 
-  var version = "1.6.21";
+  var version = "1.6.22";
 
   exports.version = version;
   exports.mesh = mesh;
