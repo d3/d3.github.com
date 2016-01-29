@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-polygon', ['exports'], factory) :
-  factory((global.d3_polygon = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_polygon = {})));
 }(this, function (exports) { 'use strict';
 
   function area(polygon) {
@@ -18,7 +18,7 @@
     }
 
     return area / 2;
-  };
+  }
 
   function centroid(polygon) {
     var i = -1,
@@ -39,7 +39,7 @@
     }
 
     return k *= 3, [x / k, y / k];
-  };
+  }
 
   // Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
   // the 3D cross product in a quadrant I Cartesian coordinate system (+x is
@@ -47,7 +47,7 @@
   // negative if clockwise, and zero if the points are collinear.
   function cross(a, b, c) {
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-  };
+  }
 
   function lexicographicOrder(a, b) {
     return a[0] - b[0] || a[1] - b[1];
@@ -95,7 +95,7 @@
     for (i = +skipLeft; i < lowerIndexes.length - skipRight; ++i) hull.push(points[sortedPoints[lowerIndexes[i]][2]]);
 
     return hull;
-  };
+  }
 
   function contains(polygon, point) {
     var n = polygon.length,
@@ -112,7 +112,7 @@
     }
 
     return inside;
-  };
+  }
 
   function length(polygon) {
     var i = -1,
@@ -136,9 +136,9 @@
     }
 
     return perimeter;
-  };
+  }
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.polygonArea = area;
