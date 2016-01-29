@@ -1,6 +1,6 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-queue', ['exports'], factory) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.d3_queue = {})));
 }(this, function (exports) { 'use strict';
 
@@ -109,7 +109,7 @@
     return newQueue(arguments.length ? +concurrency : Infinity);
   }
 
-  var version = "2.0.0";
+  var version = "2.0.1";
 
   exports.version = version;
   exports.queue = queue;
