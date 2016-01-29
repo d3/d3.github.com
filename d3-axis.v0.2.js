@@ -1,6 +1,6 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection')) :
-  typeof define === 'function' && define.amd ? define('d3-axis', ['exports', 'd3-selection'], factory) :
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection'], factory) :
   (factory((global.d3_axis = {}),global.d3_selection));
 }(this, function (exports,d3Selection) { 'use strict';
 
@@ -8,7 +8,7 @@
 
   function identity(x) {
     return x;
-  };
+  }
 
   var top = {};
   var right = {};
@@ -141,21 +141,21 @@
 
   function axisTop(scale) {
     return axis(top, scale);
-  };
+  }
 
   function axisRight(scale) {
     return axis(right, scale);
-  };
+  }
 
   function axisBottom(scale) {
     return axis(bottom, scale);
-  };
+  }
 
   function axisLeft(scale) {
     return axis(left, scale);
-  };
+  }
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   exports.version = version;
   exports.axisTop = axisTop;
