@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-dsv', ['exports'], factory) :
-  factory((global.d3_dsv = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_dsv = {})));
 }(this, function (exports) { 'use strict';
 
   function dsv(delimiter) {
@@ -65,7 +65,7 @@
         if (eol) return eol = false, EOL; // special case: end of line
 
         // special case: quotes
-        var j = I;
+        var j = I, c;
         if (text.charCodeAt(j) === 34) {
           var i = j;
           while (i++ < N) {
@@ -75,7 +75,7 @@
             }
           }
           I = i + 2;
-          var c = text.charCodeAt(i + 1);
+          c = text.charCodeAt(i + 1);
           if (c === 13) {
             eol = true;
             if (text.charCodeAt(i + 2) === 10) ++I;
@@ -87,7 +87,8 @@
 
         // common case: find next delimiter or newline
         while (I < N) {
-          var c = text.charCodeAt(I++), k = 1;
+          var k = 1;
+          c = text.charCodeAt(I++);
           if (c === 10) eol = true; // \n
           else if (c === 13) { eol = true; if (text.charCodeAt(I) === 10) ++I, ++k; } // \r|\r\n
           else if (c !== delimiterCode) continue;
@@ -112,7 +113,7 @@
     }
 
     this.format = function(rows, columns) {
-      if (arguments.length < 2) columns = inferColumns(rows);
+      if (columns == null) columns = inferColumns(rows);
       return [columns.map(formatValue).join(delimiter)].concat(rows.map(function(row) {
         return columns.map(function(column) {
           return formatValue(row[column]);
@@ -131,14 +132,14 @@
     function formatValue(text) {
       return reFormat.test(text) ? "\"" + text.replace(/\"/g, "\"\"") + "\"" : text;
     }
-  };
+  }
 
   dsv.prototype = Dsv.prototype;
 
   var csv = dsv(",");
   var tsv = dsv("\t");
 
-  var version = "0.1.13";
+  var version = "0.1.14";
 
   exports.version = version;
   exports.dsv = dsv;
