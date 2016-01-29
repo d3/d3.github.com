@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-collection', ['exports'], factory) :
-  factory((global.d3_collection = {}));
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global.d3_collection = {})));
 }(this, function (exports) { 'use strict';
 
   var prefix = "$";
@@ -67,7 +67,7 @@
           n = object.length,
           o;
 
-      if (arguments.length === 1) while (++i < n) map.set(i, object[i]);
+      if (f == null) while (++i < n) map.set(i, object[i]);
       else while (++i < n) map.set(f(o = object[i], i, object), o);
     }
 
@@ -138,7 +138,7 @@
       sortValues: function(order) { sortValues = order; return nest; },
       rollup: function(f) { rollup = f; return nest; }
     };
-  };
+  }
 
   function createObject() {
     return {};
@@ -183,9 +183,9 @@
 
     // Otherwise, assume it’s an array.
     else if (object) {
-      var i = -1, n = object.length, o;
-      if (arguments.length === 1) while (++i < n) set.add(object[i]);
-      else while (++i < n) set.add(f(o = object[i], i, object));
+      var i = -1, n = object.length;
+      if (f == null) while (++i < n) set.add(object[i]);
+      else while (++i < n) set.add(f(object[i], i, object));
     }
 
     return set;
@@ -195,21 +195,21 @@
     var keys = [];
     for (var key in map) keys.push(key);
     return keys;
-  };
+  }
 
   function values(map) {
     var values = [];
     for (var key in map) values.push(map[key]);
     return values;
-  };
+  }
 
   function entries(map) {
     var entries = [];
     for (var key in map) entries.push({key: key, value: map[key]});
     return entries;
-  };
+  }
 
-  var version = "0.1.0";
+  var version = "0.1.1";
 
   exports.version = version;
   exports.nest = nest;
