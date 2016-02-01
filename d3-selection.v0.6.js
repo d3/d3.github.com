@@ -4,6 +4,66 @@
   (factory((global.d3_selection = {})));
 }(this, function (exports) { 'use strict';
 
+  var namespaces = {
+    svg: "http://www.w3.org/2000/svg",
+    xhtml: "http://www.w3.org/1999/xhtml",
+    xlink: "http://www.w3.org/1999/xlink",
+    xml: "http://www.w3.org/XML/1998/namespace",
+    xmlns: "http://www.w3.org/2000/xmlns/"
+  };
+
+  function namespace(name) {
+    var prefix = name += "", i = prefix.indexOf(":");
+    if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+    return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
+  }
+
+  function creatorInherit(name) {
+    return function() {
+      var document = this.ownerDocument,
+          uri = this.namespaceURI;
+      return uri && uri !== document.documentElement.namespaceURI
+          ? document.createElementNS(uri, name)
+          : document.createElement(name);
+    };
+  }
+
+  function creatorFixed(fullname) {
+    return function() {
+      return this.ownerDocument.createElementNS(fullname.space, fullname.local);
+    };
+  }
+
+  function creator(name) {
+    var fullname = namespace(name);
+    return (fullname.local
+        ? creatorFixed
+        : creatorInherit)(fullname);
+  }
+
+  var matcher = function(selector) {
+    return function() {
+      return this.matches(selector);
+    };
+  };
+
+  if (typeof document !== "undefined") {
+    var element = document.documentElement;
+    if (!element.matches) {
+      var vendorMatches = element.webkitMatchesSelector
+          || element.msMatchesSelector
+          || element.mozMatchesSelector
+          || element.oMatchesSelector;
+      matcher = function(selector) {
+        return function() {
+          return vendorMatches.call(this, selector);
+        };
+      };
+    }
+  }
+
+  var matcher$1 = matcher;
+
   var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
 
   function requote(string) {
@@ -17,8 +77,8 @@
   exports.event = null;
 
   if (typeof document !== "undefined") {
-    var element = document.documentElement;
-    if (!("onmouseenter" in element)) {
+    var element$1 = document.documentElement;
+    if (!("onmouseenter" in element$1)) {
       filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
     }
   }
@@ -149,29 +209,6 @@
 
     return new Selection(subgroups, parents);
   }
-
-  var matcher = function(selector) {
-    return function() {
-      return this.matches(selector);
-    };
-  };
-
-  if (typeof document !== "undefined") {
-    var element$1 = document.documentElement;
-    if (!element$1.matches) {
-      var vendorMatches = element$1.webkitMatchesSelector
-          || element$1.msMatchesSelector
-          || element$1.mozMatchesSelector
-          || element$1.oMatchesSelector;
-      matcher = function(selector) {
-        return function() {
-          return vendorMatches.call(this, selector);
-        };
-      };
-    }
-  }
-
-  var matcher$1 = matcher;
 
   function selection_filter(match) {
     if (typeof match !== "function") match = matcher$1(match);
@@ -456,20 +493,6 @@
     return this;
   }
 
-  var namespaces = {
-    svg: "http://www.w3.org/2000/svg",
-    xhtml: "http://www.w3.org/1999/xhtml",
-    xlink: "http://www.w3.org/1999/xlink",
-    xml: "http://www.w3.org/XML/1998/namespace",
-    xmlns: "http://www.w3.org/2000/xmlns/"
-  };
-
-  function namespace(name) {
-    var prefix = name += "", i = prefix.indexOf(":");
-    if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
-    return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
-  }
-
   function attrRemove(name) {
     return function() {
       this.removeAttribute(name);
@@ -731,29 +754,6 @@
     return this.each(lower);
   }
 
-  function creatorInherit(name) {
-    return function() {
-      var document = this.ownerDocument,
-          uri = this.namespaceURI;
-      return uri && uri !== document.documentElement.namespaceURI
-          ? document.createElementNS(uri, name)
-          : document.createElement(name);
-    };
-  }
-
-  function creatorFixed(fullname) {
-    return function() {
-      return this.ownerDocument.createElementNS(fullname.space, fullname.local);
-    };
-  }
-
-  function creator(name) {
-    var fullname = namespace(name);
-    return (fullname.local
-        ? creatorFixed
-        : creatorInherit)(fullname);
-  }
-
   function append(create) {
     return function() {
       return this.appendChild(create.apply(this, arguments));
@@ -938,15 +938,19 @@
     return points;
   }
 
-  var version = "0.6.6";
+  var version = "0.6.7";
 
   exports.version = version;
+  exports.creator = creator;
+  exports.matcher = matcher$1;
   exports.mouse = mouse;
   exports.namespace = namespace;
   exports.namespaces = namespaces;
   exports.select = select;
   exports.selectAll = selectAll;
   exports.selection = selection;
+  exports.selector = selector;
+  exports.selectorAll = selectorAll;
   exports.touch = touch;
   exports.touches = touches;
 
