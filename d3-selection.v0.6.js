@@ -116,11 +116,11 @@
   function selection_select(select) {
     if (typeof select !== "function") select = selector(select);
 
-    for (var groups = this._nodes, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var groups = this._groups, update = this._update, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
         if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
           if ("__data__" in node) subnode.__data__ = node.__data__;
-          if (update) update._nodes[j][i] = subnode;
+          if (update) update._groups[j][i] = subnode;
           subgroup[i] = subnode;
         }
       }
@@ -138,7 +138,7 @@
   function selection_selectAll(select) {
     if (typeof select !== "function") select = selectorAll(select);
 
-    for (var groups = this._nodes, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+    for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if (node = group[i]) {
           subgroups.push(select.call(node, node.__data__, i, group));
@@ -176,7 +176,7 @@
   function selection_filter(match) {
     if (typeof match !== "function") match = matcher$1(match);
 
-    for (var groups = this._nodes, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
         if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
           subgroup.push(node);
@@ -189,7 +189,7 @@
 
   function arrayify(selection) {
 
-    for (var groups = selection._nodes, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = selection._groups, j = 0, m = groups.length; j < m; ++j) {
       if (!Array.isArray(group = groups[j])) {
         for (var n = group.length, array = groups[j] = new Array(n), group, i = 0; i < n; ++i) {
           array[i] = group[i];
@@ -319,8 +319,8 @@
     var bind = key ? bindKey : bindIndex,
         parents = this._parents,
         update = arrayify(this),
-        enter = (this._enter = this.enter())._nodes,
-        exit = (this._exit = this.exit())._nodes;
+        enter = (this._enter = this.enter())._groups,
+        exit = (this._exit = this.exit())._groups;
 
     if (typeof value !== "function") value = constant(value);
 
@@ -367,7 +367,7 @@
   function selection_enter() {
     var enter = this._enter;
     if (enter) return this._enter = null, enter;
-    enter = new Selection(this._nodes.map(sparse), this._parents);
+    enter = new Selection(this._groups.map(sparse), this._parents);
     enter._update = this;
     return enter;
   }
@@ -375,12 +375,12 @@
   function selection_exit() {
     var exit = this._exit;
     if (exit) return this._exit = null, exit;
-    return new Selection(this._nodes.map(sparse), this._parents);
+    return new Selection(this._groups.map(sparse), this._parents);
   }
 
   function selection_order() {
 
-    for (var groups = this._nodes, j = -1, m = groups.length; ++j < m;) {
+    for (var groups = this._groups, j = -1, m = groups.length; ++j < m;) {
       for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
         if (node = group[i]) {
           if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
@@ -425,7 +425,7 @@
 
   function selection_node() {
 
-    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
       for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
         var node = group[i];
         if (node) return node;
@@ -447,7 +447,7 @@
 
   function selection_each(callback) {
 
-    for (var groups = this._nodes, j = 0, m = groups.length; j < m; ++j) {
+    for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
       for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
         if (node = group[i]) callback.call(node, node.__data__, i, group);
       }
@@ -830,8 +830,8 @@
 
   var root = [null];
 
-  function Selection(nodes, parents) {
-    this._nodes = nodes;
+  function Selection(groups, parents) {
+    this._groups = groups;
     this._parents = parents;
   }
 
@@ -938,7 +938,7 @@
     return points;
   }
 
-  var version = "0.6.5";
+  var version = "0.6.6";
 
   exports.version = version;
   exports.mouse = mouse;
