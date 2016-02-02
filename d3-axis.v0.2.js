@@ -155,7 +155,7 @@
     return axis(left, scale);
   }
 
-  var version = "0.2.2";
+  var version = "0.2.3";
 
   exports.version = version;
   exports.axisTop = axisTop;
