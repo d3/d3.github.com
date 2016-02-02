@@ -109,7 +109,7 @@
     return newQueue(arguments.length ? +concurrency : Infinity);
   }
 
-  var version = "2.0.1";
+  var version = "2.0.2";
 
   exports.version = version;
   exports.queue = queue;
