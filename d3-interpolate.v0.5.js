@@ -10,9 +10,15 @@
     var ar = a.r,
         ag = a.g,
         ab = a.b,
-        br = b.r - ar,
-        bg = b.g - ag,
-        bb = b.b - ab;
+        br = b.r || 0,
+        bg = b.g || 0,
+        bb = b.b || 0;
+    if (isNaN(ar)) ar = br;
+    if (isNaN(ag)) ag = bg;
+    if (isNaN(ab)) ab = bb;
+    br -= ar;
+    bg -= ag;
+    bb -= ab;
     return function(t) {
       a.r = ar + br * t;
       a.g = ag + bg * t;
@@ -20,6 +26,38 @@
       return a + "";
     };
   }
+
+  rgb$1.gamma = function gamma(y) {
+    y = +y;
+
+    function rgb(a, b) {
+      a = d3Color.rgb(a);
+      b = d3Color.rgb(b);
+      var ar = Math.pow(a.r, y),
+          ag = Math.pow(a.g, y),
+          ab = Math.pow(a.b, y),
+          br = Math.pow(b.r || 0, y),
+          bg = Math.pow(b.g || 0, y),
+          bb = Math.pow(b.b || 0, y);
+      if (isNaN(ar)) ar = br;
+      if (isNaN(ag)) ag = bg;
+      if (isNaN(ab)) ab = bb;
+      br -= ar;
+      bg -= ag;
+      bb -= ab;
+      y = 1 / y;
+      return function(t) {
+        a.r = Math.pow(ar + br * t, y);
+        a.g = Math.pow(ag + bg * t, y);
+        a.b = Math.pow(ab + bb * t, y);
+        return a + "";
+      };
+    }
+
+    rgb.gamma = gamma;
+
+    return rgb;
+  };
 
   // TODO sparse arrays?
   function array(a, b) {
@@ -336,12 +374,18 @@
   function hsl$1(a, b) {
     a = d3Color.hsl(a);
     b = d3Color.hsl(b);
-    var ah = isNaN(a.h) ? b.h : a.h,
-        as = isNaN(a.s) ? b.s : a.s,
+    var ah = a.h,
+        as = a.s,
         al = a.l,
-        bh = isNaN(b.h) ? 0 : deltaHue(b.h, ah),
-        bs = isNaN(b.s) ? 0 : b.s - as,
-        bl = b.l - al;
+        bh = b.h,
+        bs = b.s,
+        bl = b.l || 0;
+    if (isNaN(ah)) ah = bh;
+    if (isNaN(as)) as = bs;
+    if (isNaN(al)) al = bl;
+    bh = deltaHue(bh, ah) || 0;
+    bs = (bs - as) || 0;
+    bl -= al;
     return function(t) {
       a.h = ah + bh * t;
       a.s = as + bs * t;
@@ -353,12 +397,18 @@
   function hslLong(a, b) {
     a = d3Color.hsl(a);
     b = d3Color.hsl(b);
-    var ah = isNaN(a.h) ? b.h : a.h,
-        as = isNaN(a.s) ? b.s : a.s,
+    var ah = a.h,
+        as = a.s,
         al = a.l,
-        bh = isNaN(b.h) ? 0 : b.h - ah,
-        bs = isNaN(b.s) ? 0 : b.s - as,
-        bl = b.l - al;
+        bh = b.h,
+        bs = b.s,
+        bl = b.l || 0;
+    if (isNaN(ah)) ah = bh;
+    if (isNaN(as)) as = bs;
+    if (isNaN(al)) al = bl;
+    bh = (bh - ah) || 0;
+    bs = (bs - as) || 0;
+    bl -= al;
     return function(t) {
       a.h = ah + bh * t;
       a.s = as + bs * t;
@@ -373,9 +423,15 @@
     var al = a.l,
         aa = a.a,
         ab = a.b,
-        bl = b.l - al,
-        ba = b.a - aa,
-        bb = b.b - ab;
+        bl = b.l || 0,
+        ba = b.a || 0,
+        bb = b.b || 0;
+    if (isNaN(al)) al = bl;
+    if (isNaN(aa)) aa = ba;
+    if (isNaN(ab)) ab = bb;
+    bl -= al;
+    ba -= aa;
+    bb -= ab;
     return function(t) {
       a.l = al + bl * t;
       a.a = aa + ba * t;
@@ -387,12 +443,18 @@
   function hcl$1(a, b) {
     a = d3Color.hcl(a);
     b = d3Color.hcl(b);
-    var ah = isNaN(a.h) ? b.h : a.h,
-        ac = isNaN(a.c) ? b.c : a.c,
+    var ah = a.h,
+        ac = a.c,
         al = a.l,
-        bh = isNaN(b.h) ? 0 : deltaHue(b.h, ah),
-        bc = isNaN(b.c) ? 0 : b.c - ac,
-        bl = b.l - al;
+        bh = b.h,
+        bc = b.c,
+        bl = b.l || 0;
+    if (isNaN(ah)) ah = bh;
+    if (isNaN(ac)) ac = bc;
+    if (isNaN(al)) al = bl;
+    bh = deltaHue(bh, ah) || 0;
+    bc = (bc - ac) || 0;
+    bl -= al;
     return function(t) {
       a.h = ah + bh * t;
       a.c = ac + bc * t;
@@ -404,12 +466,18 @@
   function hclLong(a, b) {
     a = d3Color.hcl(a);
     b = d3Color.hcl(b);
-    var ah = isNaN(a.h) ? b.h : a.h,
-        ac = isNaN(a.c) ? b.c : a.c,
+    var ah = a.h,
+        ac = a.c,
         al = a.l,
-        bh = isNaN(b.h) ? 0 : b.h - ah,
-        bc = isNaN(b.c) ? 0 : b.c - ac,
-        bl = b.l - al;
+        bh = b.h,
+        bc = b.c,
+        bl = b.l || 0;
+    if (isNaN(ah)) ah = bh;
+    if (isNaN(ac)) ac = bc;
+    if (isNaN(al)) al = bl;
+    bh = (bh - ah) || 0;
+    bc = (bc - ac) || 0;
+    bl -= al;
     return function(t) {
       a.h = ah + bh * t;
       a.c = ac + bc * t;
@@ -424,12 +492,18 @@
     function cubehelix(a, b) {
       a = d3Color.cubehelix(a);
       b = d3Color.cubehelix(b);
-      var ah = isNaN(a.h) ? b.h : a.h,
-          as = isNaN(a.s) ? b.s : a.s,
+      var ah = a.h,
+          as = a.s,
           al = a.l,
-          bh = isNaN(b.h) ? 0 : deltaHue(b.h, ah),
-          bs = isNaN(b.s) ? 0 : b.s - as,
-          bl = b.l - al;
+          bh = b.h,
+          bs = b.s,
+          bl = b.l || 0;
+      if (isNaN(ah)) ah = bh;
+      if (isNaN(as)) as = bs;
+      if (isNaN(al)) al = bl;
+      bh = deltaHue(bh, ah) || 0;
+      bs = (bs - as) || 0;
+      bl -= al;
       return function(t) {
         a.h = ah + bh * t;
         a.s = as + bs * t;
@@ -449,12 +523,18 @@
     function cubehelix(a, b) {
       a = d3Color.cubehelix(a);
       b = d3Color.cubehelix(b);
-      var ah = isNaN(a.h) ? b.h : a.h,
-          as = isNaN(a.s) ? b.s : a.s,
+      var ah = a.h,
+          as = a.s,
           al = a.l,
-          bh = isNaN(b.h) ? 0 : b.h - ah,
-          bs = isNaN(b.s) ? 0 : b.s - as,
-          bl = b.l - al;
+          bh = b.h,
+          bs = b.s,
+          bl = b.l || 0;
+      if (isNaN(ah)) ah = bh;
+      if (isNaN(as)) as = bs;
+      if (isNaN(al)) al = bl;
+      bh = (bh - ah) || 0;
+      bs = (bs - as) || 0;
+      bl -= al;
       return function(t) {
         a.h = ah + bh * t;
         a.s = as + bs * t;
@@ -468,7 +548,7 @@
     return cubehelix;
   })(1);
 
-  var version = "0.5.0";
+  var version = "0.5.1";
 
   exports.version = version;
   exports.interpolate = value;
