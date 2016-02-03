@@ -180,44 +180,44 @@
   function color(format) {
     var m;
     format = (format + "").trim().toLowerCase();
-    return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), new Rgb((m >> 8 & 0xf) | (m >> 4 & 0x0f0), (m >> 4 & 0xf) | (m & 0xf0), ((m & 0xf) << 4) | (m & 0xf))) // #f00
+    return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), new Rgb((m >> 8 & 0xf) | (m >> 4 & 0x0f0), (m >> 4 & 0xf) | (m & 0xf0), ((m & 0xf) << 4) | (m & 0xf), 1)) // #f00
         : (m = reHex6.exec(format)) ? rgbn(parseInt(m[1], 16)) // #ff0000
-        : (m = reRgbInteger.exec(format)) ? new Rgb(m[1], m[2], m[3]) // rgb(255, 0, 0)
-        : (m = reRgbPercent.exec(format)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100) // rgb(100%, 0%, 0%)
-        : (m = reRgbaInteger.exec(format)) ? new Rgb(m[1], m[2], m[3], m[4]) // rgba(255, 0, 0, 1)
-        : (m = reRgbaPercent.exec(format)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, m[4]) // rgb(100%, 0%, 0%, 1)
-        : (m = reHslPercent.exec(format)) ? new Hsl(m[1], m[2] / 100, m[3] / 100) // hsl(120, 50%, 50%)
-        : (m = reHslaPercent.exec(format)) ? new Hsl(m[1], m[2] / 100, m[3] / 100, m[4]) // hsla(120, 50%, 50%, 1)
+        : (m = reRgbInteger.exec(format)) ? new Rgb(m[1], m[2], m[3], 1) // rgb(255, 0, 0)
+        : (m = reRgbPercent.exec(format)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, 1) // rgb(100%, 0%, 0%)
+        : (m = reRgbaInteger.exec(format)) ? rgba(m[1], m[2], m[3], m[4]) // rgba(255, 0, 0, 1)
+        : (m = reRgbaPercent.exec(format)) ? rgba(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, m[4]) // rgb(100%, 0%, 0%, 1)
+        : (m = reHslPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, 1) // hsl(120, 50%, 50%)
+        : (m = reHslaPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, m[4]) // hsla(120, 50%, 50%, 1)
         : named.hasOwnProperty(format) ? rgbn(named[format])
-        : format === "transparent" ? new Rgb(0, 0, 0, 0)
+        : format === "transparent" ? new Rgb(NaN, NaN, NaN, 0)
         : null;
   }
 
   function rgbn(n) {
-    return new Rgb(n >> 16 & 0xff, n >> 8 & 0xff, n & 0xff);
+    return new Rgb(n >> 16 & 0xff, n >> 8 & 0xff, n & 0xff, 1);
+  }
+
+  function rgba(r, g, b, a) {
+    if (a <= 0) r = g = b = NaN;
+    return new Rgb(r, g, b, a);
+  }
+
+  function rgbConvert(o) {
+    if (!(o instanceof Color)) o = color(o);
+    if (!o) return new Rgb;
+    o = o.rgb();
+    return new Rgb(o.r, o.g, o.b, o.opacity);
   }
 
   function rgb(r, g, b, opacity) {
-    if (arguments.length === 1) {
-      if (!(r instanceof Color)) r = color(r);
-      if (r) {
-        r = r.rgb();
-        opacity = r.opacity;
-        b = r.b;
-        g = r.g;
-        r = r.r;
-      } else {
-        r = NaN;
-      }
-    }
-    return new Rgb(r, g, b, opacity);
+    return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity == null ? 1 : opacity);
   }
 
   function Rgb(r, g, b, opacity) {
     this.r = +r;
     this.g = +g;
     this.b = +b;
-    this.opacity = opacity == null ? 1 : +opacity;
+    this.opacity = +opacity;
   }
 
   var _rgb = rgb.prototype = Rgb.prototype = new Color;
@@ -252,49 +252,48 @@
         + (a === 1 ? ")" : ", " + a + ")");
   };
 
-  function hsl(h, s, l, opacity) {
-    if (arguments.length === 1) {
-      if (h instanceof Hsl) {
-        opacity = h.opacity;
-        l = h.l;
-        s = h.s;
-        h = h.h;
-      } else {
-        if (!(h instanceof Color)) h = color(h);
-        if (h) {
-          if (h instanceof Hsl) return h;
-          h = h.rgb();
-          opacity = h.opacity;
-          var r = h.r / 255,
-              g = h.g / 255,
-              b = h.b / 255,
-              min = Math.min(r, g, b),
-              max = Math.max(r, g, b),
-              range = max - min;
-          l = (max + min) / 2;
-          if (range) {
-            s = l < 0.5 ? range / (max + min) : range / (2 - max - min);
-            if (r === max) h = (g - b) / range + (g < b) * 6;
-            else if (g === max) h = (b - r) / range + 2;
-            else h = (r - g) / range + 4;
-            h *= 60;
-          } else {
-            h = NaN;
-            s = l > 0 && l < 1 ? 0 : h;
-          }
-        } else {
-          h = NaN;
-        }
-      }
+  function hsla(h, s, l, a) {
+    if (a <= 0) h = s = l = NaN;
+    else if (l <= 0 || l >= 1) h = s = NaN;
+    else if (s <= 0) h = NaN;
+    return new Hsl(h, s, l, a);
+  }
+
+  function hslConvert(o) {
+    if (o instanceof Hsl) return new Hsl(o.h, o.s, o.l, o.opacity);
+    if (!(o instanceof Color)) o = color(o);
+    if (!o) return new Hsl;
+    if (o instanceof Hsl) return o;
+    o = o.rgb();
+    var r = o.r / 255,
+        g = o.g / 255,
+        b = o.b / 255,
+        min = Math.min(r, g, b),
+        max = Math.max(r, g, b),
+        h = NaN,
+        s = max - min,
+        l = (max + min) / 2;
+    if (s) {
+      if (r === max) h = (g - b) / s + (g < b) * 6;
+      else if (g === max) h = (b - r) / s + 2;
+      else h = (r - g) / s + 4;
+      s /= l < 0.5 ? max + min : 2 - max - min;
+      h *= 60;
+    } else {
+      s = l > 0 && l < 1 ? 0 : h;
     }
-    return new Hsl(h, s, l, opacity);
+    return new Hsl(h, s, l, o.opacity);
+  }
+
+  function hsl(h, s, l, opacity) {
+    return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity == null ? 1 : opacity);
   }
 
   function Hsl(h, s, l, opacity) {
     this.h = +h;
     this.s = +s;
     this.l = +l;
-    this.opacity = opacity == null ? 1 : +opacity;
+    this.opacity = +opacity;
   }
 
   var _hsl = hsl.prototype = Hsl.prototype = new Color;
@@ -348,41 +347,31 @@
   var t1 = 6 / 29;
   var t2 = 3 * t1 * t1;
   var t3 = t1 * t1 * t1;
-  function lab(l, a, b, opacity) {
-    if (arguments.length === 1) {
-      if (l instanceof Lab) {
-        opacity = l.opacity;
-        b = l.b;
-        a = l.a;
-        l = l.l;
-      } else if (l instanceof Hcl) {
-        var h = l.h * deg2rad;
-        opacity = l.opacity;
-        b = Math.sin(h) * l.c;
-        a = Math.cos(h) * l.c;
-        l = l.l;
-      } else {
-        if (!(l instanceof Rgb)) l = rgb(l);
-        opacity = l.opacity;
-        b = rgb2xyz(l.r);
-        a = rgb2xyz(l.g);
-        l = rgb2xyz(l.b);
-        var x = xyz2lab((0.4124564 * b + 0.3575761 * a + 0.1804375 * l) / Xn),
-            y = xyz2lab((0.2126729 * b + 0.7151522 * a + 0.0721750 * l) / Yn),
-            z = xyz2lab((0.0193339 * b + 0.1191920 * a + 0.9503041 * l) / Zn);
-        b = 200 * (y - z);
-        a = 500 * (x - y);
-        l = 116 * y - 16;
-      }
+  function labConvert(o) {
+    if (o instanceof Lab) return new Lab(o.l, o.a, o.b, o.opacity);
+    if (o instanceof Hcl) {
+      var h = o.h * deg2rad;
+      return new Lab(o.l, Math.cos(h) * o.c, Math.sin(h) * o.c, o.opacity);
     }
-    return new Lab(l, a, b, opacity);
+    if (!(o instanceof Rgb)) o = rgbConvert(o);
+    var b = rgb2xyz(o.r),
+        a = rgb2xyz(o.g),
+        l = rgb2xyz(o.b),
+        x = xyz2lab((0.4124564 * b + 0.3575761 * a + 0.1804375 * l) / Xn),
+        y = xyz2lab((0.2126729 * b + 0.7151522 * a + 0.0721750 * l) / Yn),
+        z = xyz2lab((0.0193339 * b + 0.1191920 * a + 0.9503041 * l) / Zn);
+    return new Lab(116 * y - 16, 500 * (x - y), 200 * (y - z), o.opacity);
+  }
+
+  function lab(l, a, b, opacity) {
+    return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity == null ? 1 : opacity);
   }
 
   function Lab(l, a, b, opacity) {
     this.l = +l;
     this.a = +a;
     this.b = +b;
-    this.opacity = opacity == null ? 1 : +opacity;
+    this.opacity = +opacity;
   }
 
   var _lab = lab.prototype = Lab.prototype = new Color;
@@ -426,30 +415,22 @@
     return (x /= 255) <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
   }
 
+  function hclConvert(o) {
+    if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity);
+    if (!(o instanceof Lab)) o = labConvert(o);
+    var h = Math.atan2(o.b, o.a) * rad2deg;
+    return new Hcl(h < 0 ? h + 360 : h, Math.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity);
+  }
+
   function hcl(h, c, l, opacity) {
-    if (arguments.length === 1) {
-      if (h instanceof Hcl) {
-        opacity = h.opacity;
-        l = h.l;
-        c = h.c;
-        h = h.h;
-      } else {
-        if (!(h instanceof Lab)) h = lab(h);
-        opacity = h.opacity;
-        l = h.l;
-        c = Math.sqrt(h.a * h.a + h.b * h.b);
-        h = Math.atan2(h.b, h.a) * rad2deg;
-        if (h < 0) h += 360;
-      }
-    }
-    return new Hcl(h, c, l, opacity);
+    return arguments.length === 1 ? hclConvert(h) : new Hcl(h, c, l, opacity == null ? 1 : opacity);
   }
 
   function Hcl(h, c, l, opacity) {
     this.h = +h;
     this.c = +c;
     this.l = +l;
-    this.opacity = opacity == null ? 1 : +opacity;
+    this.opacity = +opacity;
   }
 
   var _hcl = hcl.prototype = Hcl.prototype = new Color;
@@ -463,7 +444,7 @@
   };
 
   _hcl.rgb = function() {
-    return lab(this).rgb();
+    return labConvert(this).rgb();
   };
 
   var A = -0.14861;
@@ -474,32 +455,29 @@
   var ED = E * D;
   var EB = E * B;
   var BC_DA = B * C - D * A;
-  function cubehelix(h, s, l, opacity) {
-    if (arguments.length === 1) {
-      if (h instanceof Cubehelix) {
-        opacity = h.opacity;
-        l = h.l;
-        s = h.s;
-        h = h.h;
-      } else {
-        if (!(h instanceof Rgb)) h = rgb(h);
-        opacity = h.opacity;
-        var r = h.r / 255, g = h.g / 255, b = h.b / 255;
-        l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB);
-        var bl = b - l, k = (E * (g - l) - C * bl) / D;
-        s = Math.sqrt(k * k + bl * bl) / (E * l * (1 - l)); // NaN if l=0 or l=1
+  function cubehelixConvert(o) {
+    if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.opacity);
+    if (!(o instanceof Rgb)) o = rgbConvert(o);
+    var r = o.r / 255,
+        g = o.g / 255,
+        b = o.b / 255,
+        l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB),
+        bl = b - l,
+        k = (E * (g - l) - C * bl) / D,
+        s = Math.sqrt(k * k + bl * bl) / (E * l * (1 - l)), // NaN if l=0 or l=1
         h = s ? Math.atan2(k, bl) * rad2deg - 120 : NaN;
-        if (h < 0) h += 360;
-      }
-    }
-    return new Cubehelix(h, s, l, opacity);
+    return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.opacity);
+  }
+
+  function cubehelix(h, s, l, opacity) {
+    return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity == null ? 1 : opacity);
   }
 
   function Cubehelix(h, s, l, opacity) {
     this.h = +h;
     this.s = +s;
     this.l = +l;
-    this.opacity = opacity == null ? 1 : +opacity;
+    this.opacity = +opacity;
   }
 
   var _cubehelix = cubehelix.prototype = Cubehelix.prototype = new Color;
@@ -528,7 +506,7 @@
     );
   };
 
-  var version = "0.4.0";
+  var version = "0.4.1";
 
   exports.version = version;
   exports.color = color;
