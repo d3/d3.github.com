@@ -4,60 +4,61 @@
   (factory((global.d3_interpolate = {}),global.d3_color));
 }(this, function (exports,d3Color) { 'use strict';
 
-  function rgb$1(a, b) {
-    a = d3Color.rgb(a);
-    b = d3Color.rgb(b);
-    var ar = a.r,
-        ag = a.g,
-        ab = a.b,
-        br = b.r || 0,
-        bg = b.g || 0,
-        bb = b.b || 0;
-    if (isNaN(ar)) ar = br;
-    if (isNaN(ag)) ag = bg;
-    if (isNaN(ab)) ab = bb;
-    br -= ar;
-    bg -= ag;
-    bb -= ab;
-    return function(t) {
-      a.r = ar + br * t;
-      a.g = ag + bg * t;
-      a.b = ab + bb * t;
-      return a + "";
+  function constant(x) {
+    return function() {
+      return x;
     };
   }
 
-  rgb$1.gamma = function gamma(y) {
-    y = +y;
+  function linear(a, d) {
+    return function(t) {
+      return a + t * d;
+    };
+  }
 
-    function rgb(a, b) {
-      a = d3Color.rgb(a);
-      b = d3Color.rgb(b);
-      var ar = Math.pow(a.r, y),
-          ag = Math.pow(a.g, y),
-          ab = Math.pow(a.b, y),
-          br = Math.pow(b.r || 0, y),
-          bg = Math.pow(b.g || 0, y),
-          bb = Math.pow(b.b || 0, y);
-      if (isNaN(ar)) ar = br;
-      if (isNaN(ag)) ag = bg;
-      if (isNaN(ab)) ab = bb;
-      br -= ar;
-      bg -= ag;
-      bb -= ab;
-      y = 1 / y;
+  function exponential(a, b, y) {
+    return a = Math.pow(a, y), b = Math.pow(b, y) - a, y = 1 / y, function(t) {
+      return Math.pow(a + t * b, y);
+    };
+  }
+
+  function hue(a, b) {
+    var d = b - a;
+    return d ? linear(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant(isNaN(a) ? b : a);
+  }
+
+  function gamma(y) {
+    return (y = +y) === 1 ? nogamma : function(a, b) {
+      return b - a ? exponential(a, b, y) : constant(isNaN(a) ? b : a);
+    };
+  }
+
+  function nogamma(a, b) {
+    var d = b - a;
+    return d ? linear(a, d) : constant(isNaN(a) ? b : a);
+  }
+
+  var rgb$1 = (function gamma$$(y) {
+    var interpolateColor = gamma(y);
+
+    function interpolateRgb(start, end) {
+      var r = interpolateColor((start = d3Color.rgb(start)).r, (end = d3Color.rgb(end)).r),
+          g = interpolateColor(start.g, end.g),
+          b = interpolateColor(start.b, end.b),
+          opacity = interpolateColor(start.opacity, end.opacity);
       return function(t) {
-        a.r = Math.pow(ar + br * t, y);
-        a.g = Math.pow(ag + bg * t, y);
-        a.b = Math.pow(ab + bb * t, y);
-        return a + "";
+        start.r = r(t);
+        start.g = g(t);
+        start.b = b(t);
+        start.opacity = opacity(t);
+        return start + "";
       };
     }
 
-    rgb.gamma = gamma;
+    interpolateRgb.gamma = gamma$$;
 
-    return rgb;
-  };
+    return interpolateRgb;
+  })(1);
 
   // TODO sparse arrays?
   function array(a, b) {
@@ -364,191 +365,121 @@
     return i;
   }
 
-  function deltaHue(h1, h0) {
-    var delta = h1 - h0;
-    return delta > 180 || delta < -180
-        ? delta - 360 * Math.round(delta / 360)
-        : delta;
-  }
-
-  function hsl$1(a, b) {
-    a = d3Color.hsl(a);
-    b = d3Color.hsl(b);
-    var ah = a.h,
-        as = a.s,
-        al = a.l,
-        bh = b.h,
-        bs = b.s,
-        bl = b.l || 0;
-    if (isNaN(ah)) ah = bh;
-    if (isNaN(as)) as = bs;
-    if (isNaN(al)) al = bl;
-    bh = deltaHue(bh, ah) || 0;
-    bs = (bs - as) || 0;
-    bl -= al;
+  function interpolateHsl(start, end) {
+    var h = hue((start = d3Color.hsl(start)).h, (end = d3Color.hsl(end)).h),
+        s = nogamma(start.s, end.s),
+        l = nogamma(start.l, end.l),
+        opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
-      a.h = ah + bh * t;
-      a.s = as + bs * t;
-      a.l = al + bl * t;
-      return a + "";
+      start.h = h(t);
+      start.s = s(t);
+      start.l = l(t);
+      start.opacity = opacity(t);
+      return start + "";
     };
   }
 
-  function hslLong(a, b) {
-    a = d3Color.hsl(a);
-    b = d3Color.hsl(b);
-    var ah = a.h,
-        as = a.s,
-        al = a.l,
-        bh = b.h,
-        bs = b.s,
-        bl = b.l || 0;
-    if (isNaN(ah)) ah = bh;
-    if (isNaN(as)) as = bs;
-    if (isNaN(al)) al = bl;
-    bh = (bh - ah) || 0;
-    bs = (bs - as) || 0;
-    bl -= al;
+  function interpolateHslLong(start, end) {
+    var h = nogamma((start = d3Color.hsl(start)).h, (end = d3Color.hsl(end)).h),
+        s = nogamma(start.s, end.s),
+        l = nogamma(start.l, end.l),
+        opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
-      a.h = ah + bh * t;
-      a.s = as + bs * t;
-      a.l = al + bl * t;
-      return a + "";
+      start.h = h(t);
+      start.s = s(t);
+      start.l = l(t);
+      start.opacity = opacity(t);
+      return start + "";
     };
   }
 
-  function lab$1(a, b) {
-    a = d3Color.lab(a);
-    b = d3Color.lab(b);
-    var al = a.l,
-        aa = a.a,
-        ab = a.b,
-        bl = b.l || 0,
-        ba = b.a || 0,
-        bb = b.b || 0;
-    if (isNaN(al)) al = bl;
-    if (isNaN(aa)) aa = ba;
-    if (isNaN(ab)) ab = bb;
-    bl -= al;
-    ba -= aa;
-    bb -= ab;
+  function interpolateLab(start, end) {
+    var l = nogamma((start = d3Color.lab(start)).l, (end = d3Color.lab(end)).l),
+        a = nogamma(start.a, end.a),
+        b = nogamma(start.b, end.b),
+        opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
-      a.l = al + bl * t;
-      a.a = aa + ba * t;
-      a.b = ab + bb * t;
-      return a + "";
+      start.l = l(t);
+      start.a = a(t);
+      start.b = b(t);
+      start.opacity = opacity(t);
+      return start + "";
     };
   }
 
-  function hcl$1(a, b) {
-    a = d3Color.hcl(a);
-    b = d3Color.hcl(b);
-    var ah = a.h,
-        ac = a.c,
-        al = a.l,
-        bh = b.h,
-        bc = b.c,
-        bl = b.l || 0;
-    if (isNaN(ah)) ah = bh;
-    if (isNaN(ac)) ac = bc;
-    if (isNaN(al)) al = bl;
-    bh = deltaHue(bh, ah) || 0;
-    bc = (bc - ac) || 0;
-    bl -= al;
+  function interpolateHcl(start, end) {
+    var h = hue((start = d3Color.hcl(start)).h, (end = d3Color.hcl(end)).h),
+        c = nogamma(start.c, end.c),
+        l = nogamma(start.l, end.l),
+        opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
-      a.h = ah + bh * t;
-      a.c = ac + bc * t;
-      a.l = al + bl * t;
-      return a + "";
+      start.h = h(t);
+      start.c = c(t);
+      start.l = l(t);
+      start.opacity = opacity(t);
+      return start + "";
     };
   }
 
-  function hclLong(a, b) {
-    a = d3Color.hcl(a);
-    b = d3Color.hcl(b);
-    var ah = a.h,
-        ac = a.c,
-        al = a.l,
-        bh = b.h,
-        bc = b.c,
-        bl = b.l || 0;
-    if (isNaN(ah)) ah = bh;
-    if (isNaN(ac)) ac = bc;
-    if (isNaN(al)) al = bl;
-    bh = (bh - ah) || 0;
-    bc = (bc - ac) || 0;
-    bl -= al;
+  function interpolateHclLong(start, end) {
+    var h = nogamma((start = d3Color.hcl(start)).h, (end = d3Color.hcl(end)).h),
+        c = nogamma(start.c, end.c),
+        l = nogamma(start.l, end.l),
+        opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
-      a.h = ah + bh * t;
-      a.c = ac + bc * t;
-      a.l = al + bl * t;
-      return a + "";
+      start.h = h(t);
+      start.c = c(t);
+      start.l = l(t);
+      start.opacity = opacity(t);
+      return start + "";
     };
   }
 
   var cubehelix$1 = (function gamma(y) {
     y = +y;
 
-    function cubehelix(a, b) {
-      a = d3Color.cubehelix(a);
-      b = d3Color.cubehelix(b);
-      var ah = a.h,
-          as = a.s,
-          al = a.l,
-          bh = b.h,
-          bs = b.s,
-          bl = b.l || 0;
-      if (isNaN(ah)) ah = bh;
-      if (isNaN(as)) as = bs;
-      if (isNaN(al)) al = bl;
-      bh = deltaHue(bh, ah) || 0;
-      bs = (bs - as) || 0;
-      bl -= al;
+    function interpolateCubehelix(start, end) {
+      var h = hue((start = d3Color.cubehelix(start)).h, (end = d3Color.cubehelix(end)).h),
+          s = nogamma(start.s, end.s),
+          l = nogamma(start.l, end.l),
+          opacity = nogamma(start.opacity, end.opacity);
       return function(t) {
-        a.h = ah + bh * t;
-        a.s = as + bs * t;
-        a.l = al + bl * Math.pow(t, y);
-        return a + "";
+        start.h = h(t);
+        start.s = s(t);
+        start.l = l(Math.pow(t, y));
+        start.opacity = opacity(t);
+        return start + "";
       };
     }
 
-    cubehelix.gamma = gamma;
+    interpolateCubehelix.gamma = gamma;
 
-    return cubehelix;
+    return interpolateCubehelix;
   })(1);
 
   var cubehelixLong = (function gamma(y) {
     y = +y;
 
-    function cubehelix(a, b) {
-      a = d3Color.cubehelix(a);
-      b = d3Color.cubehelix(b);
-      var ah = a.h,
-          as = a.s,
-          al = a.l,
-          bh = b.h,
-          bs = b.s,
-          bl = b.l || 0;
-      if (isNaN(ah)) ah = bh;
-      if (isNaN(as)) as = bs;
-      if (isNaN(al)) al = bl;
-      bh = (bh - ah) || 0;
-      bs = (bs - as) || 0;
-      bl -= al;
+    function interpolateCubehelixLong(start, end) {
+      var h = nogamma((start = d3Color.cubehelix(start)).h, (end = d3Color.cubehelix(end)).h),
+          s = nogamma(start.s, end.s),
+          l = nogamma(start.l, end.l),
+          opacity = nogamma(start.opacity, end.opacity);
       return function(t) {
-        a.h = ah + bh * t;
-        a.s = as + bs * t;
-        a.l = al + bl * Math.pow(t, y);
-        return a + "";
+        start.h = h(t);
+        start.s = s(t);
+        start.l = l(Math.pow(t, y));
+        start.opacity = opacity(t);
+        return start + "";
       };
     }
 
-    cubehelix.gamma = gamma;
+    interpolateCubehelixLong.gamma = gamma;
 
-    return cubehelix;
+    return interpolateCubehelixLong;
   })(1);
 
-  var version = "0.5.1";
+  var version = "0.5.2";
 
   exports.version = version;
   exports.interpolate = value;
@@ -561,11 +492,11 @@
   exports.interpolateTransform = transform;
   exports.interpolateZoom = zoom;
   exports.interpolateRgb = rgb$1;
-  exports.interpolateHsl = hsl$1;
-  exports.interpolateHslLong = hslLong;
-  exports.interpolateLab = lab$1;
-  exports.interpolateHcl = hcl$1;
-  exports.interpolateHclLong = hclLong;
+  exports.interpolateHsl = interpolateHsl;
+  exports.interpolateHslLong = interpolateHslLong;
+  exports.interpolateLab = interpolateLab;
+  exports.interpolateHcl = interpolateHcl;
+  exports.interpolateHclLong = interpolateHclLong;
   exports.interpolateCubehelix = cubehelix$1;
   exports.interpolateCubehelixLong = cubehelixLong;
 
