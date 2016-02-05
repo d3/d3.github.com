@@ -1,16 +1,14 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-ease'), require('d3-interpolate'), require('d3-timer')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-ease', 'd3-interpolate', 'd3-timer'], factory) :
-  (factory((global.d3_transition = {}),global.d3_selection,global.d3_ease,global.d3_interpolate,global.d3_timer));
-}(this, function (exports,d3Selection,d3Ease,d3Interpolate,d3Timer) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-ease'), require('d3-interpolate'), require('d3-dispatch'), require('d3-timer')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-ease', 'd3-interpolate', 'd3-dispatch', 'd3-timer'], factory) :
+  (factory((global.d3_transition = {}),global.d3_selection,global.d3_ease,global.d3_interpolate,global.d3_dispatch,global.d3_timer));
+}(this, function (exports,d3Selection,d3Ease,d3Interpolate,d3Dispatch,d3Timer) { 'use strict';
 
-  function selection_interrupt(/* TODO name */) {
-    return this.each(function() {
-      // TODO
-    });
+  function attrInterpolate(node, name) {
+    return name === "transform" && node.namespaceURI === d3Selection.namespaces.svg
+        ? d3Interpolate.interpolateTransform
+        : d3Interpolate.interpolate;
   }
-
-  // TODO transform interpolation
 
   function attrRemove(name) {
     return function() {
@@ -25,53 +23,77 @@
   }
 
   function attrConstant(name, value1) {
-    return value1 += "", function() {
-      var node = this, value0 = node.getAttribute(name), i;
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.setAttribute(name, i(t));
-      });
+    return function() {
+      var value0 = this.getAttribute(name);
+      if (value0 !== value1) return attrInterpolate(this, name)(value0, value1);
     };
   }
 
   function attrConstantNS(fullname, value1) {
-    return value1 += "", function() {
-      var node = this, value0 = node.getAttributeNS(fullname.space, fullname.local), i;
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.setAttributeNS(fullname.space, fullname.local, i(t));
-      });
+    return function() {
+      var value0 = this.getAttributeNS(fullname.space, fullname.local);
+      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
     };
   }
 
   function attrFunction(name, value) {
     return function() {
-      var node = this, value0, value1 = value.apply(node, arguments), i;
-      if (value1 == null) return node.removeAttribute(name);
-      value0 = node.getAttribute(name), value1 += "";
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.setAttribute(name, i(t));
-      });
+      var value0, value1 = value.apply(this, arguments);
+      if (value1 == null) return void this.removeAttribute(name);
+      value0 = this.getAttribute(name), value1 += "";
+      if (value0 !== value1) return attrInterpolate(this, name)(value0, value1);
     };
   }
 
   function attrFunctionNS(fullname, value) {
     return function() {
-      var node = this, value0, value1 = value.apply(node, arguments), i;
-      if (value1 == null) return node.removeAttributeNS(fullname.space, fullname.local);
-      value0 = node.getAttributeNS(fullname.space, fullname.local), value1 += "";
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.setAttributeNS(fullname.space, fullname.local, i(t));
-      });
+      var value0, value1 = value.apply(this, arguments);
+      if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
+      value0 = this.getAttributeNS(fullname.space, fullname.local), value1 += "";
+      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
     };
   }
 
   function transition_attr(name, value) {
-    if (arguments.length < 2) return this.tween("attr." + name);
     var fullname = d3Selection.namespace(name);
-    return this.tween("attr." + name, (value == null
+    return this.attrTween(name, (value == null
         ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
         ? (fullname.local ? attrFunctionNS : attrFunction)
         : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
   }
+
+  function attrTweenNS(fullname, value) {
+    function tween() {
+      var node = this, i = value.apply(node, arguments);
+      return i && function(t) {
+        node.setAttributeNS(fullname.space, fullname.local, i(t));
+      };
+    }
+    tween._value = value;
+    return tween;
+  }
+
+  function attrTween(name, value) {
+    function tween() {
+      var node = this, i = value.apply(node, arguments);
+      return i && function(t) {
+        node.setAttribute(name, i(t));
+      };
+    }
+    tween._value = value;
+    return tween;
+  }
+
+  function transition_attrTween(name, value) {
+    var key = "attr." + name;
+    if (arguments.length < 2) return (key = this.tween(key)) && key._value;
+    var fullname = d3Selection.namespace(name);
+    return this.tween(key, (fullname.local
+        ? attrTweenNS
+        : attrTween)(fullname, value));
+  }
+
+  var emptyDispatch = d3Dispatch.dispatch("start", "end", "interrupt");
 
   function initializeScheduleEntry(node, key, id, index, group, timing) {
     var schedule = node[key];
@@ -81,6 +103,7 @@
       id: id,
       index: index, // For restoring context during callbacks.
       group: group, // For restoring context during callbacks.
+      dispatch: emptyDispatch,
       tweens: [],
       time: timing.time,
       delay: timing.delay,
@@ -91,7 +114,9 @@
   }
 
   function getScheduleEntry(node, key, id) {
-    var schedule = node[key], entry = schedule.active;
+    var schedule = node[key];
+    if (!schedule) return;
+    var entry = schedule.active;
     if (entry && entry.id === id) return entry;
     var pending = schedule.pending, i = pending.length;
     while (--i >= 0) if ((entry = pending[i]).id === id) return entry;
@@ -110,15 +135,10 @@
     }, 0, entry.time);
 
     function start(elapsed, now) {
-      var pending = schedule.pending,
+      var interrupted = schedule.active,
+          pending = schedule.pending,
           tweens = entry.tweens,
           i, j, n, o;
-
-      // Interrupt the active transition, if any.
-      // TODO Dispatch the interrupt event (within try-catch).
-      if (schedule.active) {
-        schedule.active.timer.stop();
-      }
 
       // Cancel any pre-empted transitions. No interrupt event is dispatched
       // because the cancelled transitions never started. Note that this also
@@ -145,33 +165,46 @@
         }
       }, 0, now);
 
-      // TODO Dispatch the start event (within try-catch).
+      // Interrupt the active transition, if any.
+      // Dispatch the interrupt event.
+      // TODO Dispatch the interrupt event before updating the active transition?
+      if (interrupted) {
+        interrupted.timer.stop();
+        interrupted.dispatch.interrupt.call(node, node.__data__, interrupted.index, interrupted.group); // TODO try-catch?
+      }
+
+      // Dispatch the start event.
       // Note this must be done before the tweens are initialized.
+      entry.dispatch.start.call(node, node.__data__, entry.index, entry.group); // TODO try-catch?
 
       // Initialize the tweens, deleting null tweens.
+      // TODO Would a map or linked list be more efficient here?
+      // TODO Overwriting the tweens array could be exposed through getScheduleEntry?
       for (i = 0, j = -1, n = tweens.length; i < n; ++i) {
-        if (o = tweens[i].value.call(node, node.__data__, entry.index, entry.group)) {
+        if (o = tweens[i].value.call(node, node.__data__, entry.index, entry.group)) { // TODO try-catch?
           tweens[++j] = o;
         }
       }
       tweens.length = j + 1;
     }
 
-    function tween(t) {
-      for (var tweens = entry.tweens, i = 0, n = tweens.length; i < n; ++i) {
-        tweens[i].call(node, t); // TODO tween could throw
-      }
-    }
-
-    // TODO Dispatch the end event (within try-catch).
     function tick(elapsed) {
-      if (elapsed >= entry.duration) { // TODO capture duration to ensure immutability?
-        tween(1);
+      var tweens = entry.tweens,
+          t = elapsed / entry.duration, // TODO capture duration to ensure immutability?
+          e = t >= 1 ? 1 : entry.ease.call(null, t), // TODO try-catch?
+          i, n;
+
+      for (i = 0, n = tweens.length; i < n; ++i) {
+        tweens[i].call(null, e); // TODO try-catch?
+      }
+
+      // Dispatch the end event.
+      // TODO Dispatch the end event before clearing the active transition?
+      if (t >= 1) {
         schedule.active = null;
         if (!schedule.pending.length) delete node[key];
         entry.timer.stop();
-      } else {
-        tween(entry.ease.ease(elapsed / entry.duration)); // TODO ease could throw
+        entry.dispatch.end.call(node, node.__data__, entry.index, entry.group); // TODO try-catch
       }
     }
   }
@@ -189,8 +222,8 @@
   }
 
   function transition_delay(value) {
-    var id = this._id,
-        key = this._key;
+    var key = this._key,
+        id = this._id;
 
     return arguments.length
         ? this.each((typeof value === "function"
@@ -212,8 +245,8 @@
   }
 
   function transition_duration(value) {
-    var id = this._id,
-        key = this._key;
+    var key = this._key,
+        id = this._id;
 
     return arguments.length
         ? this.each((typeof value === "function"
@@ -222,26 +255,19 @@
         : getScheduleEntry(this.node(), key, id).duration;
   }
 
-  function easeFunction(key, id, value) {
-    return function() {
-      getScheduleEntry(this, key, id).ease = value.apply(this, arguments);
-    };
-  }
-
   function easeConstant(key, id, value) {
     return function() {
       getScheduleEntry(this, key, id).ease = value;
     };
   }
 
+  // TODO immediately verify that value is a function
   function transition_ease(value) {
-    var id = this._id,
-        key = this._key;
+    var key = this._key,
+        id = this._id;
 
     return arguments.length
-        ? this.each((typeof value === "function"
-            ? easeFunction
-            : easeConstant)(key, id, value))
+        ? this.each(easeConstant(key, id, value))
         : getScheduleEntry(this.node(), key, id).ease;
   }
 
@@ -259,9 +285,40 @@
     return new Transition(subgroups, this._parents, this._key, this._id);
   }
 
+  function onFunction(key, id, name, listener) {
+    return function() {
+      var entry = getScheduleEntry(this, key, id), d = entry.dispatch;
+      if (d === emptyDispatch) entry.dispatch = d = d3Dispatch.dispatch("start", "end", "interrupt");
+      d.on(name, listener);
+    };
+  }
+
+  function transition_on(name, listener) {
+    var key = this._key,
+        id = this._id;
+
+    if (arguments.length < 2) {
+      var entry = getScheduleEntry(this.node(), key, id);
+      return entry && entry.dispatch.on(name);
+    }
+
+    return this.each(onFunction(key, id, name, listener));
+  }
+
+  function removeFunction(key) {
+    return function() {
+      var parent = this.parentNode;
+      if (parent && !this[key]) parent.removeChild(this);
+    };
+  }
+
+  function transition_remove() {
+    return this.on("end.remove", removeFunction(this._key));
+  }
+
   function transition_select(select) {
-    var id = this._id,
-        key = this._key;
+    var key = this._key,
+        id = this._id;
 
     if (typeof select !== "function") select = d3Selection.selector(select);
 
@@ -279,8 +336,8 @@
   }
 
   function transition_selectAll(select) {
-    var id = this._id,
-        key = this._key;
+    var key = this._key,
+        id = this._id;
 
     if (typeof select !== "function") select = d3Selection.selectorAll(select);
 
@@ -309,43 +366,104 @@
             || node.defaultView); // node is a Document
   }
 
-  function styleRemove(name, value, priority) {
+  function styleRemove(name) {
     return function() {
-      var node = this, style = defaultView(node).getComputedStyle(node, null), value0 = style.getPropertyValue(name), value1 = (node.style.removeProperty(name), style.getPropertyValue(name)), i;
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        if (t === 1) node.style.removeProperty(name);
-        else node.style.setProperty(name, i(t), priority);
-      });
+      var style = defaultView(this).getComputedStyle(this, null),
+          value0 = style.getPropertyValue(name),
+          value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
+      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
     };
   }
 
-  function styleConstant(name, value1, priority) {
-    return value1 += "", function() {
-      var node = this, value0 = defaultView(node).getComputedStyle(node, null).getPropertyValue(name), i;
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.style.setProperty(name, i(t), priority);
-      });
+  function styleRemoveEnd(name) {
+    return function() {
+      this.style.removeProperty(name);
     };
   }
 
-  function styleFunction(name, value, priority) {
+  function styleConstant(name, value1) {
     return function() {
-      var node = this, value0, value1 = value.apply(node, arguments), i;
-      if (value1 == null) return node.style.removeProperty(name);
-      value0 = defaultView(node).getComputedStyle(node, null).getPropertyValue(name), value1 += "";
-      return value0 !== value1 && (i = d3Interpolate.interpolate(value0, value1), function(t) {
-        node.style.setProperty(name, i(t), priority);
-      });
+      var value0 = defaultView(this).getComputedStyle(this, null).getPropertyValue(name);
+      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+    };
+  }
+
+  function styleFunction(name, value) {
+    return function() {
+      var value0, value1 = value.apply(this, arguments);
+      if (value1 == null) return void this.style.removeProperty(name);
+      value0 = defaultView(this).getComputedStyle(this, null).getPropertyValue(name), value1 += "";
+      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
     };
   }
 
   function transition_style(name, value, priority) {
-    return arguments.length < 2
-        ? this.tween("style." + name)
-        : this.tween("style." + name, (value == null
-            ? styleRemove : (typeof value === "function"
+    return value == null ? this
+            .styleTween(name, styleRemove(name))
+            .on("end.style." + name, styleRemoveEnd(name))
+        : this.styleTween(name, (typeof value === "function"
             ? styleFunction
-            : styleConstant))(name, value, priority == null ? "" : priority));
+            : styleConstant)(name, value), priority);
+  }
+
+  function styleTween(name, value, priority) {
+    function tween() {
+      var node = this, i = value.apply(node, arguments);
+      return i && function(t) {
+        node.style.setProperty(name, i(t), priority);
+      };
+    }
+    tween._value = value;
+    return tween;
+  }
+
+  function transition_styleTween(name, value, priority) {
+    var key = "style." + name;
+    return arguments.length < 2
+        ? (key = this.tween(key)) && key._value
+        : this.tween(key, styleTween(name, value, priority == null ? "" : priority));
+  }
+
+  function textConstant(value) {
+    return value = value == null ? "" : value + "", function() {
+      this.textContent = value;
+    };
+  }
+
+  function textFunction(value) {
+    return function() {
+      var v = value.apply(this, arguments);
+      if (v == null) v = "";
+      this.textContent = v;
+    };
+  }
+
+  function transition_text(value) {
+    return this.tween("text", (typeof value === "function"
+        ? textFunction
+        : textConstant)(value));
+  }
+
+  function transition_transition() {
+    var key = this._key,
+        id0 = this._id,
+        id1 = newId();
+
+    for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+        if (node = group[i]) {
+          var entry = getScheduleEntry(node, key, id0);
+          initializeScheduleEntry(node, key, id1, i, group, {
+            time: entry.time,
+            delay: entry.delay + entry.duration,
+            duration: entry.duration,
+            ease: entry.ease
+          });
+        }
+      }
+    }
+
+    return new Transition(groups, this._parents, key, id1);
   }
 
   function tweenFunction(key, id, name, value) {
@@ -363,22 +481,24 @@
   }
 
   function transition_tween(name, value) {
-    var sname = name + "";
+    var key = this._key,
+        id = this._id,
+        sname = name + "";
 
     if (arguments.length < 2) {
-      var tweens = getScheduleEntry(this.node(), this._key, this._id).tweens;
-      for (var i = 0, n = tweens.length, t; i < n; ++i) {
+      var entry = getScheduleEntry(this.node(), key, id);
+      if (entry) for (var tweens = entry.tweens, i = 0, n = tweens.length, t; i < n; ++i) {
         if ((t = tweens[i]).name === sname) {
-          return t;
+          return t.value;
         }
       }
       return null;
     }
 
-    return this.each(tweenFunction(this._key, this._id, sname, value));
+    return this.each(tweenFunction(key, id, sname, value));
   }
 
-  var root = [null];
+  var id = 0;
 
   function Transition(groups, parents, key, id) {
     this._groups = groups;
@@ -388,7 +508,11 @@
   }
 
   function transition(name) {
-    return new Transition([[document.documentElement]], root, namekey(name));
+    return d3Selection.selection().transition(name);
+  }
+
+  function newId() {
+    return ++id;
   }
 
   function namekey(name) {
@@ -401,30 +525,49 @@
     select: transition_select,
     selectAll: transition_selectAll,
     filter: transition_filter,
-    // TODO transition
+    transition: transition_transition,
     call: selection_prototype.call,
     nodes: selection_prototype.nodes,
     node: selection_prototype.node,
     size: selection_prototype.size,
     empty: selection_prototype.empty,
     each: selection_prototype.each,
-    // TODO each("event"), or on("event")?
+    on: transition_on,
     attr: transition_attr,
-    // TODO attrTween
+    attrTween: transition_attrTween,
     style: transition_style,
-    // TODO styleTween
-    // TODO text
-    // TODO remove
+    styleTween: transition_styleTween,
+    text: transition_text,
+    remove: transition_remove,
     tween: transition_tween,
     delay: transition_delay,
     duration: transition_duration,
     ease: transition_ease
   };
 
-  var nextId = 0;
+  function selection_interrupt(name) {
+    var key = namekey(name);
+    return this.each(function() {
+      var schedule = this[key];
+      if (schedule) {
+        var pending = schedule.pending,
+            active = schedule.active;
+        for (var i = 0, n = pending.length; i < n; ++i) {
+          pending[i].timer.stop();
+        }
+        pending.length = 0;
+        if (active) {
+          schedule.active = null;
+          active.timer.stop();
+          active.dispatch.interrupt.call(this, this.__data__, active.index, active.group); // TODO try-catch?
+        }
+        delete this[key];
+      }
+    });
+  }
 
   function selection_transition(name) {
-    var id = ++nextId,
+    var id = newId(),
         key = namekey(name),
         timing = {time: Date.now(), delay: 0, duration: 250, ease: d3Ease.easeCubicInOut};
 
@@ -442,7 +585,7 @@
   d3Selection.selection.prototype.interrupt = selection_interrupt;
   d3Selection.selection.prototype.transition = selection_transition;
 
-  var version = "0.0.7";
+  var version = "0.0.8";
 
   exports.version = version;
   exports.transition = transition;
