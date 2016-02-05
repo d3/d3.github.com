@@ -161,10 +161,9 @@
   }
 
   function defaultView(node) {
-    return node
-        && ((node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
-            || (node.document && node) // node is a Window
-            || node.defaultView); // node is a Document
+    return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
+        || (node.document && node) // node is a Window
+        || node.defaultView; // node is a Document
   }
 
   function selector(selector) {
@@ -938,7 +937,7 @@
     return points;
   }
 
-  var version = "0.6.7";
+  var version = "0.6.8";
 
   exports.version = version;
   exports.creator = creator;
@@ -953,5 +952,6 @@
   exports.selectorAll = selectorAll;
   exports.touch = touch;
   exports.touches = touches;
+  exports.window = defaultView;
 
 }));
