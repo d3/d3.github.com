@@ -32,20 +32,20 @@
           try {
             result = response.call(request, xhr);
           } catch (e) {
-            event.error.call(request, e);
+            event.call("error", request, e);
             return;
           }
         } else {
           result = xhr;
         }
-        event.load.call(request, result);
+        event.call("load", request, result);
       } else {
-        event.error.call(request, o);
+        event.call("error", request, o);
       }
     }
 
     xhr.onprogress = function(e) {
-      event.progress.call(request, e);
+      event.call("progress", request, e);
     };
 
     request = {
@@ -106,7 +106,7 @@
         if (responseType != null) xhr.responseType = responseType;
         if (timeout > 0) xhr.timeout = timeout;
         if (callback) request.on("error", callback).on("load", function(xhr) { callback(null, xhr); });
-        event.beforesend.call(request, xhr);
+        event.call("beforesend", request, xhr);
         xhr.send(data == null ? null : data);
         return request;
       },
@@ -185,7 +185,7 @@
 
   var tsv = dsv("text/tab-separated-values", d3Dsv.tsvParse);
 
-  var version = "0.4.1";
+  var version = "0.4.2";
 
   exports.version = version;
   exports.request = request;
