@@ -6,8 +6,11 @@
 
   var frame = 0;
   var timeout = 0;
+  var interval = 0;
+  var maxDelay = 5000;
   var taskHead;
   var taskTail;
+  var clockLast = 0;
   var clockNow = 0;
   var clock = typeof performance === "object" ? performance : Date;
   var setFrame = typeof requestAnimationFrame === "function" ? requestAnimationFrame : function(callback) { return setTimeout(callback, 17); };
@@ -62,16 +65,16 @@
   function timerFlush() {
     now(); // Get the current time, if not already set.
     ++frame; // Pretend we’ve set an alarm, if we haven’t already.
-    var t = taskHead;
+    var t = taskHead, e;
     while (t) {
-      if (clockNow >= t._time) t._call.call(null, clockNow - t._time);
+      if ((e = clockNow - t._time) >= 0) t._call.call(null, e);
       t = t._next;
     }
     --frame;
   }
 
   function wake(time) {
-    clockNow = time || clock.now();
+    clockLast = clockNow = time || clock.now();
     frame = timeout = 0;
     try {
       timerFlush();
@@ -79,6 +82,12 @@
       frame = 0;
       nap();
       clockNow = 0;
+    }
+  }
+
+  function poke() {
+    if (clock.now() - clockLast > maxDelay) {
+      wake();
     }
   }
 
@@ -100,11 +109,16 @@
     if (frame) return; // Soonest alarm already set, or will be.
     if (timeout) timeout = clearTimeout(timeout);
     var delay = time - clockNow;
-    if (delay > 24) { if (time < Infinity) timeout = setTimeout(wake, delay); }
-    else frame = 1, setFrame(wake);
+    if (delay > 24) {
+      if (time < Infinity) timeout = setTimeout(wake, delay);
+      else if (interval) interval = clearInterval(interval);
+    } else {
+      if (!interval) interval = setInterval(poke, maxDelay);
+      frame = 1, setFrame(wake);
+    }
   }
 
-  var version = "0.3.0";
+  var version = "0.3.1";
 
   exports.version = version;
   exports.now = now;
