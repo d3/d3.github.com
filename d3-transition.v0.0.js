@@ -1,9 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-ease'), require('d3-interpolate'), require('d3-dispatch'), require('d3-timer')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-ease', 'd3-interpolate', 'd3-dispatch', 'd3-timer'], factory) :
-  (factory((global.d3_transition = {}),global.d3_selection,global.d3_ease,global.d3_interpolate,global.d3_dispatch,global.d3_timer));
-}(this, function (exports,d3Selection,d3Ease,d3Interpolate,d3Dispatch,d3Timer) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-ease'), require('d3-timer'), require('d3-interpolate'), require('d3-dispatch')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-ease', 'd3-timer', 'd3-interpolate', 'd3-dispatch'], factory) :
+  (factory((global.d3_transition = {}),global.d3_selection,global.d3_ease,global.d3_timer,global.d3_interpolate,global.d3_dispatch));
+}(this, function (exports,d3Selection,d3Ease,d3Timer,d3Interpolate,d3Dispatch) { 'use strict';
 
+  // TODO Assumes either ALL selected nodes are SVG, or none are.
   function attrInterpolate(node, name) {
     return name === "transform" && node.namespaceURI === d3Selection.namespaces.svg
         ? d3Interpolate.interpolateTransform
@@ -23,34 +24,53 @@
   }
 
   function attrConstant(name, value1) {
-    return function() {
+    var value00,
+        interpolate0;
+    return value1 += "", function() {
       var value0 = this.getAttribute(name);
-      if (value0 !== value1) return attrInterpolate(this, name)(value0, value1);
+      return value0 === value1 ? null
+          : value0 === value00 ? interpolate0
+          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value1);
     };
   }
 
   function attrConstantNS(fullname, value1) {
-    return function() {
+    var value00,
+        interpolate0;
+    return value1 += "", function() {
       var value0 = this.getAttributeNS(fullname.space, fullname.local);
-      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+      return value0 === value1 ? null
+          : value0 === value00 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
     };
   }
 
   function attrFunction(name, value) {
+    var value00,
+        value10,
+        interpolate0;
     return function() {
-      var value0, value1 = value.apply(this, arguments);
+      var value0,
+          value1 = value.apply(this, arguments);
       if (value1 == null) return void this.removeAttribute(name);
       value0 = this.getAttribute(name), value1 += "";
-      if (value0 !== value1) return attrInterpolate(this, name)(value0, value1);
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value10 = value1);
     };
   }
 
   function attrFunctionNS(fullname, value) {
+    var value00,
+        value10,
+        interpolate0;
     return function() {
       var value0, value1 = value.apply(this, arguments);
       if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
       value0 = this.getAttributeNS(fullname.space, fullname.local), value1 += "";
-      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
     };
   }
 
@@ -93,95 +113,120 @@
         : attrTween)(fullname, value));
   }
 
-  var emptyDispatch = d3Dispatch.dispatch("start", "end", "interrupt");
+  var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
+  var emptyTweens = [];
 
-  function initializeScheduleEntry(node, key, id, index, group, timing) {
-    var schedule = node[key];
-    if (!schedule) node[key] = schedule = {active: null, pending: []};
-    else if (getScheduleEntry(node, key, id)) return;
-    addScheduleEntry(node, key, {
+  var CREATED = 0;
+  var SCHEDULED = 1;
+  var STARTED = 2;
+  function schedule(node, key, id, index, group, timing) {
+    var schedules = node[key];
+    if (!schedules) node[key] = schedules = {active: null, pending: []};
+    else if (has(node, key, id)) return;
+    start(node, key, {
       id: id,
-      index: index, // For restoring context during callbacks.
-      group: group, // For restoring context during callbacks.
-      dispatch: emptyDispatch,
-      tweens: [],
+      index: index, // For context during callback.
+      group: group, // For context during callback.
+      on: emptyOn,
+      tweens: emptyTweens,
       time: timing.time,
       delay: timing.delay,
       duration: timing.duration,
       ease: timing.ease,
-      timer: null
+      timer: null,
+      state: CREATED
     });
   }
 
-  function getScheduleEntry(node, key, id) {
-    var schedule = node[key];
-    if (!schedule) return;
-    var entry = schedule.active;
-    if (entry && entry.id === id) return entry;
-    var pending = schedule.pending, i = pending.length;
-    while (--i >= 0) if ((entry = pending[i]).id === id) return entry;
+  function has(node, key, id) {
+    var schedules = node[key];
+    if (!schedules) return;
+    var schedule = schedules.active;
+    if (schedule && schedule.id === id) return schedule;
+    var pending = schedules.pending, i = pending.length;
+    while (--i >= 0) if ((schedule = pending[i]).id === id) return schedule;
   }
 
-  function addScheduleEntry(node, key, entry) {
-    var schedule = node[key];
+  function init(node, key, id) {
+    var schedule = has(node, key, id);
+    if (!schedule || schedule.state > CREATED) throw new Error("too late");
+    return schedule;
+  }
 
-    // Initialize the entry timer when the transition is created. The delay is not
-    // known until the first callback! If the delay is greater than this first
-    // sleep, sleep again; otherwise, start immediately.
-    schedule.pending.push(entry);
-    entry.timer = d3Timer.timer(function(elapsed, now) {
-      if (entry.delay <= elapsed) start(elapsed - entry.delay, now);
-      else entry.timer.restart(start, entry.delay, entry.time);
-    }, 0, entry.time);
+  function set(node, key, id) {
+    var schedule = has(node, key, id);
+    if (!schedule || schedule.state > SCHEDULED) throw new Error("too late");
+    return schedule;
+  }
 
-    function start(elapsed, now) {
-      var interrupted = schedule.active,
-          pending = schedule.pending,
-          tweens = entry.tweens,
+  function get(node, key, id) {
+    var schedule = has(node, key, id);
+    if (!schedule) throw new Error("too late");
+    return schedule;
+  }
+
+  function start(node, key, self) {
+    var schedules = node[key],
+        tweens;
+
+    // Initialize the self timer when the transition is created.
+    // Note the actual delay is not known until the first callback!
+    schedules.pending.push(self);
+    self.timer = d3Timer.timer(schedule, 0, self.time);
+
+    // If the delay is greater than this first sleep, sleep some more;
+    // otherwise, start immediately.
+    function schedule(elapsed) {
+      self.state = SCHEDULED;
+      if (self.delay <= elapsed) start(elapsed - self.delay);
+      else self.timer.restart(start, self.delay, self.time);
+    }
+
+    function start(elapsed) {
+      var interrupted = schedules.active,
+          pending = schedules.pending,
           i, j, n, o;
+
+      // Interrupt the active transition, if any.
+      // Dispatch the interrupt event.
+      if (interrupted) {
+        interrupted.timer.stop();
+        interrupted.on.call("interrupt", node, node.__data__, interrupted.index, interrupted.group); // TODO try-catch?
+      }
 
       // Cancel any pre-empted transitions. No interrupt event is dispatched
       // because the cancelled transitions never started. Note that this also
       // removes this transition from the pending list!
-      // TODO Would a map or linked list be more efficient here?
       for (i = 0, j = -1, n = pending.length; i < n; ++i) {
         o = pending[i];
-        if (o.id < entry.id) o.timer.stop();
-        else if (o.id > entry.id) pending[++j] = o;
+        if (o.id < self.id) o.timer.stop();
+        else if (o.id > self.id) pending[++j] = o;
       }
       pending.length = j + 1;
 
       // Mark this transition as active.
-      schedule.active = entry;
+      schedules.active = self;
 
       // Defer the first tick to end of the current frame; see mbostock/d3#1576.
       // Note the transition may be canceled after start and before the first tick!
       // Note this must be scheduled before the start event; see d3/d3-transition#16!
       // Assuming this is successful, subsequent callbacks go straight to tick.
       d3Timer.timerOnce(function() {
-        if (schedule.active === entry) {
-          entry.timer.restart(tick, entry.delay, entry.time);
+        if (schedules.active === self) {
+          self.timer.restart(tick, self.delay, self.time);
           tick(elapsed);
         }
-      }, 0, now);
-
-      // Interrupt the active transition, if any.
-      // Dispatch the interrupt event.
-      // TODO Dispatch the interrupt event before updating the active transition?
-      if (interrupted) {
-        interrupted.timer.stop();
-        interrupted.dispatch.interrupt.call(node, node.__data__, interrupted.index, interrupted.group); // TODO try-catch?
-      }
+      });
 
       // Dispatch the start event.
       // Note this must be done before the tweens are initialized.
-      entry.dispatch.start.call(node, node.__data__, entry.index, entry.group); // TODO try-catch?
+      self.on.call("start", node, node.__data__, self.index, self.group); // TODO try-catch?
+      self.state = STARTED;
 
       // Initialize the tweens, deleting null tweens.
-      // TODO Would a map or linked list be more efficient here?
-      // TODO Overwriting the tweens array could be exposed through getScheduleEntry?
-      for (i = 0, j = -1, n = tweens.length; i < n; ++i) {
-        if (o = tweens[i].value.call(node, node.__data__, entry.index, entry.group)) { // TODO try-catch?
+      tweens = new Array(n = self.tweens.length);
+      for (i = 0, j = -1; i < n; ++i) {
+        if (o = self.tweens[i].value.call(node, node.__data__, self.index, self.group)) { // TODO try-catch?
           tweens[++j] = o;
         }
       }
@@ -189,9 +234,8 @@
     }
 
     function tick(elapsed) {
-      var tweens = entry.tweens,
-          t = elapsed / entry.duration, // TODO capture duration to ensure immutability?
-          e = t >= 1 ? 1 : entry.ease.call(null, t), // TODO try-catch?
+      var t = elapsed / self.duration,
+          e = t >= 1 ? 1 : self.ease.call(null, t), // TODO try-catch?
           i, n;
 
       for (i = 0, n = tweens.length; i < n; ++i) {
@@ -199,25 +243,24 @@
       }
 
       // Dispatch the end event.
-      // TODO Dispatch the end event before clearing the active transition?
       if (t >= 1) {
-        schedule.active = null;
-        if (!schedule.pending.length) delete node[key];
-        entry.timer.stop();
-        entry.dispatch.end.call(node, node.__data__, entry.index, entry.group); // TODO try-catch
+        self.on.call("end", node, node.__data__, self.index, self.group); // TODO try-catch?
+        schedules.active = null;
+        if (!schedules.pending.length) delete node[key];
+        self.timer.stop();
       }
     }
   }
 
   function delayFunction(key, id, value) {
     return function() {
-      getScheduleEntry(this, key, id).delay = +value.apply(this, arguments);
+      init(this, key, id).delay = +value.apply(this, arguments);
     };
   }
 
   function delayConstant(key, id, value) {
     return value = +value, function() {
-      getScheduleEntry(this, key, id).delay = value;
+      init(this, key, id).delay = value;
     };
   }
 
@@ -229,18 +272,18 @@
         ? this.each((typeof value === "function"
             ? delayFunction
             : delayConstant)(key, id, value))
-        : getScheduleEntry(this.node(), key, id).delay;
+        : get(this.node(), key, id).delay;
   }
 
   function durationFunction(key, id, value) {
     return function() {
-      getScheduleEntry(this, key, id).duration = +value.apply(this, arguments);
+      set(this, key, id).duration = +value.apply(this, arguments);
     };
   }
 
   function durationConstant(key, id, value) {
     return value = +value, function() {
-      getScheduleEntry(this, key, id).duration = value;
+      set(this, key, id).duration = value;
     };
   }
 
@@ -252,12 +295,12 @@
         ? this.each((typeof value === "function"
             ? durationFunction
             : durationConstant)(key, id, value))
-        : getScheduleEntry(this.node(), key, id).duration;
+        : get(this.node(), key, id).duration;
   }
 
   function easeConstant(key, id, value) {
     return function() {
-      getScheduleEntry(this, key, id).ease = value;
+      set(this, key, id).ease = value;
     };
   }
 
@@ -268,7 +311,7 @@
 
     return arguments.length
         ? this.each(easeConstant(key, id, value))
-        : getScheduleEntry(this.node(), key, id).ease;
+        : get(this.node(), key, id).ease;
   }
 
   function transition_filter(match) {
@@ -286,10 +329,18 @@
   }
 
   function onFunction(key, id, name, listener) {
+    var on0,
+        on1;
     return function() {
-      var entry = getScheduleEntry(this, key, id), d = entry.dispatch;
-      if (d === emptyDispatch) entry.dispatch = d = d3Dispatch.dispatch("start", "end", "interrupt");
-      d.on(name, listener);
+      var schedule = init(this, key, id),
+          on = schedule.on;
+
+      // If this node shared a dispatch with the previous node,
+      // just assign the updated shared dispatch and we’re done!
+      // Otherwise, copy-on-write.
+      if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener);
+
+      schedule.on = on1;
     };
   }
 
@@ -297,12 +348,9 @@
     var key = this._key,
         id = this._id;
 
-    if (arguments.length < 2) {
-      var entry = getScheduleEntry(this.node(), key, id);
-      return entry && entry.dispatch.on(name);
-    }
-
-    return this.each(onFunction(key, id, name, listener));
+    return arguments.length < 2
+        ? get(this.node(), key, id).on.on(name)
+        : this.each(onFunction(key, id, name, listener));
   }
 
   function removeFunction(key) {
@@ -327,7 +375,7 @@
         if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
           if ("__data__" in node) subnode.__data__ = node.__data__;
           subgroup[i] = subnode;
-          initializeScheduleEntry(subgroup[i], key, id, i, subgroup, getScheduleEntry(node, key, id));
+          schedule(subgroup[i], key, id, i, subgroup, get(node, key, id));
         }
       }
     }
@@ -344,9 +392,9 @@
     for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if (node = group[i]) {
-          for (var children = select.call(node, node.__data__, i, group), child, timing = getScheduleEntry(node, key, id), k = 0, l = children.length; k < l; ++k) {
+          for (var children = select.call(node, node.__data__, i, group), child, inherit = get(node, key, id), k = 0, l = children.length; k < l; ++k) {
             if (child = children[k]) {
-              initializeScheduleEntry(child, key, id, k, children, timing);
+              schedule(child, key, id, k, children, inherit);
             }
           }
           subgroups.push(children);
@@ -358,20 +406,17 @@
     return new Transition(groups, parents, key, id);
   }
 
-  // TODO export from d3-selection
-  function defaultView(node) {
-    return node
-        && ((node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
-            || (node.document && node) // node is a Window
-            || node.defaultView); // node is a Document
-  }
-
   function styleRemove(name) {
+    var value00,
+        value10,
+        interpolate0;
     return function() {
-      var style = defaultView(this).getComputedStyle(this, null),
+      var style = d3Selection.window(this).getComputedStyle(this, null),
           value0 = style.getPropertyValue(name),
           value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
-      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
     };
   }
 
@@ -382,18 +427,29 @@
   }
 
   function styleConstant(name, value1) {
-    return function() {
-      var value0 = defaultView(this).getComputedStyle(this, null).getPropertyValue(name);
-      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+    var value00,
+        interpolate0;
+    return value1 += "", function() {
+      var value0 = d3Selection.window(this).getComputedStyle(this, null).getPropertyValue(name);
+      return value0 === value1 ? null
+          : value0 === value00 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
     };
   }
 
   function styleFunction(name, value) {
+    var value00,
+        value10,
+        interpolate0;
     return function() {
-      var value0, value1 = value.apply(this, arguments);
-      if (value1 == null) return void this.style.removeProperty(name);
-      value0 = defaultView(this).getComputedStyle(this, null).getPropertyValue(name), value1 += "";
-      if (value0 !== value1) return d3Interpolate.interpolate(value0, value1);
+      var style = d3Selection.window(this).getComputedStyle(this, null),
+          value0 = style.getPropertyValue(name),
+          value1 = value.apply(this, arguments);
+      if (value1 == null) value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
+      else value1 += "";
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
     };
   }
 
@@ -452,12 +508,12 @@
     for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if (node = group[i]) {
-          var entry = getScheduleEntry(node, key, id0);
-          initializeScheduleEntry(node, key, id1, i, group, {
-            time: entry.time,
-            delay: entry.delay + entry.duration,
-            duration: entry.duration,
-            ease: entry.ease
+          var inherit = get(node, key, id0);
+          schedule(node, key, id1, i, group, {
+            time: inherit.time + inherit.delay + inherit.duration,
+            delay: 0,
+            duration: inherit.duration,
+            ease: inherit.ease
           });
         }
       }
@@ -467,35 +523,47 @@
   }
 
   function tweenFunction(key, id, name, value) {
+    var tweens0,
+        tweens1;
     return function() {
-      var tweens = getScheduleEntry(this, key, id).tweens;
+      var schedule = set(this, key, id),
+          tweens = schedule.tweens;
 
-      for (var i = 0, n = tweens.length, t; i < n; ++i) {
-        if ((t = tweens[i]).name === name) {
-          return t.value = value;
+      // If this node shared tweens with the previous node,
+      // just assign the updated shared tweens and we’re done!
+      // Otherwise, copy-on-write.
+      if (tweens !== tweens0) {
+        tweens1 = (tweens0 = tweens).slice();
+        for (var t = {name: name, value: value}, i = 0, n = tweens1.length; i < n; ++i) {
+          if (tweens1[i].name === name) {
+            tweens1[i] = t;
+            break;
+          }
         }
+        if (i === n) tweens1.push(t);
       }
 
-      tweens.push({name: name, value: value});
+      schedule.tweens = tweens1;
     };
   }
 
   function transition_tween(name, value) {
     var key = this._key,
-        id = this._id,
-        sname = name + "";
+        id = this._id;
+
+    name += "";
 
     if (arguments.length < 2) {
-      var entry = getScheduleEntry(this.node(), key, id);
-      if (entry) for (var tweens = entry.tweens, i = 0, n = tweens.length, t; i < n; ++i) {
-        if ((t = tweens[i]).name === sname) {
+      var tweens = get(this.node(), key, id).tweens;
+      for (var i = 0, n = tweens.length, t; i < n; ++i) {
+        if ((t = tweens[i]).name === name) {
           return t.value;
         }
       }
       return null;
     }
 
-    return this.each(tweenFunction(key, id, sname, value));
+    return this.each(tweenFunction(key, id, name, value));
   }
 
   var id = 0;
@@ -551,16 +619,17 @@
       var schedule = this[key];
       if (schedule) {
         var pending = schedule.pending,
-            active = schedule.active;
-        for (var i = 0, n = pending.length; i < n; ++i) {
+            active = schedule.active,
+            i, n;
+        if (active) {
+          active.on.call("interrupt", this, this.__data__, active.index, active.group); // TODO try-catch?
+          schedule.active = null;
+          active.timer.stop();
+        }
+        for (i = 0, n = pending.length; i < n; ++i) {
           pending[i].timer.stop();
         }
         pending.length = 0;
-        if (active) {
-          schedule.active = null;
-          active.timer.stop();
-          active.dispatch.interrupt.call(this, this.__data__, active.index, active.group); // TODO try-catch?
-        }
         delete this[key];
       }
     });
@@ -569,12 +638,12 @@
   function selection_transition(name) {
     var id = newId(),
         key = namekey(name),
-        timing = {time: Date.now(), delay: 0, duration: 250, ease: d3Ease.easeCubicInOut};
+        timing = {time: d3Timer.now(), delay: 0, duration: 250, ease: d3Ease.easeCubicInOut};
 
     for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
         if (node = group[i]) {
-          initializeScheduleEntry(subgroup[i] = node, key, id, i, subgroup, timing);
+          schedule(subgroup[i] = node, key, id, i, subgroup, timing);
         }
       }
     }
@@ -585,7 +654,7 @@
   d3Selection.selection.prototype.interrupt = selection_interrupt;
   d3Selection.selection.prototype.transition = selection_transition;
 
-  var version = "0.0.8";
+  var version = "0.0.9";
 
   exports.version = version;
   exports.transition = transition;
