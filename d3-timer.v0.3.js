@@ -7,15 +7,16 @@
   var frame = 0;
   var timeout = 0;
   var interval = 0;
-  var maxDelay = 5000;
+  var pokeDelay = 1000;
   var taskHead;
   var taskTail;
   var clockLast = 0;
   var clockNow = 0;
+  var clockSkew = 0;
   var clock = typeof performance === "object" ? performance : Date;
   var setFrame = typeof requestAnimationFrame === "function" ? requestAnimationFrame : function(callback) { return setTimeout(callback, 17); };
   function now() {
-    return clockNow || (setFrame(clearNow), clockNow = clock.now());
+    return clockNow || (setFrame(clearNow), clockNow = clock.now() + clockSkew);
   }
 
   function clearNow() {
@@ -74,7 +75,7 @@
   }
 
   function wake(time) {
-    clockLast = clockNow = time || clock.now();
+    clockNow = (clockLast = time || clock.now()) + clockSkew;
     frame = timeout = 0;
     try {
       timerFlush();
@@ -86,9 +87,8 @@
   }
 
   function poke() {
-    if (clock.now() - clockLast > maxDelay) {
-      wake();
-    }
+    var now = clock.now(), delay = now - clockLast;
+    if (delay > pokeDelay) clockSkew -= delay, clockLast = now;
   }
 
   function nap() {
@@ -111,14 +111,14 @@
     var delay = time - clockNow;
     if (delay > 24) {
       if (time < Infinity) timeout = setTimeout(wake, delay);
-      else if (interval) interval = clearInterval(interval);
+      if (interval) interval = clearInterval(interval);
     } else {
-      if (!interval) interval = setInterval(poke, maxDelay);
+      if (!interval) interval = setInterval(poke, pokeDelay);
       frame = 1, setFrame(wake);
     }
   }
 
-  var version = "0.3.1";
+  var version = "0.3.2";
 
   exports.version = version;
   exports.now = now;
