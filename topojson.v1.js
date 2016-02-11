@@ -534,7 +534,7 @@
     return topology;
   }
 
-  var version = "1.6.23";
+  var version = "1.6.24";
 
   exports.version = version;
   exports.mesh = mesh;
