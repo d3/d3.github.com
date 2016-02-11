@@ -230,19 +230,6 @@
     return new Selection(subgroups, this._parents);
   }
 
-  function arrayify(selection) {
-
-    for (var groups = selection._groups, j = 0, m = groups.length; j < m; ++j) {
-      if (!Array.isArray(group = groups[j])) {
-        for (var n = group.length, array = groups[j] = new Array(n), group, i = 0; i < n; ++i) {
-          array[i] = group[i];
-        }
-      }
-    }
-
-    return groups;
-  }
-
   function constant(x) {
     return function() {
       return x;
@@ -251,77 +238,54 @@
 
   var keyPrefix = "$"; // Protect against keys like “__proto__”.
 
-  function bindIndex(parent, update, enter, exit, data) {
+  function bindIndex(parent, group, enter, update, exit, data) {
     var i = 0,
         node,
-        nodeLength = update.length,
-        dataLength = data.length,
-        minLength = Math.min(nodeLength, dataLength);
+        groupLength = group.length,
+        dataLength = data.length;
 
-    // Clear the enter and exit arrays, and then initialize to the new length.
-    enter.length = 0, enter.length = dataLength;
-    exit.length = 0, exit.length = nodeLength;
-
-    for (; i < minLength; ++i) {
-      if (node = update[i]) {
+    // Put any non-null nodes that fit into update.
+    // Put any null nodes into enter.
+    // Put any remaining data into enter.
+    for (; i < dataLength; ++i) {
+      if (node = group[i]) {
         node.__data__ = data[i];
+        update[i] = node;
       } else {
         enter[i] = new EnterNode(parent, data[i]);
       }
     }
 
-    // Note: we don’t need to delete update[i] here because this loop only
-    // runs when the data length is greater than the node length.
-    for (; i < dataLength; ++i) {
-      enter[i] = new EnterNode(parent, data[i]);
-    }
-
-    // Note: and, we don’t need to delete update[i] here because immediately
-    // following this loop we set the update length to data length.
-    for (; i < nodeLength; ++i) {
-      if (node = update[i]) {
-        exit[i] = update[i];
+    // Put any non-null nodes that don’t fit into exit.
+    for (; i < groupLength; ++i) {
+      if (node = group[i]) {
+        exit[i] = node;
       }
     }
-
-    update.length = dataLength;
   }
 
-  function bindKey(parent, update, enter, exit, data, key) {
+  function bindKey(parent, group, enter, update, exit, data, key) {
     var i,
         node,
-        dataLength = data.length,
-        nodeLength = update.length,
         nodeByKeyValue = {},
-        keyValues = new Array(nodeLength),
+        groupLength = group.length,
+        dataLength = data.length,
+        keyValues = new Array(groupLength),
         keyValue;
 
-    // Clear the enter and exit arrays, and then initialize to the new length.
-    enter.length = 0, enter.length = dataLength;
-    exit.length = 0, exit.length = nodeLength;
-
-    // Compute the keys for each node.
-    for (i = 0; i < nodeLength; ++i) {
-      if (node = update[i]) {
-        keyValues[i] = keyValue = keyPrefix + key.call(node, node.__data__, i, update);
-
-        // Is this a duplicate of a key we’ve previously seen?
-        // If so, this node is moved to the exit selection.
-        if (nodeByKeyValue[keyValue]) {
-          exit[i] = node;
-        }
-
-        // Otherwise, record the mapping from key to node.
-        else {
+    // Compute the key for each node.
+    // If multiple nodes have the same key, only the first one counts.
+    for (i = 0; i < groupLength; ++i) {
+      if (node = group[i]) {
+        keyValues[i] = keyValue = keyPrefix + key.call(node, node.__data__, i, group);
+        if (!nodeByKeyValue[keyValue]) {
           nodeByKeyValue[keyValue] = node;
         }
       }
     }
 
-    // Now clear the update array and initialize to the new length.
-    update.length = 0, update.length = dataLength;
-
-    // Compute the keys for each datum.
+    // Compute the key for each datum.
+    // If multiple data have the same key, only the first one counts.
     for (i = 0; i < dataLength; ++i) {
       keyValue = keyPrefix + key.call(parent, data[i], i, data);
 
@@ -345,8 +309,8 @@
 
     // Take any remaining nodes that were not bound to data,
     // and place them in the exit selection.
-    for (i = 0; i < nodeLength; ++i) {
-      if ((node = nodeByKeyValue[keyValues[i]]) !== true) {
+    for (i = 0; i < groupLength; ++i) {
+      if ((node = group[i]) && (nodeByKeyValue[keyValues[i]] !== true)) {
         exit[i] = node;
       }
     }
@@ -354,37 +318,44 @@
 
   function selection_data(value, key) {
     if (!value) {
-      var data = new Array(this.size()), i = -1;
-      this.each(function(d) { data[++i] = d; });
+      data = new Array(this.size()), j = -1;
+      this.each(function(d) { data[++j] = d; });
       return data;
     }
 
     var bind = key ? bindKey : bindIndex,
         parents = this._parents,
-        update = arrayify(this),
-        enter = (this._enter = this.enter())._groups,
-        exit = (this._exit = this.exit())._groups;
+        groups = this._groups;
 
     if (typeof value !== "function") value = constant(value);
 
-    for (var m = update.length, j = 0; j < m; ++j) {
-      var group = update[j],
-          parent = parents[j];
+    for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
+      var parent = parents[j],
+          group = groups[j],
+          groupLength = group.length,
+          data = value.call(parent, parent && parent.__data__, j, parents),
+          dataLength = data.length,
+          enterGroup = enter[j] = new Array(dataLength),
+          updateGroup = update[j] = new Array(dataLength),
+          exitGroup = exit[j] = new Array(groupLength);
 
-      bind(parent, group, enter[j], exit[j], value.call(parent, parent && parent.__data__, j, parents), key);
+      bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
 
       // Now connect the enter nodes to their following update node, such that
       // appendChild can insert the materialized enter node before this node,
       // rather than at the end of the parent node.
-      for (var n = group.length, i0 = 0, i1 = 0, previous, next; i0 < n; ++i0) {
-        if (previous = enter[j][i0]) {
+      for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
+        if (previous = enterGroup[i0]) {
           if (i0 >= i1) i1 = i0 + 1;
-          while (!(next = group[i1]) && ++i1 < n);
+          while (!(next = updateGroup[i1]) && ++i1 < dataLength);
           previous._next = next || null;
         }
       }
     }
 
+    this._groups = update;
+    (this._enter = new Selection(enter, parents))._update = this;
+    this._exit = new Selection(exit, parents);
     return this;
   }
 
@@ -442,8 +413,13 @@
       return a && b ? compare(a.__data__, b.__data__) : !a - !b;
     }
 
-    for (var groups = arrayify(this), j = 0, m = groups.length; j < m; ++j) {
-      groups[j].sort(compareNode);
+    for (var groups = this._groups, m = groups.length, sortgroups = this._groups = new Array(m), j = 0; j < m; ++j) {
+      for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
+        if (node = group[i]) {
+          sortgroup[i] = node;
+        }
+      }
+      sortgroup.sort(compareNode);
     }
 
     return this.order();
@@ -944,7 +920,7 @@
     return points;
   }
 
-  var version = "0.6.9";
+  var version = "0.6.10";
 
   exports.version = version;
   exports.creator = creator;
