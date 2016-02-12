@@ -357,7 +357,7 @@
   function removeFunction(key) {
     return function() {
       var parent = this.parentNode;
-      if (parent && !this[key]) parent.removeChild(this);
+      if (parent && !this[key].pending.length) parent.removeChild(this);
     };
   }
 
@@ -677,7 +677,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.1.0";
+  var version = "0.1.1";
 
   exports.version = version;
   exports.transition = transition;
