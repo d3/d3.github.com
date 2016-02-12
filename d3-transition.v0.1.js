@@ -212,7 +212,7 @@
       // Note the transition may be canceled after start and before the first tick!
       // Note this must be scheduled before the start event; see d3/d3-transition#16!
       // Assuming this is successful, subsequent callbacks go straight to tick.
-      d3Timer.timerOnce(function() {
+      d3Timer.timeout(function() {
         if (schedules.active === self) {
           self.timer.restart(tick, self.delay, self.time);
           tick(elapsed);
@@ -677,7 +677,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.1.1";
+  var version = "0.1.2";
 
   exports.version = version;
   exports.transition = transition;
