@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-dispatch'), require('d3-dsv')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-dispatch', 'd3-dsv'], factory) :
-  (factory((global.d3_request = {}),global.d3_collection,global.d3_dispatch,global.d3_dsv));
+  (factory((global.d3_request = global.d3_request || {}),global.d3_collection,global.d3_dispatch,global.d3_dsv));
 }(this, function (exports,d3Collection,d3Dispatch,d3Dsv) { 'use strict';
 
   function request(url, callback) {
@@ -185,7 +185,7 @@
 
   var tsv = dsv("text/tab-separated-values", d3Dsv.tsvParse);
 
-  var version = "0.4.2";
+  var version = "0.4.3";
 
   exports.version = version;
   exports.request = request;
