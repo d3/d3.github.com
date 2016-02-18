@@ -1,12 +1,14 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_selection = {})));
+  (factory((global.d3_selection = global.d3_selection || {})));
 }(this, function (exports) { 'use strict';
+
+  var xhtml = "http://www.w3.org/1999/xhtml";
 
   var namespaces = {
     svg: "http://www.w3.org/2000/svg",
-    xhtml: "http://www.w3.org/1999/xhtml",
+    xhtml: xhtml,
     xlink: "http://www.w3.org/1999/xlink",
     xml: "http://www.w3.org/XML/1998/namespace",
     xmlns: "http://www.w3.org/2000/xmlns/"
@@ -22,9 +24,9 @@
     return function() {
       var document = this.ownerDocument,
           uri = this.namespaceURI;
-      return uri && uri !== document.documentElement.namespaceURI
-          ? document.createElementNS(uri, name)
-          : document.createElement(name);
+      return uri === xhtml && document.documentElement.namespaceURI === xhtml
+          ? document.createElement(name)
+          : document.createElementNS(uri, name);
     };
   }
 
@@ -920,7 +922,7 @@
     return points;
   }
 
-  var version = "0.6.10";
+  var version = "0.6.11";
 
   exports.version = version;
   exports.creator = creator;
