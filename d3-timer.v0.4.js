@@ -57,12 +57,6 @@
     return t;
   }
 
-  function timerOnce(callback, delay, time) {
-    var t = new Timer;
-    t.restart(function(elapsed) { t.stop(); callback(elapsed); }, delay, time);
-    return t;
-  }
-
   function timerFlush() {
     now(); // Get the current time, if not already set.
     ++frame; // Pretend we’ve set an alarm, if we haven’t already.
@@ -118,12 +112,34 @@
     }
   }
 
-  var version = "0.3.2";
+  function timeout$1(callback, delay, time) {
+    var t = new Timer;
+    delay = delay == null ? 0 : +delay;
+    t.restart(function(elapsed) {
+      t.stop();
+      callback(elapsed + delay);
+    }, delay, time);
+    return t;
+  }
+
+  function interval$1(callback, delay, time) {
+    var t = new Timer, d = delay;
+    if (delay == null) return t.restart(callback, delay, time), t;
+    delay = +delay, time = time == null ? now() : +time;
+    t.restart(function tick(elapsed) {
+      t.restart(tick, d += delay, time);
+      callback(elapsed - delay + d);
+    }, d, time);
+    return t;
+  }
+
+  var version = "0.4.0";
 
   exports.version = version;
   exports.now = now;
   exports.timer = timer;
-  exports.timerOnce = timerOnce;
   exports.timerFlush = timerFlush;
+  exports.timeout = timeout$1;
+  exports.interval = interval$1;
 
 }));
