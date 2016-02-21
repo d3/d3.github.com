@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_collection = {})));
+  (factory((global.d3_collection = global.d3_collection || {})));
 }(this, function (exports) { 'use strict';
 
   var prefix = "$";
@@ -9,6 +9,7 @@
   function Map() {}
 
   Map.prototype = map.prototype = {
+    constructor: Map,
     has: function(key) {
       return (prefix + key) in this;
     },
@@ -161,6 +162,7 @@
   var proto = map.prototype;
 
   Set.prototype = set.prototype = {
+    constructor: Set,
     has: proto.has,
     add: function(value) {
       value += "";
@@ -209,7 +211,7 @@
     return entries;
   }
 
-  var version = "0.1.1";
+  var version = "0.1.2";
 
   exports.version = version;
   exports.nest = nest;
