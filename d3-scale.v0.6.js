@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-collection'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-collection', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
-  (factory((global.d3_scale = {}),global.d3_array,global.d3_interpolate,global.d3_format,global.d3_collection,global.d3_time,global.d3_time_format,global.d3_color));
-}(this, function (exports,d3Array,d3Interpolate,d3Format,d3Collection,d3Time,d3TimeFormat,d3Color) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-collection', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
+  (factory((global.d3_scale = global.d3_scale || {}),global.d3_array,global.d3_collection,global.d3_interpolate,global.d3_format,global.d3_time,global.d3_time_format,global.d3_color));
+}(this, function (exports,d3Array,d3Collection,d3Interpolate,d3Format,d3Time,d3TimeFormat,d3Color) { 'use strict';
 
   var array = Array.prototype;
 
@@ -163,7 +163,7 @@
 
   var unit = [0, 1];
 
-  function deinterpolateLinear(a, b) {
+  function deinterpolate(a, b) {
     return (b -= (a = +a))
         ? function(x) { return (x - a) / b; }
         : constant(b);
@@ -223,7 +223,7 @@
 
   // deinterpolate(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
   // reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
-  function continuous(deinterpolate, reinterpolate) {
+  function continuous(deinterpolate$$, reinterpolate) {
     var domain = unit,
         range = unit,
         interpolate = d3Interpolate.interpolate,
@@ -233,8 +233,8 @@
 
     function rescale() {
       var map = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
-      output = map(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate);
-      input = map(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate);
+      output = map(domain, range, clamp ? deinterpolateClamp(deinterpolate$$) : deinterpolate$$, interpolate);
+      input = map(range, domain, deinterpolate, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate);
       return scale;
     }
 
@@ -332,7 +332,7 @@
   }
 
   function linear() {
-    var scale = continuous(deinterpolateLinear, d3Interpolate.interpolateNumber);
+    var scale = continuous(deinterpolate, d3Interpolate.interpolateNumber);
 
     scale.copy = function() {
       return copy(scale, linear());
@@ -380,9 +380,7 @@
     return domain;
   }
 
-  var tickFormat10 = d3Format.format(".0e");
-  var tickFormatOther = d3Format.format(",");
-  function deinterpolate(a, b) {
+  function deinterpolate$1(a, b) {
     return (b = Math.log(b / a))
         ? function(x) { return Math.log(x / a) / b; }
         : constant(b);
@@ -418,7 +416,7 @@
   }
 
   function log() {
-    var scale = continuous(deinterpolate, reinterpolate).domain([1, 10]),
+    var scale = continuous(deinterpolate$1, reinterpolate).domain([1, 10]),
         domain = scale.domain,
         base = 10,
         logs = logp(10),
@@ -480,8 +478,8 @@
     };
 
     scale.tickFormat = function(count, specifier) {
-      if (specifier == null) specifier = base === 10 ? tickFormat10 : tickFormatOther;
-      else if (typeof specifier !== "function") specifier = d3Format.format(specifier);
+      if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+      if (typeof specifier !== "function") specifier = d3Format.format(specifier);
       if (count === Infinity) return specifier;
       if (count == null) count = 10;
       var k = Math.max(1, base * count / scale.ticks().length); // TODO fast estimate?
@@ -664,20 +662,19 @@
     return scale;
   }
 
-  var millisecondsPerSecond = 1000;
-  var millisecondsPerMinute = millisecondsPerSecond * 60;
-  var millisecondsPerHour = millisecondsPerMinute * 60;
-  var millisecondsPerDay = millisecondsPerHour * 24;
-  var millisecondsPerWeek = millisecondsPerDay * 7;
-  var millisecondsPerMonth = millisecondsPerDay * 30;
-  var millisecondsPerYear = millisecondsPerDay * 365;
-  var bisectTickIntervals = d3Array.bisector(function(method) { return method[2]; }).right;
+  var durationSecond = 1000;
+  var durationMinute = durationSecond * 60;
+  var durationHour = durationMinute * 60;
+  var durationDay = durationHour * 24;
+  var durationWeek = durationDay * 7;
+  var durationMonth = durationDay * 30;
+  var durationYear = durationDay * 365;
   function newDate(t) {
     return new Date(t);
   }
 
   function calendar(year, month, week, day, hour, minute, second, millisecond, format) {
-    var scale = continuous(deinterpolateLinear, d3Interpolate.interpolateNumber),
+    var scale = continuous(deinterpolate, d3Interpolate.interpolateNumber),
         invert = scale.invert,
         domain = scale.domain;
 
@@ -691,24 +688,24 @@
         formatYear = format("%Y");
 
     var tickIntervals = [
-      [second,  1,      millisecondsPerSecond],
-      [second,  5,  5 * millisecondsPerSecond],
-      [second, 15, 15 * millisecondsPerSecond],
-      [second, 30, 30 * millisecondsPerSecond],
-      [minute,  1,      millisecondsPerMinute],
-      [minute,  5,  5 * millisecondsPerMinute],
-      [minute, 15, 15 * millisecondsPerMinute],
-      [minute, 30, 30 * millisecondsPerMinute],
-      [  hour,  1,      millisecondsPerHour  ],
-      [  hour,  3,  3 * millisecondsPerHour  ],
-      [  hour,  6,  6 * millisecondsPerHour  ],
-      [  hour, 12, 12 * millisecondsPerHour  ],
-      [   day,  1,      millisecondsPerDay   ],
-      [   day,  2,  2 * millisecondsPerDay   ],
-      [  week,  1,      millisecondsPerWeek  ],
-      [ month,  1,      millisecondsPerMonth ],
-      [ month,  3,  3 * millisecondsPerMonth ],
-      [  year,  1,      millisecondsPerYear  ]
+      [second,  1,      durationSecond],
+      [second,  5,  5 * durationSecond],
+      [second, 15, 15 * durationSecond],
+      [second, 30, 30 * durationSecond],
+      [minute,  1,      durationMinute],
+      [minute,  5,  5 * durationMinute],
+      [minute, 15, 15 * durationMinute],
+      [minute, 30, 30 * durationMinute],
+      [  hour,  1,      durationHour  ],
+      [  hour,  3,  3 * durationHour  ],
+      [  hour,  6,  6 * durationHour  ],
+      [  hour, 12, 12 * durationHour  ],
+      [   day,  1,      durationDay   ],
+      [   day,  2,  2 * durationDay   ],
+      [  week,  1,      durationWeek  ],
+      [ month,  1,      durationMonth ],
+      [ month,  3,  3 * durationMonth ],
+      [  year,  1,      durationYear  ]
     ];
 
     function tickFormat(date) {
@@ -729,9 +726,9 @@
       // Otherwise, assume interval is already a time interval and use it.
       if (typeof interval === "number") {
         var target = Math.abs(stop - start) / interval,
-            i = bisectTickIntervals(tickIntervals, target);
+            i = d3Array.bisector(function(i) { return i[2]; }).right(tickIntervals, target);
         if (i === tickIntervals.length) {
-          step = d3Array.tickStep(start / millisecondsPerYear, stop / millisecondsPerYear, interval);
+          step = d3Array.tickStep(start / durationYear, stop / durationYear, interval);
           interval = year;
         } else if (i) {
           i = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
@@ -798,20 +795,28 @@
     });
   }
 
+  var colors10 = colors("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
   function category10() {
-    return ordinal().range(colors("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf"));
+    return ordinal().range(colors10);
   }
+
+  var colors20b = colors("393b795254a36b6ecf9c9ede6379398ca252b5cf6bcedb9c8c6d31bd9e39e7ba52e7cb94843c39ad494ad6616be7969c7b4173a55194ce6dbdde9ed6");
 
   function category20b() {
-    return ordinal().range(colors("393b795254a36b6ecf9c9ede6379398ca252b5cf6bcedb9c8c6d31bd9e39e7ba52e7cb94843c39ad494ad6616be7969c7b4173a55194ce6dbdde9ed6"));
+    return ordinal().range(colors20b);
   }
+
+  var colors20c = colors("3182bd6baed69ecae1c6dbefe6550dfd8d3cfdae6bfdd0a231a35474c476a1d99bc7e9c0756bb19e9ac8bcbddcdadaeb636363969696bdbdbdd9d9d9");
 
   function category20c() {
-    return ordinal().range(colors("3182bd6baed69ecae1c6dbefe6550dfd8d3cfdae6bfdd0a231a35474c476a1d99bc7e9c0756bb19e9ac8bcbddcdadaeb636363969696bdbdbdd9d9d9"));
+    return ordinal().range(colors20c);
   }
 
+  var colors20 = colors("1f77b4aec7e8ff7f0effbb782ca02c98df8ad62728ff98969467bdc5b0d58c564bc49c94e377c2f7b6d27f7f7fc7c7c7bcbd22dbdb8d17becf9edae5");
+
   function category20() {
-    return ordinal().range(colors("1f77b4aec7e8ff7f0effbb782ca02c98df8ad62728ff98969467bdc5b0d58c564bc49c94e377c2f7b6d27f7f7fc7c7c7bcbd22dbdb8d17becf9edae5"));
+    return ordinal().range(colors20);
   }
 
   function cubehelix$1() {
@@ -845,31 +850,24 @@
     return linearish(scale);
   }
 
-  var a = d3Color.cubehelix(-100, 0.75, 0.35);
-  var b = d3Color.cubehelix(80, 1.50, 0.8);
-  var c = d3Color.cubehelix(260, 0.75, 0.35);
-  var d = d3Color.cubehelix();
-  var interpolateWarm = d3Interpolate.interpolateCubehelixLong(a, b);
-  var interpolateCool = d3Interpolate.interpolateCubehelixLong(c, b);
-  function interpolateRainbow(t) {
-    if (t < 0 || t > 1) t -= Math.floor(t);
-    var ts = Math.abs(t - 0.5);
-    d.h = 360 * t - 100;
-    d.s = 1.5 - 1.5 * ts;
-    d.l = 0.8 - 0.9 * ts;
-    return d + "";
-  }
-
   function warm() {
-    return sequential(interpolateWarm);
+    return sequential(d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(-100, 0.75, 0.35), d3Color.cubehelix(80, 1.50, 0.8)));
   }
 
   function cool() {
-    return sequential(interpolateCool);
+    return sequential(d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(260, 0.75, 0.35), d3Color.cubehelix(80, 1.50, 0.8)));
   }
 
   function rainbow() {
-    return sequential(interpolateRainbow);
+    var rainbow = d3Color.cubehelix();
+    return sequential(function(t) {
+      if (t < 0 || t > 1) t -= Math.floor(t);
+      var ts = Math.abs(t - 0.5);
+      rainbow.h = 360 * t - 100;
+      rainbow.s = 1.5 - 1.5 * ts;
+      rainbow.l = 0.8 - 0.9 * ts;
+      return rainbow + "";
+    });
   }
 
   var rangeViridis = colors("44015444025645045745055946075a46085c460a5d460b5e470d60470e6147106347116447136548146748166848176948186a481a6c481b6d481c6e481d6f481f70482071482173482374482475482576482677482878482979472a7a472c7a472d7b472e7c472f7d46307e46327e46337f463480453581453781453882443983443a83443b84433d84433e85423f854240864241864142874144874045884046883f47883f48893e49893e4a893e4c8a3d4d8a3d4e8a3c4f8a3c508b3b518b3b528b3a538b3a548c39558c39568c38588c38598c375a8c375b8d365c8d365d8d355e8d355f8d34608d34618d33628d33638d32648e32658e31668e31678e31688e30698e306a8e2f6b8e2f6c8e2e6d8e2e6e8e2e6f8e2d708e2d718e2c718e2c728e2c738e2b748e2b758e2a768e2a778e2a788e29798e297a8e297b8e287c8e287d8e277e8e277f8e27808e26818e26828e26828e25838e25848e25858e24868e24878e23888e23898e238a8d228b8d228c8d228d8d218e8d218f8d21908d21918c20928c20928c20938c1f948c1f958b1f968b1f978b1f988b1f998a1f9a8a1e9b8a1e9c891e9d891f9e891f9f881fa0881fa1881fa1871fa28720a38620a48621a58521a68522a78522a88423a98324aa8325ab8225ac8226ad8127ad8128ae8029af7f2ab07f2cb17e2db27d2eb37c2fb47c31b57b32b67a34b67935b77937b87838b9773aba763bbb753dbc743fbc7340bd7242be7144bf7046c06f48c16e4ac16d4cc26c4ec36b50c46a52c56954c56856c66758c7655ac8645cc8635ec96260ca6063cb5f65cb5e67cc5c69cd5b6ccd5a6ece5870cf5773d05675d05477d1537ad1517cd2507fd34e81d34d84d44b86d54989d5488bd6468ed64590d74393d74195d84098d83e9bd93c9dd93ba0da39a2da37a5db36a8db34aadc32addc30b0dd2fb2dd2db5de2bb8de29bade28bddf26c0df25c2df23c5e021c8e020cae11fcde11dd0e11cd2e21bd5e21ad8e219dae319dde318dfe318e2e418e5e419e7e419eae51aece51befe51cf1e51df4e61ef6e620f8e621fbe723fde725");
@@ -898,7 +896,7 @@
     return ramp(rangePlasma);
   }
 
-  var version = "0.6.1";
+  var version = "0.6.2";
 
   exports.version = version;
   exports.scaleBand = band;
