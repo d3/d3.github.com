@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_voronoi = {})));
+  (factory((global.d3_voronoi = global.d3_voronoi || {})));
 }(this, function (exports) { 'use strict';
 
   function constant(x) {
@@ -32,6 +32,7 @@
   }
 
   RedBlackTree.prototype = {
+    constructor: RedBlackTree,
 
     insert: function(after, node) {
       var parent, grandpa, uncle;
@@ -208,7 +209,6 @@
 
       if (node) node.C = false;
     }
-
   };
 
   function RedBlackRotateLeft(tree, node) {
@@ -843,6 +843,8 @@
   }
 
   Diagram.prototype = {
+    constructor: Diagram,
+
     polygons: function() {
       var cells = this.cells,
           edges = this.cellEdges,
@@ -866,6 +868,7 @@
 
       return polygons;
     },
+
     triangles: function() {
       var triangles = [],
           edges = this.edges;
@@ -891,6 +894,7 @@
 
       return triangles;
     },
+
     links: function() {
       return this.edges.filter(function(edge) {
         return edge.right;
@@ -947,7 +951,7 @@
     return voronoi;
   }
 
-  var version = "0.3.1";
+  var version = "0.3.2";
 
   exports.version = version;
   exports.voronoi = voronoi;
