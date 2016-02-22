@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_timer = {})));
+  (factory((global.d3_timer = global.d3_timer || {})));
 }(this, function (exports) { 'use strict';
 
   var frame = 0;
@@ -30,6 +30,7 @@
   }
 
   Timer.prototype = timer.prototype = {
+    constructor: Timer,
     restart: function(callback, delay, time) {
       if (typeof callback !== "function") throw new TypeError("callback is not a function");
       time = (time == null ? now() : +time) + (delay == null ? 0 : +delay);
@@ -123,17 +124,18 @@
   }
 
   function interval$1(callback, delay, time) {
-    var t = new Timer, d = delay;
+    var t = new Timer, total = delay;
     if (delay == null) return t.restart(callback, delay, time), t;
     delay = +delay, time = time == null ? now() : +time;
     t.restart(function tick(elapsed) {
-      t.restart(tick, d += delay, time);
-      callback(elapsed - delay + d);
-    }, d, time);
+      elapsed += total;
+      t.restart(tick, total += delay, time);
+      callback(elapsed);
+    }, delay, time);
     return t;
   }
 
-  var version = "0.4.0";
+  var version = "0.4.1";
 
   exports.version = version;
   exports.now = now;
