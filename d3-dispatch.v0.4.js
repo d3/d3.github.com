@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_dispatch = {})));
+  (factory((global.d3_dispatch = global.d3_dispatch || {})));
 }(this, function (exports) { 'use strict';
 
   var noop = {value: function() {}};
@@ -27,7 +27,8 @@
     });
   }
 
-  dispatch.prototype = Dispatch.prototype = {
+  Dispatch.prototype = dispatch.prototype = {
+    constructor: Dispatch,
     on: function(typename, callback) {
       var _ = this._,
           T = parseTypenames(typename + "", _),
@@ -84,7 +85,7 @@
     return type;
   }
 
-  var version = "0.4.1";
+  var version = "0.4.2";
 
   exports.version = version;
   exports.dispatch = dispatch;
