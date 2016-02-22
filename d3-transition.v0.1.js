@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-ease'), require('d3-timer'), require('d3-interpolate'), require('d3-dispatch')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-ease', 'd3-timer', 'd3-interpolate', 'd3-dispatch'], factory) :
-  (factory((global.d3_transition = {}),global.d3_selection,global.d3_ease,global.d3_timer,global.d3_interpolate,global.d3_dispatch));
-}(this, function (exports,d3Selection,d3Ease,d3Timer,d3Interpolate,d3Dispatch) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-interpolate'), require('d3-dispatch'), require('d3-timer'), require('d3-ease')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-interpolate', 'd3-dispatch', 'd3-timer', 'd3-ease'], factory) :
+  (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_interpolate,global.d3_dispatch,global.d3_timer,global.d3_ease));
+}(this, function (exports,d3Selection,d3Interpolate,d3Dispatch,d3Timer,d3Ease) { 'use strict';
 
   // TODO Assumes either ALL selected nodes are SVG, or none are.
   function attrInterpolate(node, name) {
@@ -592,6 +592,7 @@
   var selection_prototype = d3Selection.selection.prototype;
 
   Transition.prototype = transition.prototype = {
+    constructor: Transition,
     select: transition_select,
     selectAll: transition_selectAll,
     filter: transition_filter,
@@ -677,7 +678,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.1.2";
+  var version = "0.1.3";
 
   exports.version = version;
   exports.transition = transition;
