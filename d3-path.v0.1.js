@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_path = {})));
+  (factory((global.d3_path = global.d3_path || {})));
 }(this, function (exports) { 'use strict';
 
   var pi = Math.PI;
@@ -19,6 +19,7 @@
   }
 
   Path.prototype = path.prototype = {
+    constructor: Path,
     moveTo: function(x, y) {
       this._.push("M", this._x0 = this._x1 = +x, ",", this._y0 = this._y1 = +y);
     },
@@ -146,7 +147,7 @@
     }
   };
 
-  var version = "0.1.4";
+  var version = "0.1.5";
 
   exports.version = version;
   exports.path = path;
