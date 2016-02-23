@@ -421,7 +421,7 @@
       }
     }
 
-    return new Transition(groups, parents, key, id);
+    return new Transition(subgroups, parents, key, id);
   }
 
   var Selection = d3Selection.selection.prototype.constructor;
@@ -703,7 +703,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   exports.version = version;
   exports.transition = transition;
