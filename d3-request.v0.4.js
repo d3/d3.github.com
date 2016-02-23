@@ -185,7 +185,7 @@
 
   var tsv = dsv("text/tab-separated-values", d3Dsv.tsvParse);
 
-  var version = "0.4.3";
+  var version = "0.4.4";
 
   exports.version = version;
   exports.request = request;
