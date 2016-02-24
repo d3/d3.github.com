@@ -37,7 +37,7 @@
       if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
       floori(start), offseti(start, 1);
       if (start < stop) range.push(new Date(+start));
-      while (offseti(start, step), start < stop) range.push(new Date(+start));
+      while (offseti(start, step), floori(start), start < stop) range.push(new Date(+start));
       return range;
     };
 
@@ -285,7 +285,7 @@
   var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  var version = "0.2.3";
+  var version = "0.2.4";
 
   exports.version = version;
   exports.timeMilliseconds = timeMilliseconds;
