@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3_time = {})));
+  (factory((global.d3_time = global.d3_time || {})));
 }(this, function (exports) { 'use strict';
 
   var t0 = new Date;
@@ -91,42 +91,50 @@
     });
   };
 
+  var second$1 = 1e3;
+  var minute = 6e4;
+  var hour = 36e5;
+  var day = 864e5;
+  var week = 6048e5;
+
   var second = newInterval(function(date) {
-    date.setMilliseconds(0);
+    date.setTime(Math.floor(date / second$1) * second$1);
   }, function(date, step) {
-    date.setTime(+date + step * 1e3);
+    date.setTime(+date + step * second$1);
   }, function(start, end) {
-    return (end - start) / 1e3;
+    return (end - start) / second$1;
   }, function(date) {
-    return date.getSeconds();
+    return date.getUTCSeconds();
   });
 
-  var minute = newInterval(function(date) {
-    date.setSeconds(0, 0);
+  var minute$1 = newInterval(function(date) {
+    date.setTime(Math.floor(date / minute) * minute);
   }, function(date, step) {
-    date.setTime(+date + step * 6e4);
+    date.setTime(+date + step * minute);
   }, function(start, end) {
-    return (end - start) / 6e4;
+    return (end - start) / minute;
   }, function(date) {
     return date.getMinutes();
   });
 
-  var hour = newInterval(function(date) {
-    date.setMinutes(0, 0, 0);
+  var hour$1 = newInterval(function(date) {
+    var offset = date.getTimezoneOffset() * minute % hour;
+    if (offset < 0) offset += hour;
+    date.setTime(Math.floor((+date - offset) / hour) * hour + offset);
   }, function(date, step) {
-    date.setTime(+date + step * 36e5);
+    date.setTime(+date + step * hour);
   }, function(start, end) {
-    return (end - start) / 36e5;
+    return (end - start) / hour;
   }, function(date) {
     return date.getHours();
   });
 
-  var day = newInterval(function(date) {
+  var day$1 = newInterval(function(date) {
     date.setHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setDate(date.getDate() + step);
   }, function(start, end) {
-    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * 6e4) / 864e5;
+    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * minute) / day;
   }, function(date) {
     return date.getDate() - 1;
   });
@@ -138,7 +146,7 @@
     }, function(date, step) {
       date.setDate(date.getDate() + step * 7);
     }, function(start, end) {
-      return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * 6e4) / 6048e5;
+      return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * minute) / week;
     });
   }
 
@@ -172,22 +180,12 @@
     return date.getFullYear();
   });
 
-  var utcSecond = newInterval(function(date) {
-    date.setUTCMilliseconds(0);
-  }, function(date, step) {
-    date.setTime(+date + step * 1e3);
-  }, function(start, end) {
-    return (end - start) / 1e3;
-  }, function(date) {
-    return date.getUTCSeconds();
-  });
-
   var utcMinute = newInterval(function(date) {
     date.setUTCSeconds(0, 0);
   }, function(date, step) {
-    date.setTime(+date + step * 6e4);
+    date.setTime(+date + step * minute);
   }, function(start, end) {
-    return (end - start) / 6e4;
+    return (end - start) / minute;
   }, function(date) {
     return date.getUTCMinutes();
   });
@@ -195,9 +193,9 @@
   var utcHour = newInterval(function(date) {
     date.setUTCMinutes(0, 0, 0);
   }, function(date, step) {
-    date.setTime(+date + step * 36e5);
+    date.setTime(+date + step * hour);
   }, function(start, end) {
-    return (end - start) / 36e5;
+    return (end - start) / hour;
   }, function(date) {
     return date.getUTCHours();
   });
@@ -207,7 +205,7 @@
   }, function(date, step) {
     date.setUTCDate(date.getUTCDate() + step);
   }, function(start, end) {
-    return (end - start) / 864e5;
+    return (end - start) / day;
   }, function(date) {
     return date.getUTCDate() - 1;
   });
@@ -219,7 +217,7 @@
     }, function(date, step) {
       date.setUTCDate(date.getUTCDate() + step * 7);
     }, function(start, end) {
-      return (end - start) / 6048e5;
+      return (end - start) / week;
     });
   }
 
@@ -255,9 +253,9 @@
 
   var timeMilliseconds = millisecond.range;
   var timeSeconds = second.range;
-  var timeMinutes = minute.range;
-  var timeHours = hour.range;
-  var timeDays = day.range;
+  var timeMinutes = minute$1.range;
+  var timeHours = hour$1.range;
+  var timeDays = day$1.range;
   var timeSundays = sunday.range;
   var timeMondays = monday.range;
   var timeTuesdays = tuesday.range;
@@ -271,7 +269,8 @@
 
   var utcMillisecond = millisecond;
   var utcMilliseconds = timeMilliseconds;
-  var utcSeconds = utcSecond.range;
+  var utcSecond = second;
+  var utcSeconds = timeSeconds;
   var utcMinutes = utcMinute.range;
   var utcHours = utcHour.range;
   var utcDays = utcDay.range;
@@ -286,7 +285,7 @@
   var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   exports.version = version;
   exports.timeMilliseconds = timeMilliseconds;
@@ -306,6 +305,7 @@
   exports.timeYears = timeYears;
   exports.utcMillisecond = utcMillisecond;
   exports.utcMilliseconds = utcMilliseconds;
+  exports.utcSecond = utcSecond;
   exports.utcSeconds = utcSeconds;
   exports.utcMinutes = utcMinutes;
   exports.utcHours = utcHours;
@@ -322,9 +322,9 @@
   exports.utcYears = utcYears;
   exports.timeMillisecond = millisecond;
   exports.timeSecond = second;
-  exports.timeMinute = minute;
-  exports.timeHour = hour;
-  exports.timeDay = day;
+  exports.timeMinute = minute$1;
+  exports.timeHour = hour$1;
+  exports.timeDay = day$1;
   exports.timeSunday = sunday;
   exports.timeMonday = monday;
   exports.timeTuesday = tuesday;
@@ -335,7 +335,6 @@
   exports.timeWeek = sunday;
   exports.timeMonth = month;
   exports.timeYear = year;
-  exports.utcSecond = utcSecond;
   exports.utcMinute = utcMinute;
   exports.utcHour = utcHour;
   exports.utcDay = utcDay;
