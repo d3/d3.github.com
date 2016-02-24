@@ -4,118 +4,8 @@
   (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_interpolate,global.d3_dispatch,global.d3_timer,global.d3_ease));
 }(this, function (exports,d3Selection,d3Interpolate,d3Dispatch,d3Timer,d3Ease) { 'use strict';
 
-  // TODO Assumes either ALL selected nodes are SVG, or none are.
-  function attrInterpolate(node, name) {
-    return name === "transform" && node.namespaceURI === d3Selection.namespaces.svg
-        ? d3Interpolate.interpolateTransform
-        : d3Interpolate.interpolate;
-  }
-
-  function attrRemove(name) {
-    return function() {
-      this.removeAttribute(name);
-    };
-  }
-
-  function attrRemoveNS(fullname) {
-    return function() {
-      this.removeAttributeNS(fullname.space, fullname.local);
-    };
-  }
-
-  function attrConstant(name, value1) {
-    var value00,
-        interpolate0;
-    return value1 += "", function() {
-      var value0 = this.getAttribute(name);
-      return value0 === value1 ? null
-          : value0 === value00 ? interpolate0
-          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value1);
-    };
-  }
-
-  function attrConstantNS(fullname, value1) {
-    var value00,
-        interpolate0;
-    return value1 += "", function() {
-      var value0 = this.getAttributeNS(fullname.space, fullname.local);
-      return value0 === value1 ? null
-          : value0 === value00 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
-    };
-  }
-
-  function attrFunction(name, value) {
-    var value00,
-        value10,
-        interpolate0;
-    return function() {
-      var value0,
-          value1 = value.apply(this, arguments);
-      if (value1 == null) return void this.removeAttribute(name);
-      value0 = this.getAttribute(name), value1 += "";
-      return value0 === value1 ? null
-          : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value10 = value1);
-    };
-  }
-
-  function attrFunctionNS(fullname, value) {
-    var value00,
-        value10,
-        interpolate0;
-    return function() {
-      var value0, value1 = value.apply(this, arguments);
-      if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
-      value0 = this.getAttributeNS(fullname.space, fullname.local), value1 += "";
-      return value0 === value1 ? null
-          : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
-    };
-  }
-
-  function transition_attr(name, value) {
-    var fullname = d3Selection.namespace(name);
-    return this.attrTween(name, (value == null
-        ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
-        ? (fullname.local ? attrFunctionNS : attrFunction)
-        : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
-  }
-
-  function attrTweenNS(fullname, value) {
-    function tween() {
-      var node = this, i = value.apply(node, arguments);
-      return i && function(t) {
-        node.setAttributeNS(fullname.space, fullname.local, i(t));
-      };
-    }
-    tween._value = value;
-    return tween;
-  }
-
-  function attrTween(name, value) {
-    function tween() {
-      var node = this, i = value.apply(node, arguments);
-      return i && function(t) {
-        node.setAttribute(name, i(t));
-      };
-    }
-    tween._value = value;
-    return tween;
-  }
-
-  function transition_attrTween(name, value) {
-    var key = "attr." + name;
-    if (arguments.length < 2) return (key = this.tween(key)) && key._value;
-    if (typeof value !== "function") throw new Error;
-    var fullname = d3Selection.namespace(name);
-    return this.tween(key, (fullname.local
-        ? attrTweenNS
-        : attrTween)(fullname, value));
-  }
-
   var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
-  var emptyTweens = [];
+  var emptyTween = [];
 
   var CREATED = 0;
   var SCHEDULED = 1;
@@ -129,7 +19,7 @@
       index: index, // For context during callback.
       group: group, // For context during callback.
       on: emptyOn,
-      tweens: emptyTweens,
+      tween: emptyTween,
       time: timing.time,
       delay: timing.delay,
       duration: timing.duration,
@@ -168,7 +58,7 @@
 
   function start(node, key, self) {
     var schedules = node[key],
-        tweens;
+        tween;
 
     // Initialize the self timer when the transition is created.
     // Note the actual delay is not known until the first callback!
@@ -220,18 +110,18 @@
       });
 
       // Dispatch the start event.
-      // Note this must be done before the tweens are initialized.
+      // Note this must be done before the tween are initialized.
       self.on.call("start", node, node.__data__, self.index, self.group);
       self.state = STARTED;
 
-      // Initialize the tweens, deleting null tweens.
-      tweens = new Array(n = self.tweens.length);
+      // Initialize the tween, deleting null tween.
+      tween = new Array(n = self.tween.length);
       for (i = 0, j = -1; i < n; ++i) {
-        if (o = self.tweens[i].value.call(node, node.__data__, self.index, self.group)) {
-          tweens[++j] = o;
+        if (o = self.tween[i].value.call(node, node.__data__, self.index, self.group)) {
+          tween[++j] = o;
         }
       }
-      tweens.length = j + 1;
+      tween.length = j + 1;
     }
 
     function tick(elapsed) {
@@ -239,8 +129,8 @@
           e = t >= 1 ? 1 : self.ease.call(null, t),
           i, n;
 
-      for (i = 0, n = tweens.length; i < n; ++i) {
-        tweens[i].call(null, e);
+      for (i = 0, n = tween.length; i < n; ++i) {
+        tween[i].call(null, e);
       }
 
       // Dispatch the end event.
@@ -251,6 +141,173 @@
         self.timer.stop();
       }
     }
+  }
+
+  function tweenFunction(key, id, name, value) {
+    var tween0, tween1;
+    return function() {
+      var schedule = set(this, key, id),
+          tween = schedule.tween;
+
+      // If this node shared tween with the previous node,
+      // just assign the updated shared tween and we’re done!
+      // Otherwise, copy-on-write.
+      if (tween !== tween0) {
+        tween1 = (tween0 = tween).slice();
+        for (var t = {name: name, value: value}, i = 0, n = tween1.length; i < n; ++i) {
+          if (tween1[i].name === name) {
+            tween1[i] = t;
+            break;
+          }
+        }
+        if (i === n) tween1.push(t);
+      }
+
+      schedule.tween = tween1;
+    };
+  }
+
+  function transition_tween(name, value) {
+    var key = this._key,
+        id = this._id;
+
+    name += "";
+
+    if (arguments.length < 2) {
+      var tween = get(this.node(), key, id).tween;
+      for (var i = 0, n = tween.length, t; i < n; ++i) {
+        if ((t = tween[i]).name === name) {
+          return t.value;
+        }
+      }
+      return null;
+    }
+
+    if (typeof value !== "function") throw new Error;
+    return this.each(tweenFunction(key, id, name, value));
+  }
+
+  function tweenValue(transition, name, value) {
+    var key = transition._key,
+        id = transition._id;
+
+    transition.each(function() {
+      var schedule = set(this, key, id), v = value.apply(this, arguments);
+      (schedule.value || (schedule.value = {}))[name] = v == null ? null : v + "";
+    });
+
+    return function(node) {
+      return get(node, key, id).value[name];
+    };
+  }
+
+  // TODO Assumes either ALL selected nodes are SVG, or none are.
+  function attrInterpolate(node, name) {
+    return name === "transform" && node.namespaceURI === d3Selection.namespaces.svg
+        ? d3Interpolate.interpolateTransform
+        : d3Interpolate.interpolate;
+  }
+
+  function attrRemove(name) {
+    return function() {
+      this.removeAttribute(name);
+    };
+  }
+
+  function attrRemoveNS(fullname) {
+    return function() {
+      this.removeAttributeNS(fullname.space, fullname.local);
+    };
+  }
+
+  function attrConstant(name, value1) {
+    var value00,
+        interpolate0;
+    return function() {
+      var value0 = this.getAttribute(name);
+      return value0 === value1 ? null
+          : value0 === value00 ? interpolate0
+          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value1);
+    };
+  }
+
+  function attrConstantNS(fullname, value1) {
+    var value00,
+        interpolate0;
+    return function() {
+      var value0 = this.getAttributeNS(fullname.space, fullname.local);
+      return value0 === value1 ? null
+          : value0 === value00 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
+    };
+  }
+
+  function attrFunction(name, value) {
+    var value00,
+        value10,
+        interpolate0;
+    return function() {
+      var value0, value1 = value(this);
+      if (value1 == null) return void this.removeAttribute(name);
+      value0 = this.getAttribute(name);
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value10 = value1);
+    };
+  }
+
+  function attrFunctionNS(fullname, value) {
+    var value00,
+        value10,
+        interpolate0;
+    return function() {
+      var value0, value1 = value(this);
+      if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
+      value0 = this.getAttributeNS(fullname.space, fullname.local);
+      return value0 === value1 ? null
+          : value0 === value00 && value1 === value10 ? interpolate0
+          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
+    };
+  }
+
+  function transition_attr(name, value) {
+    var fullname = d3Selection.namespace(name);
+    return this.attrTween(name, typeof value === "function"
+        ? (fullname.local ? attrFunctionNS : attrFunction)(fullname, tweenValue(this, "attr." + name, value))
+        : value == null ? (fullname.local ? attrRemoveNS : attrRemove)(fullname)
+        : (fullname.local ? attrConstantNS : attrConstant)(fullname, value + ""));
+  }
+
+  function attrTweenNS(fullname, value) {
+    function tween() {
+      var node = this, i = value.apply(node, arguments);
+      return i && function(t) {
+        node.setAttributeNS(fullname.space, fullname.local, i(t));
+      };
+    }
+    tween._value = value;
+    return tween;
+  }
+
+  function attrTween(name, value) {
+    function tween() {
+      var node = this, i = value.apply(node, arguments);
+      return i && function(t) {
+        node.setAttribute(name, i(t));
+      };
+    }
+    tween._value = value;
+    return tween;
+  }
+
+  function transition_attrTween(name, value) {
+    var key = "attr." + name;
+    if (arguments.length < 2) return (key = this.tween(key)) && key._value;
+    if (typeof value !== "function") throw new Error;
+    var fullname = d3Selection.namespace(name);
+    return this.tween(key, (fullname.local
+        ? attrTweenNS
+        : attrTween)(fullname, value));
   }
 
   function delayFunction(key, id, value) {
@@ -453,7 +510,7 @@
   function styleConstant(name, value1) {
     var value00,
         interpolate0;
-    return value1 += "", function() {
+    return function() {
       var value0 = d3Selection.window(this).getComputedStyle(this, null).getPropertyValue(name);
       return value0 === value1 ? null
           : value0 === value00 ? interpolate0
@@ -468,9 +525,8 @@
     return function() {
       var style = d3Selection.window(this).getComputedStyle(this, null),
           value0 = style.getPropertyValue(name),
-          value1 = value.apply(this, arguments);
+          value1 = value(this);
       if (value1 == null) value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
-      else value1 += "";
       return value0 === value1 ? null
           : value0 === value00 && value1 === value10 ? interpolate0
           : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
@@ -481,9 +537,9 @@
     return value == null ? this
             .styleTween(name, styleRemove(name))
             .on("end.style." + name, styleRemoveEnd(name))
-        : this.styleTween(name, (typeof value === "function"
-            ? styleFunction
-            : styleConstant)(name, value), priority);
+        : this.styleTween(name, typeof value === "function"
+            ? styleFunction(name, tweenValue(this, "style." + name, value))
+            : styleConstant(name, value + ""), priority);
   }
 
   function styleTween(name, value, priority) {
@@ -506,23 +562,22 @@
   }
 
   function textConstant(value) {
-    return value = value == null ? "" : value + "", function() {
+    return function() {
       this.textContent = value;
     };
   }
 
   function textFunction(value) {
     return function() {
-      var v = value.apply(this, arguments);
-      if (v == null) v = "";
-      this.textContent = v;
+      var value1 = value(this);
+      this.textContent = value1 == null ? "" : value1;
     };
   }
 
   function transition_text(value) {
-    return this.tween("text", (typeof value === "function"
-        ? textFunction
-        : textConstant)(value));
+    return this.tween("text", typeof value === "function"
+        ? textFunction(tweenValue(this, "text", value))
+        : textConstant(value == null ? "" : value + ""));
   }
 
   function transition_transition() {
@@ -545,50 +600,6 @@
     }
 
     return new Transition(groups, this._parents, key, id1);
-  }
-
-  function tweenFunction(key, id, name, value) {
-    var tweens0, tweens1;
-    return function() {
-      var schedule = set(this, key, id),
-          tweens = schedule.tweens;
-
-      // If this node shared tweens with the previous node,
-      // just assign the updated shared tweens and we’re done!
-      // Otherwise, copy-on-write.
-      if (tweens !== tweens0) {
-        tweens1 = (tweens0 = tweens).slice();
-        for (var t = {name: name, value: value}, i = 0, n = tweens1.length; i < n; ++i) {
-          if (tweens1[i].name === name) {
-            tweens1[i] = t;
-            break;
-          }
-        }
-        if (i === n) tweens1.push(t);
-      }
-
-      schedule.tweens = tweens1;
-    };
-  }
-
-  function transition_tween(name, value) {
-    var key = this._key,
-        id = this._id;
-
-    name += "";
-
-    if (arguments.length < 2) {
-      var tweens = get(this.node(), key, id).tweens;
-      for (var i = 0, n = tweens.length, t; i < n; ++i) {
-        if ((t = tweens[i]).name === name) {
-          return t.value;
-        }
-      }
-      return null;
-    }
-
-    if (typeof value !== "function") throw new Error;
-    return this.each(tweenFunction(key, id, name, value));
   }
 
   var id = 0;
@@ -703,7 +714,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   exports.version = version;
   exports.transition = transition;
