@@ -396,11 +396,19 @@
     return new Transition(merges, this._parents, this._key, this._id);
   }
 
+  function start$1(name) {
+    return (name + "").trim().split(/^|\s+/).every(function(t) {
+      var i = t.indexOf(".");
+      if (i >= 0) t = t.slice(0, i);
+      return !t || t === "start";
+    });
+  }
+
   function onFunction(key, id, name, listener) {
     if (typeof listener !== "function") throw new Error;
-    var on0, on1;
+    var on0, on1, sit = start$1(name) ? init : set;
     return function() {
-      var schedule = init(this, key, id),
+      var schedule = sit(this, key, id),
           on = schedule.on;
 
       // If this node shared a dispatch with the previous node,
@@ -708,7 +716,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.2.3";
+  var version = "0.2.4";
 
   exports.version = version;
   exports.transition = transition;
