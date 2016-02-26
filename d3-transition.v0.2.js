@@ -201,13 +201,6 @@
     };
   }
 
-  // TODO Assumes either ALL selected nodes are SVG, or none are.
-  function attrInterpolate(node, name) {
-    return name === "transform" && node.namespaceURI === d3Selection.namespaces.svg
-        ? d3Interpolate.interpolateTransform
-        : d3Interpolate.interpolate;
-  }
-
   function attrRemove(name) {
     return function() {
       this.removeAttribute(name);
@@ -220,29 +213,29 @@
     };
   }
 
-  function attrConstant(name, value1) {
+  function attrConstant(name, interpolate, value1) {
     var value00,
         interpolate0;
     return function() {
       var value0 = this.getAttribute(name);
       return value0 === value1 ? null
           : value0 === value00 ? interpolate0
-          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value1);
+          : interpolate0 = interpolate(value00 = value0, value1);
     };
   }
 
-  function attrConstantNS(fullname, value1) {
+  function attrConstantNS(fullname, interpolate, value1) {
     var value00,
         interpolate0;
     return function() {
       var value0 = this.getAttributeNS(fullname.space, fullname.local);
       return value0 === value1 ? null
           : value0 === value00 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
+          : interpolate0 = interpolate(value00 = value0, value1);
     };
   }
 
-  function attrFunction(name, value) {
+  function attrFunction(name, interpolate, value) {
     var value00,
         value10,
         interpolate0;
@@ -252,11 +245,11 @@
       value0 = this.getAttribute(name);
       return value0 === value1 ? null
           : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = attrInterpolate(this, name)(value00 = value0, value10 = value1);
+          : interpolate0 = interpolate(value00 = value0, value10 = value1);
     };
   }
 
-  function attrFunctionNS(fullname, value) {
+  function attrFunctionNS(fullname, interpolate, value) {
     var value00,
         value10,
         interpolate0;
@@ -266,16 +259,16 @@
       value0 = this.getAttributeNS(fullname.space, fullname.local);
       return value0 === value1 ? null
           : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
+          : interpolate0 = interpolate(value00 = value0, value10 = value1);
     };
   }
 
   function transition_attr(name, value) {
-    var fullname = d3Selection.namespace(name);
+    var fullname = d3Selection.namespace(name), i = fullname === "transform" ? d3Interpolate.interpolateTransformSvg : d3Interpolate.interpolate;
     return this.attrTween(name, typeof value === "function"
-        ? (fullname.local ? attrFunctionNS : attrFunction)(fullname, tweenValue(this, "attr." + name, value))
+        ? (fullname.local ? attrFunctionNS : attrFunction)(fullname, i, tweenValue(this, "attr." + name, value))
         : value == null ? (fullname.local ? attrRemoveNS : attrRemove)(fullname)
-        : (fullname.local ? attrConstantNS : attrConstant)(fullname, value + ""));
+        : (fullname.local ? attrConstantNS : attrConstant)(fullname, i, value + ""));
   }
 
   function attrTweenNS(fullname, value) {
@@ -487,7 +480,7 @@
     return new Selection(this._groups, this._parents);
   }
 
-  function styleRemove(name) {
+  function styleRemove(name, interpolate) {
     var value00,
         value10,
         interpolate0;
@@ -497,7 +490,7 @@
           value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
       return value0 === value1 ? null
           : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
+          : interpolate0 = interpolate(value00 = value0, value10 = value1);
     };
   }
 
@@ -507,18 +500,18 @@
     };
   }
 
-  function styleConstant(name, value1) {
+  function styleConstant(name, interpolate, value1) {
     var value00,
         interpolate0;
     return function() {
       var value0 = d3Selection.window(this).getComputedStyle(this, null).getPropertyValue(name);
       return value0 === value1 ? null
           : value0 === value00 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value1);
+          : interpolate0 = interpolate(value00 = value0, value1);
     };
   }
 
-  function styleFunction(name, value) {
+  function styleFunction(name, interpolate, value) {
     var value00,
         value10,
         interpolate0;
@@ -529,17 +522,18 @@
       if (value1 == null) value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
       return value0 === value1 ? null
           : value0 === value00 && value1 === value10 ? interpolate0
-          : interpolate0 = d3Interpolate.interpolate(value00 = value0, value10 = value1);
+          : interpolate0 = interpolate(value00 = value0, value10 = value1);
     };
   }
 
   function transition_style(name, value, priority) {
+    var i = (name += "") === "transform" ? d3Interpolate.interpolateTransformCss : d3Interpolate.interpolate;
     return value == null ? this
-            .styleTween(name, styleRemove(name))
+            .styleTween(name, styleRemove(name, i))
             .on("end.style." + name, styleRemoveEnd(name))
         : this.styleTween(name, typeof value === "function"
-            ? styleFunction(name, tweenValue(this, "style." + name, value))
-            : styleConstant(name, value + ""), priority);
+            ? styleFunction(name, i, tweenValue(this, "style." + name, value))
+            : styleConstant(name, i, value + ""), priority);
   }
 
   function styleTween(name, value, priority) {
@@ -714,7 +708,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.2.2";
+  var version = "0.2.3";
 
   exports.version = version;
   exports.transition = transition;
