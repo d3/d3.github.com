@@ -716,7 +716,7 @@
     return new Transition([[node]], root, key, active.id);
   }
 
-  var version = "0.2.4";
+  var version = "0.2.5";
 
   exports.version = version;
   exports.transition = transition;
