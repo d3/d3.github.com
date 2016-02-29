@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-selection'], factory) :
-  (factory((global.d3_selection_multi = {}),global.d3_selection));
+  (factory((global.d3_selection_multi = global.d3_selection_multi || {}),global.d3_selection));
 }(this, function (exports,d3Selection) { 'use strict';
 
   function selection_attrs(map) {
@@ -73,7 +73,7 @@
   d3Selection.selection.prototype.styles = selection_styles;
   d3Selection.selection.prototype.properties = selection_properties;
 
-  var version = "0.2.9";
+  var version = "0.2.10";
 
   exports.version = version;
 
