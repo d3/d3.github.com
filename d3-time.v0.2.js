@@ -14,15 +14,14 @@
 
     interval.floor = interval;
 
-    interval.round = function(date) {
-      var d0 = new Date(+date),
-          d1 = new Date(date - 1);
-      floori(d0), floori(d1), offseti(d1, 1);
-      return date - d0 < d1 - date ? d0 : d1;
+    interval.ceil = function(date) {
+      return floori(date = new Date(date - 1)), offseti(date, 1), floori(date), date;
     };
 
-    interval.ceil = function(date) {
-      return floori(date = new Date(date - 1)), offseti(date, 1), date;
+    interval.round = function(date) {
+      var d0 = interval(date),
+          d1 = interval.ceil(date);
+      return date - d0 < d1 - date ? d0 : d1;
     };
 
     interval.offset = function(date, step) {
@@ -31,13 +30,10 @@
 
     interval.range = function(start, stop, step) {
       var range = [];
-      start = new Date(start - 1);
-      stop = new Date(+stop);
+      start = interval.ceil(start);
       step = step == null ? 1 : Math.floor(step);
       if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
-      floori(start), offseti(start, 1);
-      if (start < stop) range.push(new Date(+start));
-      while (offseti(start, step), floori(start), start < stop) range.push(new Date(+start));
+      do range.push(new Date(+start)); while (offseti(start, step), floori(start), start < stop)
       return range;
     };
 
@@ -285,7 +281,7 @@
   var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  var version = "0.2.4";
+  var version = "0.2.5";
 
   exports.version = version;
   exports.timeMilliseconds = timeMilliseconds;
