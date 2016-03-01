@@ -4,12 +4,16 @@
   (factory((global.d3_request = global.d3_request || {}),global.d3_collection,global.d3_dispatch,global.d3_dsv));
 }(this, function (exports,d3Collection,d3Dispatch,d3Dsv) { 'use strict';
 
+  var version = "0.4.5";
+
   function request(url, callback) {
     var request,
         event = d3Dispatch.dispatch("beforesend", "progress", "load", "error"),
         mimeType,
         headers = d3Collection.map(),
         xhr = new XMLHttpRequest,
+        user = null,
+        password = null,
         response,
         responseType,
         timeout = 0;
@@ -78,6 +82,14 @@
         return request;
       },
 
+      user: function(value) {
+        return arguments.length < 1 ? user : (user = value == null ? null : value + "", request);
+      },
+
+      password: function(value) {
+        return arguments.length < 1 ? password : (password = value == null ? null : value + "", request);
+      },
+
       // Specify how to convert the response content to a specific type;
       // changes the callback value on "load" events.
       response: function(value) {
@@ -99,7 +111,7 @@
       send: function(method, data, callback) {
         if (!callback && typeof data === "function") callback = data, data = null;
         if (callback && callback.length === 1) callback = fixCallback(callback);
-        xhr.open(method, url, true);
+        xhr.open(method, url, true, user, password);
         if (mimeType != null && !headers.has("accept")) headers.set("accept", mimeType + ",*/*");
         if (xhr.setRequestHeader) headers.each(function(value, name) { xhr.setRequestHeader(name, value); });
         if (mimeType != null && xhr.overrideMimeType) xhr.overrideMimeType(mimeType);
@@ -184,8 +196,6 @@
   var csv = dsv("text/csv", d3Dsv.csvParse);
 
   var tsv = dsv("text/tab-separated-values", d3Dsv.tsvParse);
-
-  var version = "0.4.4";
 
   exports.version = version;
   exports.request = request;
