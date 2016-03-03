@@ -4,7 +4,7 @@
   (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_dispatch,global.d3_timer,global.d3_interpolate,global.d3_color,global.d3_ease));
 }(this, function (exports,d3Selection,d3Dispatch,d3Timer,d3Interpolate,d3Color,d3Ease) { 'use strict';
 
-  var version = "0.2.6";
+  var version = "0.2.7";
 
   var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
   var emptyTween = [];
@@ -168,8 +168,33 @@
     });
   }
 
+  function tweenRemove(id, name) {
+    var tween0, tween1;
+    return function() {
+      var schedule = set(this, id),
+          tween = schedule.tween;
+
+      // If this node shared tween with the previous node,
+      // just assign the updated shared tween and we’re done!
+      // Otherwise, copy-on-write.
+      if (tween !== tween0) {
+        tween1 = tween0 = tween;
+        for (var i = 0, n = tween1.length; i < n; ++i) {
+          if (tween1[i].name === name) {
+            tween1 = tween1.slice();
+            tween1.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      schedule.tween = tween1;
+    };
+  }
+
   function tweenFunction(id, name, value) {
     var tween0, tween1;
+    if (typeof value !== "function") throw new Error;
     return function() {
       var schedule = set(this, id),
           tween = schedule.tween;
@@ -207,8 +232,7 @@
       return null;
     }
 
-    if (typeof value !== "function") throw new Error;
-    return this.each(tweenFunction(id, name, value));
+    return this.each((value ? tweenFunction : tweenRemove)(id, name, value));
   }
 
   function tweenValue(transition, name, value) {
@@ -327,11 +351,10 @@
   function transition_attrTween(name, value) {
     var key = "attr." + name;
     if (arguments.length < 2) return (key = this.tween(key)) && key._value;
+    if (!value) return this.tween(key, null);
     if (typeof value !== "function") throw new Error;
     var fullname = d3Selection.namespace(name);
-    return this.tween(key, (fullname.local
-        ? attrTweenNS
-        : attrTween)(fullname, value));
+    return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value));
   }
 
   function delayFunction(id, value) {
@@ -434,7 +457,6 @@
   }
 
   function onFunction(id, name, listener) {
-    if (typeof listener !== "function") throw new Error;
     var on0, on1, sit = start(name) ? init : set;
     return function() {
       var schedule = sit(this, id),
@@ -574,7 +596,6 @@
   }
 
   function styleTween(name, value, priority) {
-    if (typeof value !== "function") throw new Error;
     function tween() {
       var node = this, i = value.apply(node, arguments);
       return i && function(t) {
@@ -587,9 +608,10 @@
 
   function transition_styleTween(name, value, priority) {
     var key = "style." + (name += "");
-    return arguments.length < 2
-        ? (key = this.tween(key)) && key._value
-        : this.tween(key, styleTween(name, value, priority == null ? "" : priority));
+    if (arguments.length < 2) return (key = this.tween(key)) && key._value;
+    if (!value) return this.tween(key, null);
+    if (typeof value !== "function") throw new Error;
+    return this.tween(key, styleTween(name, value, priority == null ? "" : priority));
   }
 
   function textConstant(value) {
