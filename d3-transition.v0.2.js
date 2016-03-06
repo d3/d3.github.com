@@ -4,7 +4,7 @@
   (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_dispatch,global.d3_timer,global.d3_interpolate,global.d3_color,global.d3_ease));
 }(this, function (exports,d3Selection,d3Dispatch,d3Timer,d3Interpolate,d3Color,d3Ease) { 'use strict';
 
-  var version = "0.2.7";
+  var version = "0.2.8";
 
   var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
   var emptyTween = [];
@@ -232,7 +232,7 @@
       return null;
     }
 
-    return this.each((value ? tweenFunction : tweenRemove)(id, name, value));
+    return this.each((value == null ? tweenRemove : tweenFunction)(id, name, value));
   }
 
   function tweenValue(transition, name, value) {
@@ -351,7 +351,7 @@
   function transition_attrTween(name, value) {
     var key = "attr." + name;
     if (arguments.length < 2) return (key = this.tween(key)) && key._value;
-    if (!value) return this.tween(key, null);
+    if (value == null) return this.tween(key, null);
     if (typeof value !== "function") throw new Error;
     var fullname = d3Selection.namespace(name);
     return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value));
@@ -609,7 +609,7 @@
   function transition_styleTween(name, value, priority) {
     var key = "style." + (name += "");
     if (arguments.length < 2) return (key = this.tween(key)) && key._value;
-    if (!value) return this.tween(key, null);
+    if (value == null) return this.tween(key, null);
     if (typeof value !== "function") throw new Error;
     return this.tween(key, styleTween(name, value, priority == null ? "" : priority));
   }
@@ -708,12 +708,22 @@
     ease: d3Ease.easeCubicInOut
   };
 
+  function inherit(node, id) {
+    var timing;
+    while (!(timing = node.__transition) || !(timing = timing[id])) {
+      if (!(node = node.parentNode)) {
+        return defaultTiming.time = d3Timer.now(), defaultTiming;
+      }
+    }
+    return timing;
+  }
+
   function selection_transition(name) {
     var id,
         timing;
 
     if (name instanceof Transition) {
-      id = name._id, timing = get(name.node(), id), name = name._name;
+      id = name._id, name = name._name;
     } else {
       id = newId(), (timing = defaultTiming).time = d3Timer.now(), name = name == null ? null : name + "";
     }
@@ -721,7 +731,7 @@
     for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
       for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
         if (node = group[i]) {
-          schedule(node, name, id, i, group, timing);
+          schedule(node, name, id, i, group, timing || inherit(node, id));
         }
       }
     }
