@@ -4,6 +4,8 @@
   (factory((global.d3_dsv = global.d3_dsv || {})));
 }(this, function (exports) { 'use strict';
 
+  var version = "0.3.1";
+
   function objectConverter(columns) {
     return new Function("d", "return {" + columns.map(function(name, i) {
       return JSON.stringify(name) + ": d[" + i + "]";
@@ -150,8 +152,6 @@
   var tsvParseRows = tsv.parseRows;
   var tsvFormat = tsv.format;
   var tsvFormatRows = tsv.formatRows;
-
-  var version = "0.3.0";
 
   exports.version = version;
   exports.dsvFormat = dsv;
