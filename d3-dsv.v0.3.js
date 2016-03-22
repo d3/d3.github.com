@@ -4,7 +4,7 @@
   (factory((global.d3_dsv = global.d3_dsv || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.3.1";
+  var version = "0.3.2";
 
   function objectConverter(columns) {
     return new Function("d", "return {" + columns.map(function(name, i) {
@@ -128,7 +128,9 @@
     }
 
     function formatValue(text) {
-      return reFormat.test(text) ? "\"" + text.replace(/\"/g, "\"\"") + "\"" : text;
+      return text == null ? ""
+          : reFormat.test(text += "") ? "\"" + text.replace(/\"/g, "\"\"") + "\""
+          : text;
     }
 
     return {
