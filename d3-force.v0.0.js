@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_collection,global.d3_dispatch,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-  var version = "0.0.2";
+  var version = "0.0.3";
 
   function center(x, y) {
     var nodes;
@@ -23,7 +23,7 @@
         node = nodes[i], sx += node.x, sy += node.y;
       }
 
-      for (sx = sx / n - x, sy = y / n - y, i = 0; i < n; ++i) {
+      for (sx = sx / n - x, sy = sy / n - y, i = 0; i < n; ++i) {
         node = nodes[i], node.x -= sx, node.y -= sy;
       }
     }
