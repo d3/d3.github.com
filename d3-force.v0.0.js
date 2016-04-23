@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_collection,global.d3_dispatch,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-  var version = "0.0.3";
+  var version = "0.0.4";
 
   function center(x, y) {
     var nodes;
@@ -96,8 +96,8 @@
             r = radii[i] + radii[quad.data.index];
         if (l < r * r) {
           l = Math.sqrt(l), l = (l - r) / (l * 2);
-          node.x -= (x - node.vx) * l;
-          node.y -= (y - node.vy) * l;
+          node.vx -= x * l;
+          node.vy -= y * l;
         }
       }
     }
@@ -189,7 +189,7 @@
     };
 
     force.links = function(_) {
-      return arguments.length ? (links = _, initialize(), force) : links;
+      return arguments.length ? (links = _, strengths = distances = null, initialize(), force) : links;
     };
 
     force.id = function(_) {
@@ -229,7 +229,7 @@
 
     function force(_) {
       var i, n = nodes.length, tree = d3Quadtree.quadtree(nodes, x$1, y$1).visitAfter(accumulate);
-      for (alpha = _, i = 0; i < n; ++i) tree.remove(node = nodes[i]).visit(apply).add(node);
+      for (alpha = _, i = 0; i < n; ++i) node = nodes[i], tree.visit(apply);
     }
 
     function initialize() {
@@ -293,7 +293,7 @@
       // Otherwise, process points directly.
       else if (quad.length || l >= distanceMax2) return;
 
-      do {
+      do if (quad.data !== node) {
         w = strengths[quad.data.index] * alpha / l;
         node.vx += dx * w;
         node.vy += dy * w;
@@ -439,7 +439,7 @@
       force(alpha);
     }
 
-    initializeNodes();
+    if (nodes) initializeNodes();
 
     return simulation = {
       start: start,
