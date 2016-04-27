@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_dispatch,global.d3_collection,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Dispatch,d3Collection,d3Timer) { 'use strict';
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   function center(x, y) {
     var nodes;
@@ -66,30 +66,33 @@
         alphaDecay = -0.02,
         drag = 0.5,
         forces = d3Collection.map(),
-        ticker = d3Timer.timer(tick),
+        stepper = d3Timer.timer(step),
         event = d3Dispatch.dispatch("tick", "end");
 
     if (nodes == null) nodes = [];
 
     function start() {
       iteration = 0;
-      ticker.restart(tick);
+      stepper.restart(step);
       return simulation;
     }
 
     function stop() {
-      ticker.stop();
+      stepper.stop();
       return simulation;
+    }
+
+    function step() {
+      var stop = tick();
+      event.call("tick", simulation);
+      if (stop) {
+        stepper.stop();
+        event.call("end", simulation);
+      }
     }
 
     function tick() {
       var alpha = Math.exp(++iteration * alphaDecay);
-
-      if (!(alpha > alphaMin)) {
-        ticker.stop();
-        event.call("end", simulation);
-        return;
-      }
 
       forces.each(function(force) {
         force(alpha);
@@ -101,7 +104,7 @@
         node.y += node.vy *= drag;
       }
 
-      event.call("tick", simulation);
+      return alpha < alphaMin;
     }
 
     function initializeNodes() {
