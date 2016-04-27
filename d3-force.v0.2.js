@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_dispatch,global.d3_collection,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Dispatch,d3Collection,d3Timer) { 'use strict';
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   function center(x, y) {
     var nodes;
@@ -57,6 +57,8 @@
     return d.y;
   }
 
+  var initialRadius = 10;
+  var initialAngle = Math.PI * (3 - Math.sqrt(5));
   function simulation(nodes) {
     var simulation,
         iteration = 0,
@@ -105,10 +107,14 @@
     function initializeNodes() {
       for (var i = 0, n = nodes.length, node; i < n; ++i) {
         node = nodes[i], node.index = i;
-        if (isNaN(node.x)) node.x = Math.random() * 100 - 50;
-        if (isNaN(node.y)) node.y = Math.random() * 100 - 50;
-        if (isNaN(node.vx)) node.vx = 0;
-        if (isNaN(node.vy)) node.vy = 0;
+        if (isNaN(node.x) || isNaN(node.y)) {
+          var radius = initialRadius * Math.sqrt(i), angle = i * initialAngle;
+          node.x = radius * Math.cos(angle);
+          node.y = radius * Math.sin(angle);
+        }
+        if (isNaN(node.vx) || isNaN(node.vy)) {
+          node.vx = node.vy = 0;
+        }
       }
     }
 
@@ -419,16 +425,11 @@
           w = x2 - x1,
           l = x * x + y * y;
 
-      // Limit forces for very close nodes.
-      // Randomize direction for exactly-coincident nodes.
-      if (l < distanceMin2) {
-        if (!l) l = Math.random() * tau$1, x = Math.cos(l), y = Math.sin(l), l = 1;
-        l = Math.sqrt(l / distanceMin2), x /= l, y /= l, l = distanceMin2;
-      }
-
       // Apply the Barnes-Hut approximation if possible.
+      // Limit forces for very close nodes.
       if (w * w / theta2 < l) {
         if (l < distanceMax2) {
+          if (l < distanceMin2) l = Math.sqrt(l / distanceMin2), x /= l, y /= l, l = distanceMin2;
           l = quad.value * alpha / l;
           node.vx += x * l;
           node.vy += y * l;
@@ -438,6 +439,13 @@
 
       // Otherwise, process points directly.
       else if (quad.length || l >= distanceMax2) return;
+
+      // Limit forces for very close nodes.
+      // Randomize direction for exactly-coincident nodes.
+      if (l < distanceMin2) {
+        if (!l) l = Math.random() * tau$1, x = Math.cos(l), y = Math.sin(l), l = 1;
+        l = Math.sqrt(l / distanceMin2), x /= l, y /= l, l = distanceMin2;
+      }
 
       do if (quad.data !== node) {
         w = strengths[quad.data.index] * alpha / l;
