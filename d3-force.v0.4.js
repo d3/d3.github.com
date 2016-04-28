@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_collection,global.d3_dispatch,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-  var version = "0.4.0";
+  var version = "0.4.1";
 
   function center(x, y) {
     var nodes;
@@ -196,12 +196,16 @@
     }
 
     function initializeStrength() {
+      if (!nodes) return;
+
       for (var i = 0, n = links.length; i < n; ++i) {
         strengths[i] = +strength(links[i]);
       }
     }
 
     function initializeDistance() {
+      if (!nodes) return;
+
       for (var i = 0, n = links.length; i < n; ++i) {
         distances[i] = +distance(links[i]);
       }
