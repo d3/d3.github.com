@@ -4,6 +4,8 @@
   (factory((global.d3_axis = global.d3_axis || {})));
 }(this, function (exports) { 'use strict';
 
+  var version = "0.3.1";
+
   var slice = Array.prototype.slice;
 
   function identity(x) {
@@ -159,8 +161,6 @@
   function axisLeft(scale) {
     return axis(left, scale);
   }
-
-  var version = "0.3.0";
 
   exports.version = version;
   exports.axisTop = axisTop;
