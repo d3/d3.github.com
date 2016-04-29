@@ -4,6 +4,8 @@
   (factory((global.d3_timer = global.d3_timer || {})));
 }(this, function (exports) { 'use strict';
 
+  var version = "0.4.2";
+
   var frame = 0;
   var timeout = 0;
   var interval = 0;
@@ -34,7 +36,7 @@
     restart: function(callback, delay, time) {
       if (typeof callback !== "function") throw new TypeError("callback is not a function");
       time = (time == null ? now() : +time) + (delay == null ? 0 : +delay);
-      if (!this._call) {
+      if (!this._call && taskTail !== this) {
         if (taskTail) taskTail._next = this;
         else taskHead = this;
         taskTail = this;
@@ -134,8 +136,6 @@
     }, delay, time);
     return t;
   }
-
-  var version = "0.4.1";
 
   exports.version = version;
   exports.now = now;
