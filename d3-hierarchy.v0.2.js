@@ -4,7 +4,7 @@
   (factory((global.d3_hierarchy = global.d3_hierarchy || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   function defaultSeparation(a, b) {
     return a.parent === b.parent ? 1 : 2;
@@ -95,7 +95,7 @@
     var node = this, current, next = [node], children, i, n;
     do {
       current = next.reverse(), next = [];
-      while ((node = current.pop()) != null) {
+      while (node = current.pop()) {
         callback(node), children = node.children;
         if (children) for (i = 0, n = children.length; i < n; ++i) {
           next.push(children[i]);
@@ -107,7 +107,7 @@
 
   function node_eachBefore(callback) {
     var node = this, nodes = [node], children, i;
-    while ((node = nodes.pop()) != null) {
+    while (node = nodes.pop()) {
       callback(node), children = node.children;
       if (children) for (i = children.length - 1; i >= 0; --i) {
         nodes.push(children[i]);
@@ -118,13 +118,13 @@
 
   function node_eachAfter(callback) {
     var node = this, nodes = [node], next = [], children, i, n;
-    while ((node = nodes.pop()) != null) {
+    while (node = nodes.pop()) {
       next.push(node), children = node.children;
       if (children) for (i = 0, n = children.length; i < n; ++i) {
         nodes.push(children[i]);
       }
     }
-    while ((node = next.pop()) != null) {
+    while (node = next.pop()) {
       callback(node);
     }
     return this;
@@ -217,7 +217,7 @@
 
     if (children == null) children = defaultChildren;
 
-    while ((node = nodes.pop()) != null) {
+    while (node = nodes.pop()) {
       if (valued) node.value = +node.data.value;
       if ((childs = children(node.data)) && (n = childs.length)) {
         node.children = new Array(n);
@@ -421,29 +421,44 @@
     return dr * dr > dx * dx + dy * dy;
   }
 
+  function distance2(circle, x, y) {
+    var dx = circle.x - x,
+        dy = circle.y - y;
+    return dx * dx + dy * dy;
+  }
+
   function Node$2(circle) {
     this._ = circle;
     this.next = null;
     this.previous = null;
-    this.score = circle.x * circle.x + circle.y * circle.y;
   }
 
   function packSiblings(circles) {
     if (!(n = circles.length)) return circles;
 
-    var a, b, c,
-        i, j, k,
-        sj, sk,
-        n;
+    var a, b, c, n;
 
+    // Place the first circle.
     a = circles[0], a.x = a.r, a.y = 0;
     if (!(n > 1)) return circles;
 
+    // Place the second circle.
     b = circles[1], b.x = -b.r, b.y = 0;
     if (!(n > 2)) return circles;
 
-    // Initialize the front-chain using the first three circles a, b and c.
+    // Place the third circle.
     place(b, a, c = circles[2]);
+
+    // Initialize the weighted centroid.
+    var aa = a.r * a.r,
+        ba = b.r * b.r,
+        ca = c.r * c.r,
+        oa = aa + ba + ca,
+        ox = aa * a.x + ba * b.x + ca * c.x,
+        oy = aa * a.y + ba * b.y + ca * c.y,
+        cx, cy, i, j, k, sj, sk;
+
+    // Initialize the front-chain using the first three circles a, b and c.
     a = new Node$2(a), b = new Node$2(b), c = new Node$2(c);
     a.next = c.previous = b;
     b.next = a.previous = c;
@@ -486,8 +501,18 @@
       // Success! Insert the new circle c between a and b.
       c.previous = a, c.next = b, a.next = b.previous = b = c;
 
-      // Now recompute the closest circle a to the origin.
-      while ((c = c.next) !== b) if (c.score < a.score) a = c;
+      // Update the weighted centroid.
+      oa += ca = c._.r * c._.r;
+      ox += ca * c._.x;
+      oy += ca * c._.y;
+
+      // Compute the new closest circle a to centroid.
+      aa = distance2(a._, cx = ox / oa, cy = oy / oa);
+      while ((c = c.next) !== b) {
+        if ((ca = distance2(c._, cx, cy)) < aa) {
+          a = c, aa = ca;
+        }
+      }
       b = a.next;
     }
 
@@ -671,6 +696,7 @@
 
   var keyPrefix = "$";
   var preroot = {depth: -1};
+  var ambiguous = {};
   function defaultId(d) {
     return d.id;
   }
@@ -699,8 +725,7 @@
         d = data[i], node = nodes[i] = new Node(d);
         if ((nodeId = id(d, i, data)) != null && (nodeId += "")) {
           nodeKey = keyPrefix + (node.id = nodeId);
-          if (nodeKey in nodeByKey) throw new Error("duplicate: " + nodeId);
-          nodeByKey[nodeKey] = node;
+          nodeByKey[nodeKey] = nodeKey in nodeByKey ? ambiguous : node;
         }
       }
 
@@ -712,6 +737,7 @@
         } else {
           parent = nodeByKey[keyPrefix + nodeId];
           if (!parent) throw new Error("missing: " + nodeId);
+          if (parent === ambiguous) throw new Error("ambiguous: " + nodeId);
           if (parent.children) parent.children.push(node);
           else parent.children = [node];
           node.parent = parent;
@@ -820,7 +846,7 @@
         i,
         n;
 
-    while ((node = nodes.pop()) != null) {
+    while (node = nodes.pop()) {
       if (children = node._.children) {
         node.children = new Array(n = children.length);
         for (i = n - 1; i >= 0; --i) {
@@ -862,8 +888,9 @@
           if (node.x > right.x) right = node;
           if (node.depth > bottom.depth) bottom = node;
         });
-        var tx = separation(left, right) / 2 - left.x,
-            kx = dx / (right.x + separation(right, left) / 2 + tx),
+        var s = left === right ? 1 : separation(left, right) / 2,
+            tx = s - left.x,
+            kx = dx / (right.x + s + tx),
             ky = dy / (bottom.depth || 1);
         root.eachBefore(function(node) {
           node.x = (node.x + tx) * kx;
