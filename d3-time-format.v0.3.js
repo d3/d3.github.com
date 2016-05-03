@@ -1,8 +1,10 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
-  (factory((global.d3_time_format = {}),global.d3_time));
+  (factory((global.d3_time_format = global.d3_time_format || {}),global.d3_time));
 }(this, function (exports,d3Time) { 'use strict';
+
+  var version = "0.3.2";
 
   function localDate(d) {
     if (0 <= d.y && d.y < 100) {
@@ -763,12 +765,12 @@
   });
 
   var zhCN = locale$1({
-    dateTime: "%a %b %e %X %Y",
-    date: "%Y/%-m/%-d",
+    dateTime: "%x %A %X",
+    date: "%Y年%-m月%-d日",
     time: "%H:%M:%S",
     periods: ["上午", "下午"],
     days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
-    shortDays: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+    shortDays: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
     months: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
     shortMonths: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
   });
@@ -797,13 +799,11 @@
   var utcFormat = locale.utcFormat;
   var utcParse = locale.utcParse;
 
-  var version = "0.3.1";
-
-  exports.version = version;
   exports.timeFormat = timeFormat;
   exports.timeParse = timeParse;
   exports.utcFormat = utcFormat;
   exports.utcParse = utcParse;
+  exports.version = version;
   exports.timeFormatLocale = locale$1;
   exports.timeFormatCaEs = caES;
   exports.timeFormatDeCh = deCH;
