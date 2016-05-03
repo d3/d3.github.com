@@ -4,7 +4,7 @@
   (factory((global.d3_request = global.d3_request || {}),global.d3_collection,global.d3_dispatch,global.d3_dsv));
 }(this, function (exports,d3Collection,d3Dispatch,d3Dsv) { 'use strict';
 
-  var version = "0.4.5";
+  var version = "0.4.6";
 
   function request(url, callback) {
     var request,
