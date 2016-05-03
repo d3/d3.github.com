@@ -4,7 +4,7 @@
   (factory((global.d3_quadtree = global.d3_quadtree || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.7.1";
+  var version = "0.7.2";
 
   function tree_add(d) {
     var x = +this._x.call(null, d),
@@ -95,14 +95,10 @@
   function tree_cover(x, y) {
     if (isNaN(x = +x) || isNaN(y = +y)) return this; // ignore invalid points
 
-    var node = this._root,
-        parent,
-        i,
-        x0 = this._x0,
+    var x0 = this._x0,
         y0 = this._y0,
         x1 = this._x1,
-        y1 = this._y1,
-        z = x1 - x0;
+        y1 = this._y1;
 
     // If the quadtree has no extent, initialize them.
     // Integer extent are necessary so that if we later double the extent,
@@ -114,6 +110,11 @@
 
     // Otherwise, double repeatedly to cover.
     else if (x0 > x || x > x1 || y0 > y || y > y1) {
+      var z = x1 - x0,
+          node = this._root,
+          parent,
+          i;
+
       switch (i = (y < (y0 + y1) / 2) << 1 | (x < (x0 + x1) / 2)) {
         case 0: {
           do parent = new Array(4), parent[i] = node, node = parent;
@@ -139,6 +140,9 @@
 
       if (this._root && this._root.length) this._root = node;
     }
+
+    // If the quadtree covers the point already, just return.
+    else return this;
 
     this._x0 = x0;
     this._y0 = y0;
