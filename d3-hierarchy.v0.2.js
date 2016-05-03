@@ -4,7 +4,7 @@
   (factory((global.d3_hierarchy = global.d3_hierarchy || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   function defaultSeparation(a, b) {
     return a.parent === b.parent ? 1 : 2;
@@ -271,7 +271,7 @@
     copy: node_copy
   };
 
-  function Node$1(value) {
+  function Node$2(value) {
     this._ = value;
     this.next = null;
   }
@@ -283,7 +283,7 @@
         node = head;
 
     while (n) {
-      var next = new Node$1(array[n - 1]);
+      var next = new Node$2(array[n - 1]);
       if (node) node = node.next = next;
       else node = head = next;
       array[i] = array[--n];
@@ -427,24 +427,24 @@
     return dx * dx + dy * dy;
   }
 
-  function Node$2(circle) {
+  function Node$1(circle) {
     this._ = circle;
     this.next = null;
     this.previous = null;
   }
 
-  function packSiblings(circles) {
-    if (!(n = circles.length)) return circles;
+  function packEnclose(circles) {
+    if (!(n = circles.length)) return 0;
 
     var a, b, c, n;
 
     // Place the first circle.
-    a = circles[0], a.x = a.r, a.y = 0;
-    if (!(n > 1)) return circles;
+    a = circles[0], a.x = 0, a.y = 0;
+    if (!(n > 1)) return a.r;
 
     // Place the second circle.
-    b = circles[1], b.x = -b.r, b.y = 0;
-    if (!(n > 2)) return circles;
+    b = circles[1], a.x = -b.r, b.x = a.r, b.y = 0;
+    if (!(n > 2)) return a.r + b.r;
 
     // Place the third circle.
     place(b, a, c = circles[2]);
@@ -459,14 +459,14 @@
         cx, cy, i, j, k, sj, sk;
 
     // Initialize the front-chain using the first three circles a, b and c.
-    a = new Node$2(a), b = new Node$2(b), c = new Node$2(c);
+    a = new Node$1(a), b = new Node$1(b), c = new Node$1(c);
     a.next = c.previous = b;
     b.next = a.previous = c;
     c.next = b.previous = a;
 
     // Attempt to place each remaining circle…
     pack: for (i = 3; i < n; ++i) {
-      place(a._, b._, c = circles[i]), c = new Node$2(c);
+      place(a._, b._, c = circles[i]), c = new Node$1(c);
 
       // If there are only three elements in the front-chain…
       if ((k = a.previous) === (j = b.next)) {
@@ -516,6 +516,17 @@
       b = a.next;
     }
 
+    // Compute the enclosing circle of the front chain.
+    a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = enclose(a);
+
+    // Translate the circles to put the enclosing circle around the origin.
+    for (i = 0; i < n; ++i) a = circles[i], a.x -= c.x, a.y -= c.y;
+
+    return c.r;
+  }
+
+  function siblings(circles) {
+    packEnclose(circles);
     return circles;
   }
 
@@ -589,26 +600,16 @@
   function packChildren(padding, k) {
     return function(node) {
       if (children = node.children) {
-        var circle,
-            children,
-            child,
+        var children,
             i,
             n = children.length,
-            r = padding(node) * k || 0;
+            r = padding(node) * k || 0,
+            e;
 
-        if (r) for (i = 0; i < n; ++i) {
-          children[i].r += r;
-        }
-
-        for (i = 0, circle = enclose(packSiblings(children)); i < n; ++i) {
-          child = children[i], child.x -= circle.x, child.y -= circle.y;
-        }
-
-        if (r) for (i = 0; i < n; ++i) {
-          children[i].r -= r;
-        }
-
-        node.r = circle.r + r;
+        if (r) for (i = 0; i < n; ++i) children[i].r += r;
+        e = packEnclose(children);
+        if (r) for (i = 0; i < n; ++i) children[i].r -= r;
+        node.r = e + r;
       }
     };
   }
@@ -636,7 +637,7 @@
         node,
         i = -1,
         n = nodes.length,
-        k = (x1 - x0) / parent.value;
+        k = parent.value && (x1 - x0) / parent.value;
 
     while (++i < n) {
       node = nodes[i], node.y0 = y0, node.y1 = y1;
@@ -1005,7 +1006,7 @@
         node,
         i = -1,
         n = nodes.length,
-        k = (y1 - y0) / parent.value;
+        k = parent.value && (y1 - y0) / parent.value;
 
     while (++i < n) {
       node = nodes[i], node.x0 = x0, node.x1 = x1;
@@ -1055,8 +1056,8 @@
 
         // Position and record the row orientation.
         squarified.push(row = {value: sumValue, dice: dx < dy, children: nodes.slice(i0, i1)});
-        if (row.dice) dice(row, x0, y0, x1, y0 += dy * sumValue / value);
-        else slice(row, x0, y0, x0 += dx * sumValue / value, y1);
+        if (row.dice) dice(row, x0, y0, x1, value ? y0 += dy * sumValue / value : y1);
+        else slice(row, x0, y0, value ? x0 += dx * sumValue / value : x1, y1);
         value -= sumValue, i0 = i1;
       }
     }
@@ -1213,7 +1214,7 @@
   exports.cluster = cluster;
   exports.hierarchy = hierarchy;
   exports.pack = index;
-  exports.packSiblings = packSiblings;
+  exports.packSiblings = siblings;
   exports.packEnclose = enclose;
   exports.partition = partition;
   exports.stratify = stratify;
