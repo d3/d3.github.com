@@ -4,6 +4,8 @@
   (factory((global.d3_selection = global.d3_selection || {})));
 }(this, function (exports) { 'use strict';
 
+  var version = "0.7.1";
+
   var xhtml = "http://www.w3.org/1999/xhtml";
 
   var namespaces = {
@@ -169,10 +171,24 @@
     return current;
   }
 
-  function defaultView(node) {
-    return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
-        || (node.document && node) // node is a Window
-        || node.defaultView; // node is a Document
+  function point(node, event) {
+    var svg = node.ownerSVGElement || node;
+
+    if (svg.createSVGPoint) {
+      var point = svg.createSVGPoint();
+      point.x = event.clientX, point.y = event.clientY;
+      point = point.matrixTransform(node.getScreenCTM().inverse());
+      return [point.x, point.y];
+    }
+
+    var rect = node.getBoundingClientRect();
+    return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+  }
+
+  function mouse(node, event) {
+    if (event == null) event = sourceEvent();
+    if (event.changedTouches) event = event.changedTouches[0];
+    return point(node, event);
   }
 
   function selector(selector) {
@@ -544,6 +560,12 @@
         : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
   }
 
+  function defaultView(node) {
+    return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
+        || (node.document && node) // node is a Window
+        || node.defaultView; // node is a Document
+  }
+
   function styleRemove(name) {
     return function() {
       this.style.removeProperty(name);
@@ -872,41 +894,6 @@
         : new Selection([[selector]], root);
   }
 
-  var bug44083 = typeof navigator !== "undefined" && /WebKit/.test(navigator.userAgent) ? -1 : 0; // https://bugs.webkit.org/show_bug.cgi?id=44083
-
-  function point(node, event) {
-    var svg = node.ownerSVGElement || node;
-
-    if (svg.createSVGPoint) {
-      var point = svg.createSVGPoint();
-
-      if (bug44083 < 0) {
-        var window = defaultView(node);
-        if (window.scrollX || window.scrollY) {
-          svg = select(window.document.body).append("svg").style({position: "absolute", top: 0, left: 0, margin: 0, padding: 0, border: "none"}, "important");
-          var ctm = svg.node().getScreenCTM();
-          bug44083 = !(ctm.f || ctm.e);
-          svg.remove();
-        }
-      }
-
-      if (bug44083) point.x = event.pageX, point.y = event.pageY;
-      else point.x = event.clientX, point.y = event.clientY;
-
-      point = point.matrixTransform(node.getScreenCTM().inverse());
-      return [point.x, point.y];
-    }
-
-    var rect = node.getBoundingClientRect();
-    return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
-  }
-
-  function mouse(node, event) {
-    if (event == null) event = sourceEvent();
-    if (event.changedTouches) event = event.changedTouches[0];
-    return point(node, event);
-  }
-
   function selectAll(selector) {
     return typeof selector === "string"
         ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
@@ -934,8 +921,6 @@
 
     return points;
   }
-
-  var version = "0.7.0";
 
   exports.version = version;
   exports.creator = creator;
