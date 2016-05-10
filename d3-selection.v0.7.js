@@ -4,7 +4,7 @@
   (factory((global.d3_selection = global.d3_selection || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.7.1";
+  var version = "0.7.2";
 
   var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -165,6 +165,17 @@
     return this;
   }
 
+  function customEvent(event1, listener, that, args) {
+    var event0 = exports.event;
+    event1.sourceEvent = exports.event;
+    exports.event = event1;
+    try {
+      return listener.apply(that, args);
+    } finally {
+      exports.event = event0;
+    }
+  }
+
   function sourceEvent() {
     var current = exports.event, source;
     while (source = current.sourceEvent) current = source;
@@ -185,8 +196,8 @@
     return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
   }
 
-  function mouse(node, event) {
-    if (event == null) event = sourceEvent();
+  function mouse(node) {
+    var event = sourceEvent();
     if (event.changedTouches) event = event.changedTouches[0];
     return point(node, event);
   }
@@ -756,7 +767,7 @@
   }
 
   function raise() {
-    this.parentNode.appendChild(this);
+    if (this.nextSibling) this.parentNode.appendChild(this);
   }
 
   function selection_raise() {
@@ -764,7 +775,7 @@
   }
 
   function lower() {
-    this.parentNode.insertBefore(this, this.parentNode.firstChild);
+    if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
   }
 
   function selection_lower() {
@@ -936,5 +947,6 @@
   exports.touch = touch;
   exports.touches = touches;
   exports.window = defaultView;
+  exports.customEvent = customEvent;
 
 }));
