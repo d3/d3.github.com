@@ -4,7 +4,7 @@
   (factory((global.d3_drag = global.d3_drag || {}),global.d3_dispatch,global.d3_selection));
 }(this, function (exports,d3Dispatch,d3Selection) { 'use strict';
 
-  var version = "0.1.0";
+  var version = "0.1.1";
 
   function cancel() {
     var e = d3Selection.event, s;
@@ -80,7 +80,7 @@
   }
 
   function defaultSubject(d) {
-    return d == null ? this : d;
+    return d;
   }
 
   function defaultX() {
