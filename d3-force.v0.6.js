@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_collection,global.d3_dispatch,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-  var version = "0.6.0";
+  var version = "0.6.1";
 
   function center(x, y) {
     var nodes;
@@ -147,15 +147,20 @@
 
   function link(links) {
     var id = index,
-        strength = constant(0.7),
+        strength = defaultStrength,
         strengths,
         distance = constant(30),
         distances,
         nodes,
+        count,
         bias,
         iterations = 1;
 
     if (links == null) links = [];
+
+    function defaultStrength(link) {
+      return 1 / Math.min(count[link.source.index], count[link.target.index]);
+    }
 
     function force(alpha) {
       for (var k = 0, n = links.length; k < iterations; ++k) {
@@ -180,22 +185,21 @@
       var i,
           n = nodes.length,
           m = links.length,
-          count = new Array(n),
           nodeById = d3Collection.map(nodes, id),
           link;
 
-      for (i = 0; i < n; ++i) {
+      for (i = 0, count = new Array(n); i < n; ++i) {
         count[i] = 0;
       }
 
-      for (i = 0, bias = new Array(m); i < m; ++i) {
+      for (i = 0; i < m; ++i) {
         link = links[i], link.index = i;
         if (typeof link.source !== "object") link.source = nodeById.get(link.source);
         if (typeof link.target !== "object") link.target = nodeById.get(link.target);
         ++count[link.source.index], ++count[link.target.index];
       }
 
-      for (i = 0; i < m; ++i) {
+      for (i = 0, bias = new Array(m); i < m; ++i) {
         link = links[i], bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]);
       }
 
@@ -207,7 +211,7 @@
       if (!nodes) return;
 
       for (var i = 0, n = links.length; i < n; ++i) {
-        strengths[i] = +strength(links[i]);
+        strengths[i] = +strength(links[i], i, links);
       }
     }
 
@@ -215,7 +219,7 @@
       if (!nodes) return;
 
       for (var i = 0, n = links.length; i < n; ++i) {
-        distances[i] = +distance(links[i]);
+        distances[i] = +distance(links[i], i, links);
       }
     }
 
@@ -382,7 +386,7 @@
     var nodes,
         node,
         alpha,
-        strength = constant(-100),
+        strength = constant(-30),
         strengths,
         distanceMin2 = 1,
         distanceMax2 = Infinity,
