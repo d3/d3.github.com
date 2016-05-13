@@ -4,7 +4,7 @@
   (factory((global.d3_force = global.d3_force || {}),global.d3_quadtree,global.d3_collection,global.d3_dispatch,global.d3_timer));
 }(this, function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-  var version = "0.6.1";
+  var version = "0.6.2";
 
   function center(x, y) {
     var nodes;
@@ -376,6 +376,29 @@
         return delete fixes[node.index], simulation;
       },
 
+      find: function(x, y, radius) {
+        var i = 0,
+            n = nodes.length,
+            dx,
+            dy,
+            d2,
+            node,
+            closest;
+
+        if (radius == null) radius = Infinity;
+        else radius *= radius;
+
+        for (i = 0; i < n; ++i) {
+          node = nodes[i];
+          dx = x - node.x;
+          dy = y - node.y;
+          d2 = dx * dx + dy * dy;
+          if (d2 < radius) closest = node, radius = d2;
+        }
+
+        return closest;
+      },
+
       on: function(name, _) {
         return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name);
       }
@@ -512,8 +535,7 @@
       strengths = new Array(n);
       xz = new Array(n);
       for (i = 0; i < n; ++i) {
-        strengths[i] = +strength(nodes[i], i, nodes);
-        xz[i] = +x(nodes[i], i, nodes);
+        strengths[i] = isNaN(xz[i] = +x(nodes[i], i, nodes)) ? 0 : +strength(nodes[i], i, nodes);
       }
     }
 
@@ -553,8 +575,7 @@
       strengths = new Array(n);
       yz = new Array(n);
       for (i = 0; i < n; ++i) {
-        strengths[i] = +strength(nodes[i], i, nodes);
-        yz[i] = +y(nodes[i], i, nodes);
+        strengths[i] = isNaN(yz[i] = +y(nodes[i], i, nodes)) ? 0 : +strength(nodes[i], i, nodes);
       }
     }
 
