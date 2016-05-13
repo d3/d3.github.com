@@ -4,7 +4,7 @@
   (factory((global.d3_timer = global.d3_timer || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.4.3";
+  var version = "0.4.4";
 
   var frame = 0;
   var timeout = 0;
@@ -16,7 +16,9 @@
   var clockNow = 0;
   var clockSkew = 0;
   var clock = typeof performance === "object" ? performance : Date;
-  var setFrame = typeof requestAnimationFrame === "function" ? requestAnimationFrame : function(callback) { return setTimeout(callback, 17); };
+  var setFrame = typeof requestAnimationFrame === "function"
+          ? (clock === Date ? function(f) { requestAnimationFrame(function() { f(clock.now()); }); } : requestAnimationFrame)
+          : function(f) { setTimeout(f, 17); };
   function now() {
     return clockNow || (setFrame(clearNow), clockNow = clock.now() + clockSkew);
   }
