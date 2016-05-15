@@ -4,7 +4,7 @@
   (factory((global.d3_quadtree = global.d3_quadtree || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.7.2";
+  var version = "0.7.3";
 
   function tree_add(d) {
     var x = +this._x.call(null, d),
@@ -173,9 +173,8 @@
     this.y1 = y1;
   }
 
-  function tree_find(x, y) {
-    var minDistance2 = Infinity,
-        minPoint,
+  function tree_find(x, y, radius) {
+    var data,
         x0 = this._x0,
         y0 = this._y0,
         x1,
@@ -190,6 +189,12 @@
         i;
 
     if (node) quads.push(new Quad(node, x0, y0, x3, y3));
+    if (radius == null) radius = Infinity;
+    else {
+      x0 = x - radius, y0 = y - radius;
+      x3 = x + radius, y3 = y + radius;
+      radius *= radius;
+    }
 
     while (q = quads.pop()) {
 
@@ -225,16 +230,16 @@
         var dx = x - +this._x.call(null, node.data),
             dy = y - +this._y.call(null, node.data),
             d2 = dx * dx + dy * dy;
-        if (d2 < minDistance2) {
-          var d = Math.sqrt(minDistance2 = d2);
+        if (d2 < radius) {
+          var d = Math.sqrt(radius = d2);
           x0 = x - d, y0 = y - d;
           x3 = x + d, y3 = y + d;
-          minPoint = node.data;
+          data = node.data;
         }
       }
     }
 
-    return minPoint;
+    return data;
   }
 
   function tree_remove(d) {
