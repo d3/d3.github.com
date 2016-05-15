@@ -4,7 +4,7 @@
   (factory((global.d3_hierarchy = global.d3_hierarchy || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.2.2";
+  var version = "0.2.3";
 
   function defaultSeparation(a, b) {
     return a.parent === b.parent ? 1 : 2;
@@ -205,6 +205,16 @@
     return leaves;
   }
 
+  function node_links() {
+    var root = this, links = [];
+    root.each(function(node) {
+      if (node !== root) { // Don’t include the root’s parent, if any.
+        links.push({source: node.parent, target: node});
+      }
+    });
+    return links;
+  }
+
   function hierarchy(data, children) {
     var root = new Node(data),
         valued = +data.value && (root.value = data.value),
@@ -268,6 +278,7 @@
     ancestors: node_ancestors,
     descendants: node_descendants,
     leaves: node_leaves,
+    links: node_links,
     copy: node_copy
   };
 
