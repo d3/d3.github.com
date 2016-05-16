@@ -4,7 +4,7 @@
   (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_dispatch,global.d3_timer,global.d3_interpolate,global.d3_color,global.d3_ease));
 }(this, function (exports,d3Selection,d3Dispatch,d3Timer,d3Interpolate,d3Color,d3Ease) { 'use strict';
 
-  var version = "0.2.8";
+  var version = "0.2.9";
 
   var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
   var emptyTween = [];
@@ -144,27 +144,32 @@
     }
   }
 
-  function selection_interrupt(name) {
+  function interrupt(node, name) {
+    var schedules = node.__transition,
+        schedule,
+        active,
+        empty = true,
+        i;
+
+    if (!schedules) return;
+
     name = name == null ? null : name + "";
+
+    for (i in schedules) {
+      if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
+      active = schedule.state === STARTED;
+      schedule.state = ENDED;
+      schedule.timer.stop();
+      if (active) schedule.on.call("interrupt", node, node.__data__, schedule.index, schedule.group);
+      delete schedules[i];
+    }
+
+    if (empty) delete node.__transition;
+  }
+
+  function selection_interrupt(name) {
     return this.each(function() {
-      var schedules = this.__transition,
-          schedule,
-          active,
-          empty = true,
-          i;
-
-      if (!schedules) return;
-
-      for (i in schedules) {
-        if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
-        active = schedule.state === STARTED;
-        schedule.state = ENDED;
-        schedule.timer.stop();
-        if (active) schedule.on.call("interrupt", this, this.__data__, schedule.index, schedule.group);
-        delete schedules[i];
-      }
-
-      if (empty) delete this.__transition;
+      interrupt(this, name);
     });
   }
 
@@ -764,5 +769,6 @@
   exports.version = version;
   exports.transition = transition;
   exports.active = active;
+  exports.interrupt = interrupt;
 
 }));
