@@ -4,13 +4,15 @@
   (factory((global.d3_drag = global.d3_drag || {}),global.d3_dispatch,global.d3_selection));
 }(this, function (exports,d3Dispatch,d3Selection) { 'use strict';
 
-  var version = "0.1.2";
+  var version = "0.1.3";
 
-  function cancel() {
-    var e = d3Selection.event, s;
-    while (s = e.sourceEvent) e = s;
-    e.preventDefault();
-    e.stopPropagation();
+  function nopropagation() {
+    d3Selection.event.stopImmediatePropagation();
+  }
+
+  function noevent() {
+    d3Selection.event.preventDefault();
+    d3Selection.event.stopImmediatePropagation();
   }
 
   function constant(x) {
@@ -34,41 +36,32 @@
     return value === this._ ? this : value;
   };
 
-  function noclick() {
-    d3Selection.event.on("drag.noclick", null).on("end.noclick", function() {
-      var click = "click.noclick-" + d3Selection.event.identifier,
-          view = d3Selection.select(d3Selection.event.sourceEvent.view).on(click, cancel, true);
-      setTimeout(function() { view.on(click, null); }, 0);
-    });
+  function noselectstart(selection) {
+    selection.on("selectstart.drag", noevent, true);
   }
 
-  function nodrag() {
-    var dragstart = "dragstart.nodrag-" + d3Selection.event.identifier,
-        view = d3Selection.select(d3Selection.event.sourceEvent.view).on(dragstart, cancel, true);
-    d3Selection.event.on("end.nodrag", function() {
-      view.on(dragstart, null);
-    });
-  }
-
-  function noselectstart() {
-    var selectstart = "selectstart.noselect-" + d3Selection.event.identifier,
-        view = d3Selection.select(d3Selection.event.sourceEvent.view).on(selectstart, cancel, true);
-    d3Selection.event.on("end.noselect", function() {
-      view.on(selectstart, null);
-    });
+  function yesselectstart(selection) {
+    selection.on("selectstart.drag", null);
   }
 
   function nouserselect() {
-    var style = this.ownerDocument.documentElement.style,
-        value = style.MozUserSelect;
+    var root = d3Selection.event.view.document.documentElement, style = root.style;
+    root.__noselect = style.MozUserSelect;
     style.MozUserSelect = "none";
-    d3Selection.event.on("end.noselect", function() {
-      style.MozUserSelect = value;
-    });
   }
 
-  function noselect() {
-    return ("onselectstart" in this ? noselectstart : nouserselect).apply(this, arguments);
+  function yesuserselect() {
+    var root = d3Selection.event.view.document.documentElement;
+    root.style.MozUserSelect = root.__noselect;
+    delete root.__noselect;
+  }
+
+  function noselect(selection) {
+    return ("onselectstart" in d3Selection.event.target ? noselectstart : nouserselect)(selection);
+  }
+
+  function yesselect(selection) {
+    return ("onselectstart" in d3Selection.event.target ? yesselectstart : yesuserselect)(selection);
   }
 
   // Ignore right-click, since that should open the context menu.
@@ -99,23 +92,10 @@
         x = defaultX,
         y = defaultY,
         gestures = {},
-        active = 0;
-
-    // I’d like to call preventDefault on mousedown to disable native dragging
-    // of links or images and native text selection. However, in Chrome this
-    // causes mousemove and mouseup events outside an iframe to be dropped:
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=269917
-    // And if you preventDefault on touchstart on iOS, it prevents the click
-    // event on touchend, even if there was no touchmove! So instead, we
-    // cancel the specific undesirable behaviors. If you want to change this
-    // behavior, you can unregister these listeners!
-
-    var listeners = d3Dispatch.dispatch("start", "drag", "end")
-        .on("start.nodrag", nodrag)
-        .on("start.noselect", noselect)
-        .on("start", started)
-        .on("drag.noclick", noclick)
-        .on("drag.noscroll", cancel);
+        listeners = d3Dispatch.dispatch("start", "drag", "end").on("start", started),
+        active = 0,
+        mousemoving,
+        touchending;
 
     function drag(selection) {
       selection
@@ -127,56 +107,88 @@
     }
 
     function mousedowned() {
-      if (!filter.apply(this, arguments)) return;
-      var parent = container.apply(this, arguments), m;
-      if (!(m = beforestart("mouse", parent, d3Selection.mouse, this, arguments))) return;
-      d3Selection.select(d3Selection.event.view).on("mousemove.drag", mousemoved).on("mouseup.drag", mouseupped);
-      m("start");
+      if (touchending || !filter.apply(this, arguments)) return;
+      var gesture = beforestart("mouse", container.apply(this, arguments), d3Selection.mouse, this, arguments);
+      if (!gesture) return;
+
+      d3Selection.select(d3Selection.event.view)
+          .on("mousemove.drag", mousemoved, true)
+          .on("mouseup.drag", mouseupped, true)
+          .on("dragstart.drag", noevent, true)
+          .call(noselect);
+
+      nopropagation();
+      mousemoving = false;
+      gesture("start");
     }
 
     function mousemoved() {
+      noevent();
+      mousemoving = true;
       gestures.mouse("drag");
     }
 
     function mouseupped() {
-      d3Selection.select(d3Selection.event.view).on("mousemove.drag mouseup.drag", null);
+      var view = d3Selection.select(d3Selection.event.view)
+          .on("mousemove.drag mouseup.drag dragstart.drag", null)
+          .call(yesselect);
+
+      if (mousemoving) {
+        view.on("click.drag", noevent, true);
+        setTimeout(function() { view.on("click.drag", null); }, 0);
+      }
+
+      noevent();
       gestures.mouse("end");
     }
 
     function touchstarted() {
       if (!filter.apply(this, arguments)) return;
-      var parent = container.apply(this, arguments);
-      for (var touches = d3Selection.event.changedTouches, i = 0, n = touches.length, t; i < n; ++i) {
-        if (t = beforestart(touches[i].identifier, parent, d3Selection.touch, this, arguments)) {
-          t("start");
+      var touches = d3Selection.event.changedTouches,
+          c = container.apply(this, arguments),
+          n = touches.length, i, gesture;
+
+      nopropagation();
+      for (i = 0; i < n; ++i) {
+        if (gesture = beforestart(touches[i].identifier, c, d3Selection.touch, this, arguments)) {
+          gesture("start");
         }
       }
     }
 
     function touchmoved() {
-      for (var touches = d3Selection.event.changedTouches, i = 0, n = touches.length, t; i < n; ++i) {
-        if (t = gestures[touches[i].identifier]) {
-          t("drag");
+      var touches = d3Selection.event.changedTouches,
+          n = touches.length, i, gesture;
+
+      noevent();
+      for (i = 0; i < n; ++i) {
+        if (gesture = gestures[touches[i].identifier]) {
+          gesture("drag");
         }
       }
     }
 
     function touchended() {
-      for (var touches = d3Selection.event.changedTouches, i = 0, n = touches.length, t; i < n; ++i) {
-        if (t = gestures[touches[i].identifier]) {
-          t("end");
+      var touches = d3Selection.event.changedTouches,
+          n = touches.length, i, gesture;
+
+      nopropagation();
+      if (touchending) clearTimeout(touchending);
+      touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
+      for (i = 0; i < n; ++i) {
+        if (gesture = gestures[touches[i].identifier]) {
+          gesture("end");
         }
       }
     }
 
-    function beforestart(id, parent, point, that, args) {
-      var p0 = point(parent, id), dx, dy,
+    function beforestart(id, container, point, that, args) {
+      var p0 = point(container, id), dx, dy,
           sublisteners = listeners.copy(),
           node;
 
       if (!d3Selection.customEvent(new DragEvent("beforestart", node, id, active, p0[0], p0[1], sublisteners), function() {
-        node = d3Selection.event.subject = subject.apply(that, args);
-        if (node == null) return false;
+        if ((d3Selection.event.subject = node = subject.apply(that, args)) == null) return false;
         dx = x.apply(that, args) - p0[0] || 0;
         dy = y.apply(that, args) - p0[1] || 0;
         return true;
@@ -187,7 +199,7 @@
         switch (type) {
           case "start": p = p0, gestures[id] = gesture, n = active++; break;
           case "end": delete gestures[id], --active; // nobreak
-          case "drag": p = point(parent, id), n = active; break;
+          case "drag": p = point(container, id), n = active; break;
         }
         d3Selection.customEvent(new DragEvent(type, node, id, n, p[0] + dx, p[1] + dy, sublisteners), sublisteners.apply, sublisteners, [type, that, args]);
       };
