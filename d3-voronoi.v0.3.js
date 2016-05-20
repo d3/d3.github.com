@@ -4,6 +4,8 @@
   (factory((global.d3_voronoi = global.d3_voronoi || {})));
 }(this, function (exports) { 'use strict';
 
+  var version = "0.3.3";
+
   function constant(x) {
     return function() {
       return x;
@@ -734,7 +736,7 @@
         d = 2 * (bx * cy - by * cx),
         hb = bx * bx + by * by,
         hc = cx * cx + cy * cy,
-        vertex = {x: (cy * hb - by * hc) / d + ax, y: (bx * hc - cx * hb) / d + ay};
+        vertex = [(cy * hb - by * hc) / d + ax, (bx * hc - cx * hb) / d + ay];
 
     setEdgeEnd(rArc.edge, lSite, rSite, vertex);
     newArc.edge = createEdge(lSite, site, null, vertex);
@@ -950,8 +952,6 @@
 
     return voronoi;
   }
-
-  var version = "0.3.2";
 
   exports.version = version;
   exports.voronoi = voronoi;
