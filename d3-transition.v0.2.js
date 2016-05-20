@@ -4,7 +4,7 @@
   (factory((global.d3_transition = global.d3_transition || {}),global.d3_selection,global.d3_dispatch,global.d3_timer,global.d3_interpolate,global.d3_color,global.d3_ease));
 }(this, function (exports,d3Selection,d3Dispatch,d3Timer,d3Interpolate,d3Color,d3Ease) { 'use strict';
 
-  var version = "0.2.9";
+  var version = "0.2.10";
 
   var emptyOn = d3Dispatch.dispatch("start", "end", "interrupt");
   var emptyTween = [];
