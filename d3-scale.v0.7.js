@@ -4,7 +4,7 @@
   (factory((global.d3_scale = global.d3_scale || {}),global.d3_array,global.d3_collection,global.d3_interpolate,global.d3_format,global.d3_time,global.d3_time_format,global.d3_color));
 }(this, function (exports,d3Array,d3Collection,d3Interpolate,d3Format,d3Time,d3TimeFormat,d3Color) { 'use strict';
 
-  var version = "0.7.0";
+  var version = "0.7.1";
 
   var array = Array.prototype;
 
