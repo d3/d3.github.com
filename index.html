@@ -473,7 +473,7 @@ function resized() {
   anchor.enter().append("a")
       .attr("xlink:href", function(d) { return d.example.url; })
       .attr("xlink:title", function(d) { return d.example.title; })
-    .append("path")
+      .append("path")
       .attr("d", hexbin.hexagon());
 
   anchor
@@ -595,7 +595,7 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 
 <pre><code>d3.select("body").selectAll("p")
     .data([4, 8, 15, 16, 23, 42])
-  .enter().append("p")
+    .enter().append("p")
     .text(function(d) { return "I’m number " + d + "!"; });</code></pre>
 
 <p>Updating nodes are the default selection—the result of the <code>data</code> operator. Thus, if you forget about the enter and exit selections, you will automatically select only the elements for which there exists corresponding data. A common pattern is to break the initial selection into three parts: the updating nodes to modify, the entering nodes to add, and the exiting nodes to remove.
