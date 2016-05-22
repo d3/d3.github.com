@@ -4,7 +4,7 @@
   (factory((global.d3_drag = global.d3_drag || {}),global.d3_dispatch,global.d3_selection));
 }(this, function (exports,d3Dispatch,d3Selection) { 'use strict';
 
-  var version = "0.1.4";
+  var version = "0.1.5";
 
   function nopropagation() {
     d3Selection.event.stopImmediatePropagation();
@@ -74,7 +74,7 @@
   }
 
   function defaultSubject(d) {
-    return d == null ? this : d;
+    return d == null ? {x: d3Selection.event.x, y: d3Selection.event.y} : d;
   }
 
   function defaultX() {
@@ -175,7 +175,7 @@
           sublisteners = listeners.copy(),
           node;
 
-      if (!d3Selection.customEvent(new DragEvent("beforestart", node, id, active, p[0], p[1], sublisteners), function() {
+      if (!d3Selection.customEvent(new DragEvent("beforestart", node, id, active, p[0], p[1], 0, 0, sublisteners), function() {
         if ((d3Selection.event.subject = node = subject.apply(that, args)) == null) return false;
         dx = x.apply(that, args) - p[0] || 0;
         dy = y.apply(that, args) - p[1] || 0;
