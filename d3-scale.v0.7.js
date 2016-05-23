@@ -4,7 +4,7 @@
   (factory((global.d3_scale = global.d3_scale || {}),global.d3_array,global.d3_collection,global.d3_interpolate,global.d3_format,global.d3_time,global.d3_time_format,global.d3_color));
 }(this, function (exports,d3Array,d3Collection,d3Interpolate,d3Format,d3Time,d3TimeFormat,d3Color) { 'use strict';
 
-  var version = "0.7.1";
+  var version = "0.7.2";
 
   var array = Array.prototype;
 
@@ -230,22 +230,22 @@
         range = unit,
         interpolate = d3Interpolate.interpolate,
         clamp = false,
+        piecewise,
         output,
         input;
 
     function rescale() {
-      var map = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
-      output = map(domain, range, clamp ? deinterpolateClamp(deinterpolate$$) : deinterpolate$$, interpolate);
-      input = map(range, domain, deinterpolate, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate);
+      piecewise = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+      output = input = null;
       return scale;
     }
 
     function scale(x) {
-      return output(+x);
+      return (output || (output = piecewise(domain, range, clamp ? deinterpolateClamp(deinterpolate$$) : deinterpolate$$, interpolate)))(+x);
     }
 
     scale.invert = function(y) {
-      return input(+y);
+      return (input || (input = piecewise(range, domain, deinterpolate, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
     };
 
     scale.domain = function(_) {
@@ -925,5 +925,6 @@
   exports.scaleMagma = magma;
   exports.scaleInferno = inferno;
   exports.scalePlasma = plasma;
+  exports.scaleSequential = sequential;
 
 }));
