@@ -4,7 +4,7 @@
   (factory((global.d3_shape = global.d3_shape || {}),global.d3_path));
 }(this, function (exports,d3Path) { 'use strict';
 
-  var version = "0.6.0";
+  var version = "0.6.1";
 
   function constant(x) {
     return function constant() {
@@ -494,7 +494,7 @@
 
       // Optionally sort the arcs by previously-computed values or by data.
       if (sortValues != null) index.sort(function(i, j) { return sortValues(arcs[i], arcs[j]); });
-      else if (sort !== null) index.sort(function(i, j) { return sort(data[i], data[j]); });
+      else if (sort != null) index.sort(function(i, j) { return sort(data[i], data[j]); });
 
       // Compute the arcs! They are stored in the original data's order.
       for (i = 0, k = sum ? (da - n * pa) / sum : 0; i < n; ++i, a0 = a1) {
@@ -1546,7 +1546,7 @@
     lineEnd: function() {
       if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
       if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
-      this._line = 1 - this._line;
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
     },
     point: function(x, y) {
       x = +x, y = +y;
@@ -1554,15 +1554,11 @@
         case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
         case 1: this._point = 2; // proceed
         default: {
-          var t = x > this._x ? this._t : 1 - this._t;
-          if (t <= 0) {
+          if (this._t <= 0) {
             this._context.lineTo(this._x, y);
             this._context.lineTo(x, y);
-          } else if (t >= 1) {
-            this._context.lineTo(x, this._y);
-            this._context.lineTo(x, y);
           } else {
-            var x1 = (this._x + x) * t;
+            var x1 = this._x * (1 - this._t) + x * this._t;
             this._context.lineTo(x1, this._y);
             this._context.lineTo(x1, y);
           }
