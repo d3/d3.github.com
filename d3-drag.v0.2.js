@@ -4,7 +4,7 @@
   (factory((global.d3_drag = global.d3_drag || {}),global.d3_dispatch,global.d3_selection));
 }(this, function (exports,d3Dispatch,d3Selection) { 'use strict';
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   function nopropagation() {
     d3Selection.event.stopImmediatePropagation();
@@ -47,7 +47,8 @@
     };
   }
 
-  function DragEvent(type, subject, id, active, x, y, dx, dy, dispatch) {
+  function DragEvent(target, type, subject, id, active, x, y, dx, dy, dispatch) {
+    this.target = target;
     this.type = type;
     this.subject = subject;
     this.identifier = id;
@@ -164,7 +165,7 @@
       var p = point(container, id), s, dx, dy,
           sublisteners = listeners.copy();
 
-      if (!d3Selection.customEvent(new DragEvent("beforestart", s, id, active, p[0], p[1], 0, 0, sublisteners), function() {
+      if (!d3Selection.customEvent(new DragEvent(drag, "beforestart", s, id, active, p[0], p[1], 0, 0, sublisteners), function() {
         if ((d3Selection.event.subject = s = subject.apply(that, args)) == null) return false;
         dx = s.x - p[0] || 0;
         dy = s.y - p[1] || 0;
@@ -178,7 +179,7 @@
           case "end": delete gestures[id], --active; // nobreak
           case "drag": p = point(container, id), n = active; break;
         }
-        d3Selection.customEvent(new DragEvent(type, s, id, n, p[0] + dx, p[1] + dy, p[0] - p0[0], p[1] - p0[1], sublisteners), sublisteners.apply, sublisteners, [type, that, args]);
+        d3Selection.customEvent(new DragEvent(drag, type, s, id, n, p[0] + dx, p[1] + dy, p[0] - p0[0], p[1] - p0[1], sublisteners), sublisteners.apply, sublisteners, [type, that, args]);
       };
     }
 
