@@ -4,7 +4,7 @@
   (factory((global.d3_zoom = global.d3_zoom || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   function constant(x) {
     return function() {
@@ -84,8 +84,10 @@
   }
 
   function defaultExtent() {
-    var node = this.ownerSVGElement || this;
-    return [[0, 0], [node.clientWidth, node.clientHeight]];
+    var svg = this.ownerSVGElement;
+    return [[0, 0], svg
+        ? [svg.width.baseVal.value, svg.height.baseVal.value]
+        : [this.clientWidth, this.clientHeight]];
   }
 
   function defaultTransform() {
