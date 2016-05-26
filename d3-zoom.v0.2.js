@@ -4,7 +4,7 @@
   (factory((global.d3_zoom = global.d3_zoom || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.2.0";
+  var version = "0.2.1";
 
   function constant(x) {
     return function() {
@@ -259,12 +259,8 @@
     function wheeled() {
       if (!filter.apply(this, arguments)) return;
       var g = gesture(this, arguments),
-          y = -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500,
           t = this.__zoom,
-          k = t.k;
-
-      // If this wheel event won’t trigger a transform change, ignore it.
-      if (y === 0 || (y < 0 && k === k0) || (y > 0 && k === k1)) return;
+          k = Math.max(k0, Math.min(k1, t.k * Math.pow(2, -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500)));
 
       // If the mouse is in the same location as before, reuse it.
       // If there were recent wheel events, reset the wheel idle timeout.
@@ -276,6 +272,9 @@
         clearTimeout(wheelTimer);
       }
 
+      // If this wheel event won’t trigger a transform change, ignore it.
+      else if (t.k === k) return;
+
       // Otherwise, capture the mouse point and location at the start.
       else {
         g.extent = extent.apply(this, arguments);
@@ -286,7 +285,7 @@
 
       noevent();
       wheelTimer = setTimeout(wheelidled, wheelDelay);
-      g.zoom("mouse", constrain(translate(scale(t, k * Math.pow(2, y)), mousePoint, mouseLocation), g.extent));
+      g.zoom("mouse", constrain(translate(scale(t, k), mousePoint, mouseLocation), g.extent));
 
       function wheelidled() {
         wheelTimer = null;
