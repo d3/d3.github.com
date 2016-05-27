@@ -4,13 +4,13 @@
   (factory((global.d3_dispatch = global.d3_dispatch || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.4.3";
+  var version = "0.4.4";
 
   var noop = {value: function() {}};
 
   function dispatch() {
     for (var i = 0, n = arguments.length, _ = {}, t; i < n; ++i) {
-      if (!(t = arguments[i] + "") || (t in _)) throw new Error;
+      if (!(t = arguments[i] + "") || (t in _)) throw new Error("illegal type: " + t);
       _[t] = [];
     }
     return new Dispatch(_);
@@ -24,7 +24,7 @@
     return typenames.trim().split(/^|\s+/).map(function(t) {
       var name = "", i = t.indexOf(".");
       if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
-      if (t && !types.hasOwnProperty(t)) throw new Error;
+      if (t && !types.hasOwnProperty(t)) throw new Error("unknown type: " + t);
       return {type: t, name: name};
     });
   }
@@ -46,7 +46,7 @@
 
       // If a type was specified, set the callback for the given type and name.
       // Otherwise, if a null callback was specified, remove callbacks of the given name.
-      if (callback != null && typeof callback !== "function") throw new Error;
+      if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback);
       while (++i < n) {
         if (t = (typename = T[i]).type) _[t] = set(_[t], typename.name, callback);
         else if (callback == null) for (t in _) _[t] = set(_[t], typename.name, null);
@@ -60,11 +60,12 @@
       return new Dispatch(copy);
     },
     call: function(type, that) {
-      if ((n = arguments.length - 2) > 0) for (var args = new Array(n), i = 0, n; i < n; ++i) args[i] = arguments[i + 2];
-      this.apply(type, that, args);
+      if ((n = arguments.length - 2) > 0) for (var args = new Array(n), i = 0, n, t; i < n; ++i) args[i] = arguments[i + 2];
+      if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
+      for (t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args);
     },
     apply: function(type, that, args) {
-      if (!this._.hasOwnProperty(type)) throw new Error;
+      if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
       for (var t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args);
     }
   };
