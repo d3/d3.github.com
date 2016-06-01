@@ -4,7 +4,7 @@
   (factory((global.d3_drag = global.d3_drag || {}),global.d3_dispatch,global.d3_selection));
 }(this, function (exports,d3Dispatch,d3Selection) { 'use strict';
 
-  var version = "0.2.1";
+  var version = "0.2.2";
 
   function nopropagation() {
     d3Selection.event.stopImmediatePropagation();
@@ -127,9 +127,9 @@
           c = container.apply(this, arguments),
           n = touches.length, i, gesture;
 
-      nopropagation();
       for (i = 0; i < n; ++i) {
         if (gesture = beforestart(touches[i].identifier, c, d3Selection.touch, this, arguments)) {
+          nopropagation();
           gesture("start");
         }
       }
@@ -139,9 +139,9 @@
       var touches = d3Selection.event.changedTouches,
           n = touches.length, i, gesture;
 
-      noevent();
       for (i = 0; i < n; ++i) {
         if (gesture = gestures[touches[i].identifier]) {
+          noevent();
           gesture("drag");
         }
       }
@@ -151,11 +151,11 @@
       var touches = d3Selection.event.changedTouches,
           n = touches.length, i, gesture;
 
-      nopropagation();
       if (touchending) clearTimeout(touchending);
       touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
       for (i = 0; i < n; ++i) {
         if (gesture = gestures[touches[i].identifier]) {
+          nopropagation();
           gesture("end");
         }
       }
