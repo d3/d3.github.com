@@ -4,7 +4,7 @@
   (factory((global.d3_hierarchy = global.d3_hierarchy || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "0.2.3";
+  var version = "0.2.4";
 
   function defaultSeparation(a, b) {
     return a.parent === b.parent ? 1 : 2;
@@ -643,7 +643,7 @@
     node.y1 = Math.round(node.y1);
   }
 
-  function dice(parent, x0, y0, x1, y1) {
+  function treemapDice(parent, x0, y0, x1, y1) {
     var nodes = parent.children,
         node,
         i = -1,
@@ -676,7 +676,7 @@
     function positionNode(dy, n) {
       return function(node) {
         if (node.children) {
-          dice(node, node.x0, dy * (node.depth + 1) / n, node.x1, dy * (node.depth + 2) / n);
+          treemapDice(node, node.x0, dy * (node.depth + 1) / n, node.x1, dy * (node.depth + 2) / n);
         }
         var x0 = node.x0,
             y0 = node.y0,
@@ -1012,7 +1012,7 @@
     return tree;
   }
 
-  function slice(parent, x0, y0, x1, y1) {
+  function treemapSlice(parent, x0, y0, x1, y1) {
     var nodes = parent.children,
         node,
         i = -1,
@@ -1025,52 +1025,58 @@
     }
   }
 
+  var phi = (1 + Math.sqrt(5)) / 2;
+
+  function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
+    var rows = [],
+        nodes = parent.children,
+        row,
+        nodeValue,
+        i0 = 0,
+        i1,
+        n = nodes.length,
+        dx, dy,
+        value = parent.value,
+        sumValue,
+        minValue,
+        maxValue,
+        newRatio,
+        minRatio,
+        alpha,
+        beta;
+
+    while (i0 < n) {
+      dx = x1 - x0, dy = y1 - y0;
+      minValue = maxValue = sumValue = nodes[i0].value;
+      alpha = Math.max(dy / dx, dx / dy) / (value * ratio);
+      beta = sumValue * sumValue * alpha;
+      minRatio = Math.max(maxValue / beta, beta / minValue);
+
+      // Keep adding nodes while the aspect ratio maintains or improves.
+      for (i1 = i0 + 1; i1 < n; ++i1) {
+        sumValue += nodeValue = nodes[i1].value;
+        if (nodeValue < minValue) minValue = nodeValue;
+        if (nodeValue > maxValue) maxValue = nodeValue;
+        beta = sumValue * sumValue * alpha;
+        newRatio = Math.max(maxValue / beta, beta / minValue);
+        if (newRatio > minRatio) { sumValue -= nodeValue; break; }
+        minRatio = newRatio;
+      }
+
+      // Position and record the row orientation.
+      rows.push(row = {value: sumValue, dice: dx < dy, children: nodes.slice(i0, i1)});
+      if (row.dice) treemapDice(row, x0, y0, x1, value ? y0 += dy * sumValue / value : y1);
+      else treemapSlice(row, x0, y0, value ? x0 += dx * sumValue / value : x1, y1);
+      value -= sumValue, i0 = i1;
+    }
+
+    return rows;
+  }
+
   var squarify = (function custom(ratio) {
 
     function squarify(parent, x0, y0, x1, y1) {
-      if (parent._squarify) return resquarify(parent, x0, y0, x1, y1);
-
-      var squarified = parent._squarify = [],
-          nodes = parent.children,
-          row,
-          nodeValue,
-          i0 = 0,
-          i1,
-          n = nodes.length,
-          dx, dy,
-          value = parent.value,
-          sumValue,
-          minValue,
-          maxValue,
-          newRatio,
-          minRatio,
-          alpha,
-          beta;
-
-      while (i0 < n) {
-        dx = x1 - x0, dy = y1 - y0;
-        minValue = maxValue = sumValue = nodes[i0].value;
-        alpha = Math.max(dy / dx, dx / dy) / (value * ratio);
-        beta = sumValue * sumValue * alpha;
-        minRatio = Math.max(maxValue / beta, beta / minValue);
-
-        // Keep adding nodes while the aspect ratio maintains or improves.
-        for (i1 = i0 + 1; i1 < n; ++i1) {
-          sumValue += nodeValue = nodes[i1].value;
-          if (nodeValue < minValue) minValue = nodeValue;
-          if (nodeValue > maxValue) maxValue = nodeValue;
-          beta = sumValue * sumValue * alpha;
-          newRatio = Math.max(maxValue / beta, beta / minValue);
-          if (newRatio > minRatio) { sumValue -= nodeValue; break; }
-          minRatio = newRatio;
-        }
-
-        // Position and record the row orientation.
-        squarified.push(row = {value: sumValue, dice: dx < dy, children: nodes.slice(i0, i1)});
-        if (row.dice) dice(row, x0, y0, x1, value ? y0 += dy * sumValue / value : y1);
-        else slice(row, x0, y0, value ? x0 += dx * sumValue / value : x1, y1);
-        value -= sumValue, i0 = i1;
-      }
+      squarifyRatio(ratio, parent, x0, y0, x1, y1);
     }
 
     squarify.ratio = function(x) {
@@ -1078,26 +1084,7 @@
     };
 
     return squarify;
-  })((1 + Math.sqrt(5)) / 2, false);
-
-  function resquarify(parent, x0, y0, x1, y1) {
-    var squarified = parent._squarify,
-        row,
-        nodes,
-        i,
-        j = -1,
-        n,
-        m = squarified.length,
-        value = parent.value;
-
-    while (++j < m) {
-      row = squarified[j], nodes = row.children;
-      for (i = row.value = 0, n = nodes.length; i < n; ++i) row.value += nodes[i].value;
-      if (row.dice) dice(row, x0, y0, x1, y0 += (y1 - y0) * row.value / value);
-      else slice(row, x0, y0, x0 += (x1 - x0) * row.value / value, y1);
-      value -= row.value;
-    }
-  }
+  })(phi);
 
   function index$1() {
     var tile = squarify,
@@ -1218,8 +1205,41 @@
   }
 
   function sliceDice(parent, x0, y0, x1, y1) {
-    (parent.depth & 1 ? slice : dice)(parent, x0, y0, x1, y1);
+    (parent.depth & 1 ? treemapSlice : treemapDice)(parent, x0, y0, x1, y1);
   }
+
+  var resquarify = (function custom(ratio) {
+
+    function resquarify(parent, x0, y0, x1, y1) {
+      if ((rows = parent._squarify) && (rows.ratio === ratio)) {
+        var rows,
+            row,
+            nodes,
+            i,
+            j = -1,
+            n,
+            m = rows.length,
+            value = parent.value;
+
+        while (++j < m) {
+          row = rows[j], nodes = row.children;
+          for (i = row.value = 0, n = nodes.length; i < n; ++i) row.value += nodes[i].value;
+          if (row.dice) treemapDice(row, x0, y0, x1, y0 += (y1 - y0) * row.value / value);
+          else treemapSlice(row, x0, y0, x0 += (x1 - x0) * row.value / value, y1);
+          value -= row.value;
+        }
+      } else {
+        parent._squarify = rows = squarifyRatio(ratio, parent, x0, y0, x1, y1);
+        rows.ratio = ratio;
+      }
+    }
+
+    resquarify.ratio = function(x) {
+      return custom((x = +x) > 1 ? x : 1);
+    };
+
+    return resquarify;
+  })(phi);
 
   exports.version = version;
   exports.cluster = cluster;
@@ -1232,9 +1252,10 @@
   exports.tree = tree;
   exports.treemap = index$1;
   exports.treemapBinary = binary;
-  exports.treemapDice = dice;
-  exports.treemapSlice = slice;
+  exports.treemapDice = treemapDice;
+  exports.treemapSlice = treemapSlice;
   exports.treemapSliceDice = sliceDice;
   exports.treemapSquarify = squarify;
+  exports.treemapResquarify = resquarify;
 
 }));
