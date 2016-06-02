@@ -4,7 +4,7 @@
   (factory((global.d3_brush = global.d3_brush || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.1.0";
+  var version = "0.1.1";
 
   function constant(x) {
     return function() {
@@ -18,33 +18,42 @@
     this.selection = selection;
   }
 
+  function nopropagation() {
+    d3Selection.event.stopImmediatePropagation();
+  }
+
+  function noevent() {
+    d3Selection.event.preventDefault();
+    d3Selection.event.stopImmediatePropagation();
+  }
+
   var MODE_DRAG = {name: "drag"};
   var MODE_SPACE = {name: "space"};
-  var MODE_RESIZE = {name: "resize"};
+  var MODE_HANDLE = {name: "handle"};
   var MODE_CENTER = {name: "center"};
   var X = {
     name: "x",
-    resize: ["e", "w"].map(type),
+    handles: ["e", "w"].map(type),
     input: function(x, e) { return x && [[x[0], e[0][1]], [x[1], e[1][1]]]; },
     output: function(xy) { return xy && [xy[0][0], xy[1][0]]; }
   };
 
   var Y = {
     name: "y",
-    resize: ["n", "s"].map(type),
+    handles: ["n", "s"].map(type),
     input: function(y, e) { return y && [[e[0][0], y[0]], [e[1][0], y[1]]]; },
     output: function(xy) { return xy && [xy[0][1], xy[1][1]]; }
   };
 
   var XY = {
     name: "xy",
-    resize: ["n", "e", "s", "w", "nw", "ne", "se", "sw"].map(type),
+    handles: ["n", "e", "s", "w", "nw", "ne", "se", "sw"].map(type),
     input: function(xy) { return xy; },
     output: function(xy) { return xy; }
   };
 
   var cursors = {
-    background: "crosshair",
+    overlay: "crosshair",
     selection: "move",
     n: "ns-resize",
     e: "ew-resize",
@@ -75,7 +84,7 @@
   };
 
   var signsX = {
-    background: +1,
+    overlay: +1,
     selection: +1,
     n: null,
     e: +1,
@@ -88,7 +97,7 @@
   };
 
   var signsY = {
-    background: +1,
+    overlay: +1,
     selection: +1,
     n: -1,
     e: null,
@@ -104,17 +113,30 @@
     return {type: t};
   }
 
+  // Ignore right-click, since that should open the context menu.
+  function defaultFilter() {
+    return !event.button;
+  }
+
   function defaultExtent() {
     var svg = this.ownerSVGElement;
-    return [[0, 0], svg
-        ? [svg.width.baseVal.value, svg.height.baseVal.value]
-        : [this.clientWidth, this.clientHeight]];
+    return [[0, 0], [svg.width.baseVal.value, svg.height.baseVal.value]];
   }
 
   // Like d3.local, but with the name “__brush” rather than auto-generated.
   function local(node) {
     while (!node.__brush) if (!(node = node.parentNode)) return;
     return node.__brush;
+  }
+
+  function empty(extent) {
+    return extent[0][0] === extent[1][0]
+        || extent[0][1] === extent[1][1];
+  }
+
+  function brushSelection(node) {
+    var state = node.__brush;
+    return state ? state.dim.output(state.selection) : null;
   }
 
   function brushX() {
@@ -131,20 +153,22 @@
 
   function brush$1(dim) {
     var extent = defaultExtent,
-        listeners = d3Dispatch.dispatch(brush, "start", "brush", "end");
+        filter = defaultFilter,
+        listeners = d3Dispatch.dispatch(brush, "start", "brush", "end"),
+        handleSize = 6,
+        touchending;
 
     function brush(group) {
-      var background = group
+      var overlay = group
           .property("__brush", initialize)
-        .selectAll(".background")
-        .data([type("background")]);
+        .selectAll(".overlay")
+        .data([type("overlay")]);
 
-      background.enter().append("rect")
-          .attr("class", "background")
-          .attr("fill", "none")
+      overlay.enter().append("rect")
+          .attr("class", "overlay")
           .attr("pointer-events", "all")
-          .attr("cursor", cursors.background)
-        .merge(background)
+          .attr("cursor", cursors.overlay)
+        .merge(overlay)
           .each(function() {
             var extent = local(this).extent;
             d3Selection.select(this)
@@ -161,21 +185,21 @@
           .attr("cursor", cursors.selection)
           .attr("fill", "rgba(0,0,0,0.15)");
 
-      var resize = group.selectAll(".resize")
-        .data(dim.resize, function(d) { return d.type; });
+      var handle = group.selectAll(".handle")
+        .data(dim.handles, function(d) { return d.type; });
 
-      resize.exit().remove();
+      handle.exit().remove();
 
-      resize.enter().append("rect")
-          .attr("class", function(d) { return "resize resize--" + d.type; })
-          .attr("cursor", function(d) { return cursors[d.type]; })
-          .attr("fill", "none");
+      handle.enter().append("rect")
+          .attr("class", function(d) { return "handle handle--" + d.type; })
+          .attr("cursor", function(d) { return cursors[d.type]; });
 
       group
           .each(redraw)
+          .attr("fill", "none")
           .attr("pointer-events", "all")
           .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
-          .on("mousedown.brush", mousedowned);
+          .on("mousedown.brush touchstart.brush", started);
     }
 
     brush.move = function(group, selection) {
@@ -192,7 +216,7 @@
                   i = d3Interpolate.interpolate(selection0, selection1);
 
               function tween(t) {
-                state.selection = i(t);
+                state.selection = t === 1 && empty(selection1) ? null : i(t);
                 redraw.call(that);
                 emit.brush();
               }
@@ -204,11 +228,12 @@
             .each(function() {
               var that = this,
                   args = arguments,
+                  selection = dim.input(typeof selection === "function" ? selection.apply(that, args) : selection, state.extent),
                   emit = emitter(that, args).beforestart(),
                   state = that.__brush;
 
               d3Transition.interrupt(that);
-              state.selection = dim.input(typeof selection === "function" ? selection.apply(that, args) : selection, state.extent);
+              state.selection = empty(selection) ? null : selection;
               redraw.call(that);
               emit.start().brush().end();
             });
@@ -227,16 +252,16 @@
             .attr("width", selection[1][0] - selection[0][0])
             .attr("height", selection[1][1] - selection[0][1]);
 
-        group.selectAll(".resize")
+        group.selectAll(".handle")
             .style("display", null)
-            .attr("x", function(d) { return d.type[d.type.length - 1] === "e" ? selection[1][0] - 3 : selection[0][0] - 3; })
-            .attr("y", function(d) { return d.type[0] === "s" ? selection[1][1] - 3 : selection[0][1] - 3; })
-            .attr("width", function(d) { return d.type === "n" || d.type === "s" ? selection[1][0] - selection[0][0] + 6 : 6; })
-            .attr("height", function(d) { return d.type === "e" || d.type === "w" ? selection[1][1] - selection[0][1] + 6 : 6; });
+            .attr("x", function(d) { return d.type[d.type.length - 1] === "e" ? selection[1][0] - handleSize / 2 : selection[0][0] - handleSize / 2; })
+            .attr("y", function(d) { return d.type[0] === "s" ? selection[1][1] - handleSize / 2 : selection[0][1] - handleSize / 2; })
+            .attr("width", function(d) { return d.type === "n" || d.type === "s" ? selection[1][0] - selection[0][0] + handleSize : handleSize; })
+            .attr("height", function(d) { return d.type === "e" || d.type === "w" ? selection[1][1] - selection[0][1] + handleSize : handleSize; });
       }
 
       else {
-        group.selectAll(".selection,.resize")
+        group.selectAll(".selection,.handle")
             .style("display", "none")
             .attr("x", null)
             .attr("y", null)
@@ -278,10 +303,14 @@
       }
     };
 
-    function mousedowned() {
+    function started() {
+      if (event.touches) { if (event.changedTouches.length < event.touches.length) return noevent(); }
+      else if (touchending) return;
+      if (!filter.apply(this, arguments)) return;
+
       var that = this,
           type = event.target.__data__.type,
-          mode = (event.metaKey ? type = "background" : type) === "selection" ? MODE_DRAG : (event.altKey ? MODE_CENTER : MODE_RESIZE),
+          mode = (event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (event.altKey ? MODE_CENTER : MODE_HANDLE),
           signX = dim === Y ? null : signsX[type],
           signY = dim === X ? null : signsY[type],
           state = local(that),
@@ -292,20 +321,15 @@
           E = extent[1][0], e0, e1,
           S = extent[1][1], s0, s1,
           dx, dy,
+          moving,
           point0 = d3Selection.mouse(that),
           point,
           emit = emitter(that, arguments).beforestart();
 
-      if (type === "background") {
+      if (type === "overlay") {
         state.selection = selection = [
-          [
-            w0 = dim === Y ? W : point0[0],
-            n0 = dim === X ? N : point0[1]
-          ],
-          [
-            e0 = dim === Y ? E : w0,
-            s0 = dim === X ? S : n0
-          ]
+          [w0 = dim === Y ? W : point0[0], n0 = dim === X ? N : point0[1]],
+          [e0 = dim === Y ? E : w0, s0 = dim === X ? S : n0]
         ];
       } else {
         w0 = selection[0][0];
@@ -319,25 +343,35 @@
       e1 = e0;
       s1 = s0;
 
-      var view = d3Selection.select(event.view)
-          .on("keydown.brush", keydowned, true)
-          .on("keyup.brush", keyupped, true)
-          .on("mousemove.brush", mousemoved, true)
-          .on("mouseup.brush", mouseupped, true);
-
       var group = d3Selection.select(that)
           .attr("pointer-events", "none");
 
-      var background = group.selectAll(".background")
+      var overlay = group.selectAll(".overlay")
           .attr("cursor", cursors[type]);
 
+      if (event.touches) {
+        group
+            .on("touchmove.brush", moved, true)
+            .on("touchend.brush touchcancel.brush", ended, true);
+      } else {
+        var view = d3Selection.select(event.view)
+            .on("keydown.brush", keydowned, true)
+            .on("keyup.brush", keyupped, true)
+            .on("mousemove.brush", moved, true)
+            .on("mouseup.brush", ended, true);
+
+        d3Drag.dragDisable(event.view);
+      }
+
+      nopropagation();
       d3Transition.interrupt(that);
-      d3Drag.dragDisable(event.view);
       redraw.call(that);
       emit.start();
 
-      function mousemoved() {
+      function moved() {
         point = d3Selection.mouse(that);
+        moving = true;
+        noevent();
         move();
       }
 
@@ -354,7 +388,7 @@
             if (signY) dy = Math.max(N - n0, Math.min(S - s0, dy)), n1 = n0 + dy, s1 = s0 + dy;
             break;
           }
-          case MODE_RESIZE: {
+          case MODE_HANDLE: {
             if (signX < 0) dx = Math.max(W - w0, Math.min(E - w0, dx)), w1 = w0 + dx, e1 = e0;
             else if (signX > 0) dx = Math.max(W - e0, Math.min(E - e0, dx)), w1 = w0, e1 = e0 + dx;
             if (signY < 0) dy = Math.max(N - n0, Math.min(S - n0, dy)), n1 = n0 + dy, s1 = s0;
@@ -372,14 +406,14 @@
           signX *= -1;
           t = w0, w0 = e0, e0 = t;
           t = w1, w1 = e1, e1 = t;
-          if (type in flipX) background.attr("cursor", cursors[type = flipX[type]]);
+          if (type in flipX) overlay.attr("cursor", cursors[type = flipX[type]]);
         }
 
         if (s1 < n1) {
           signY *= -1;
           t = n0, n0 = s0, s0 = t;
           t = n1, n1 = s1, s1 = t;
-          if (type in flipY) background.attr("cursor", cursors[type = flipY[type]]);
+          if (type in flipY) overlay.attr("cursor", cursors[type = flipY[type]]);
         }
 
         if (selection[0][0] !== w1
@@ -395,19 +429,27 @@
         }
       }
 
-      function mouseupped() {
-        d3Drag.dragEnable(event.view);
+      function ended() {
+        nopropagation();
+        if (event.touches) {
+          if (event.touches.length) return;
+          if (touchending) clearTimeout(touchending);
+          touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
+          group.on("touchmove.brush touchend.brush touchcancel.brush", null);
+        } else {
+          d3Drag.dragEnable(event.view, moving);
+          view.on("keydown.brush keyup.brush mousemove.brush mouseup.brush", null);
+        }
         group.attr("pointer-events", "all");
-        background.attr("cursor", cursors.background);
-        view.on("keydown.brush keyup.brush mousemove.brush mouseup.brush", null);
-        if (w1 === e1 || n1 === s1) state.selection = null, redraw.call(that);
+        overlay.attr("cursor", cursors.overlay);
+        if (empty(selection)) state.selection = null, redraw.call(that);
         emit.end();
       }
 
       function keydowned() {
         switch (event.keyCode) {
           case 18: { // ALT
-            if (mode === MODE_RESIZE) {
+            if (mode === MODE_HANDLE) {
               if (signX) e0 = e1 - dx * signX, w0 = w1 + dx * signX;
               if (signY) s0 = s1 - dy * signY, n0 = n1 + dy * signY;
               mode = MODE_CENTER;
@@ -416,22 +458,18 @@
             break;
           }
           case 32: { // SPACE; takes priority over ALT
-            if (mode === MODE_RESIZE || mode === MODE_CENTER) {
+            if (mode === MODE_HANDLE || mode === MODE_CENTER) {
               if (signX < 0) e0 = e1 - dx; else if (signX > 0) w0 = w1 - dx;
               if (signY < 0) s0 = s1 - dy; else if (signY > 0) n0 = n1 - dy;
               mode = MODE_SPACE;
-              background.attr("cursor", cursors.selection);
+              overlay.attr("cursor", cursors.selection);
               move();
             }
             break;
           }
-          case 16: { // SHIFT
-            break;
-          }
           default: return;
         }
-        event.preventDefault();
-        event.stopImmediatePropagation();
+        noevent();
       }
 
       function keyupped() {
@@ -440,7 +478,7 @@
             if (mode === MODE_CENTER) {
               if (signX < 0) e0 = e1; else if (signX > 0) w0 = w1;
               if (signY < 0) s0 = s1; else if (signY > 0) n0 = n1;
-              mode = MODE_RESIZE;
+              mode = MODE_HANDLE;
               move();
             }
             break;
@@ -454,31 +492,36 @@
               } else {
                 if (signX < 0) e0 = e1; else if (signX > 0) w0 = w1;
                 if (signY < 0) s0 = s1; else if (signY > 0) n0 = n1;
-                mode = MODE_RESIZE;
+                mode = MODE_HANDLE;
               }
-              background.attr("cursor", cursors[type]);
+              overlay.attr("cursor", cursors[type]);
               move();
             }
             break;
           }
-          case 16: { // SHIFT
-            break;
-          }
           default: return;
         }
-        event.preventDefault();
-        event.stopImmediatePropagation();
+        noevent();
       }
     }
 
     function initialize() {
       var state = this.__brush || {selection: null};
       state.extent = extent.apply(this, arguments);
+      state.dim = dim;
       return state;
     }
 
     brush.extent = function(_) {
       return arguments.length ? (extent = typeof _ === "function" ? _ : constant([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
+    };
+
+    brush.filter = function(_) {
+      return arguments.length ? (filter = typeof _ === "function" ? _ : constant(!!_), brush) : filter;
+    };
+
+    brush.handleSize = function(_) {
+      return arguments.length ? (handleSize = +_, brush) : handleSize;
     };
 
     brush.on = function() {
@@ -493,5 +536,6 @@
   exports.brush = brush;
   exports.brushX = brushX;
   exports.brushY = brushY;
+  exports.brushSelection = brushSelection;
 
 }));
