@@ -4,7 +4,7 @@
   (factory((global.d3_brush = global.d3_brush || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.1.1";
+  var version = "0.1.2";
 
   function constant(x) {
     return function() {
@@ -115,7 +115,7 @@
 
   // Ignore right-click, since that should open the context menu.
   function defaultFilter() {
-    return !event.button;
+    return !d3Selection.event.button;
   }
 
   function defaultExtent() {
@@ -304,13 +304,13 @@
     };
 
     function started() {
-      if (event.touches) { if (event.changedTouches.length < event.touches.length) return noevent(); }
+      if (d3Selection.event.touches) { if (d3Selection.event.changedTouches.length < d3Selection.event.touches.length) return noevent(); }
       else if (touchending) return;
       if (!filter.apply(this, arguments)) return;
 
       var that = this,
-          type = event.target.__data__.type,
-          mode = (event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (event.altKey ? MODE_CENTER : MODE_HANDLE),
+          type = d3Selection.event.target.__data__.type,
+          mode = (d3Selection.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (d3Selection.event.altKey ? MODE_CENTER : MODE_HANDLE),
           signX = dim === Y ? null : signsX[type],
           signY = dim === X ? null : signsY[type],
           state = local(that),
@@ -349,18 +349,18 @@
       var overlay = group.selectAll(".overlay")
           .attr("cursor", cursors[type]);
 
-      if (event.touches) {
+      if (d3Selection.event.touches) {
         group
             .on("touchmove.brush", moved, true)
             .on("touchend.brush touchcancel.brush", ended, true);
       } else {
-        var view = d3Selection.select(event.view)
+        var view = d3Selection.select(d3Selection.event.view)
             .on("keydown.brush", keydowned, true)
             .on("keyup.brush", keyupped, true)
             .on("mousemove.brush", moved, true)
             .on("mouseup.brush", ended, true);
 
-        d3Drag.dragDisable(event.view);
+        d3Drag.dragDisable(d3Selection.event.view);
       }
 
       nopropagation();
@@ -431,13 +431,13 @@
 
       function ended() {
         nopropagation();
-        if (event.touches) {
-          if (event.touches.length) return;
+        if (d3Selection.event.touches) {
+          if (d3Selection.event.touches.length) return;
           if (touchending) clearTimeout(touchending);
           touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
           group.on("touchmove.brush touchend.brush touchcancel.brush", null);
         } else {
-          d3Drag.dragEnable(event.view, moving);
+          d3Drag.dragEnable(d3Selection.event.view, moving);
           view.on("keydown.brush keyup.brush mousemove.brush mouseup.brush", null);
         }
         group.attr("pointer-events", "all");
@@ -447,7 +447,7 @@
       }
 
       function keydowned() {
-        switch (event.keyCode) {
+        switch (d3Selection.event.keyCode) {
           case 18: { // ALT
             if (mode === MODE_HANDLE) {
               if (signX) e0 = e1 - dx * signX, w0 = w1 + dx * signX;
@@ -473,7 +473,7 @@
       }
 
       function keyupped() {
-        switch (event.keyCode) {
+        switch (d3Selection.event.keyCode) {
           case 18: { // ALT
             if (mode === MODE_CENTER) {
               if (signX < 0) e0 = e1; else if (signX > 0) w0 = w1;
@@ -485,7 +485,7 @@
           }
           case 32: { // SPACE
             if (mode === MODE_SPACE) {
-              if (event.altKey) {
+              if (d3Selection.event.altKey) {
                 if (signX) e0 = e1 - dx * signX, w0 = w1 + dx * signX;
                 if (signY) s0 = s1 - dy * signY, n0 = n1 + dy * signY;
                 mode = MODE_CENTER;
