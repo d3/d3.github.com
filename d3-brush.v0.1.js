@@ -4,7 +4,7 @@
   (factory((global.d3_brush = global.d3_brush || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.1.4";
+  var version = "0.1.5";
 
   function constant(x) {
     return function() {
@@ -183,7 +183,10 @@
         .enter().append("rect")
           .attr("class", "selection")
           .attr("cursor", cursors.selection)
-          .attr("fill", "rgba(0,0,0,0.15)");
+          .attr("fill", "#000")
+          .attr("fill-opacity", 0.15)
+          .attr("stroke", "#fff")
+          .attr("shape-rendering", "crispEdges");
 
       var handle = group.selectAll(".handle")
         .data(dim.handles, function(d) { return d.type; });
@@ -320,10 +323,14 @@
           N = extent[0][1], n0, n1,
           E = extent[1][0], e0, e1,
           S = extent[1][1], s0, s1,
-          dx, dy,
+          dx,
+          dy,
           moving,
+          shifting = signX && signY && d3Selection.event.shiftKey,
+          lockX,
+          lockY,
           point0 = d3Selection.mouse(that),
-          point,
+          point = point0,
           emit = emitter(that, arguments).beforestart();
 
       if (type === "overlay") {
@@ -369,7 +376,12 @@
       emit.start();
 
       function moved() {
-        point = d3Selection.mouse(that);
+        var point1 = d3Selection.mouse(that);
+        if (shifting && !lockX && !lockY) {
+          if (Math.abs(point1[0] - point[0]) > Math.abs(point1[1] - point[1])) lockY = true;
+          else lockX = true;
+        }
+        point = point1;
         moving = true;
         noevent();
         move();
@@ -416,6 +428,9 @@
           if (type in flipY) overlay.attr("cursor", cursors[type = flipY[type]]);
         }
 
+        if (lockX) w1 = selection[0][0], e1 = selection[1][0];
+        if (lockY) n1 = selection[0][1], s1 = selection[1][1];
+
         if (selection[0][0] !== w1
             || selection[0][1] !== n1
             || selection[1][0] !== e1
@@ -448,6 +463,10 @@
 
       function keydowned() {
         switch (d3Selection.event.keyCode) {
+          case 16: { // SHIFT
+            shifting = signX && signY;
+            break;
+          }
           case 18: { // ALT
             if (mode === MODE_HANDLE) {
               if (signX) e0 = e1 - dx * signX, w0 = w1 + dx * signX;
@@ -474,6 +493,13 @@
 
       function keyupped() {
         switch (d3Selection.event.keyCode) {
+          case 16: { // SHIFT
+            if (shifting) {
+              lockX = lockY = shifting = false;
+              move();
+            }
+            break;
+          }
           case 18: { // ALT
             if (mode === MODE_CENTER) {
               if (signX < 0) e0 = e1; else if (signX > 0) w0 = w1;
