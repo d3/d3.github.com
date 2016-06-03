@@ -4,7 +4,7 @@
   (factory((global.d3_brush = global.d3_brush || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.1.3";
+  var version = "0.1.4";
 
   function constant(x) {
     return function() {
@@ -229,11 +229,11 @@
               var that = this,
                   args = arguments,
                   state = that.__brush,
-                  selection = dim.input(typeof selection === "function" ? selection.apply(that, args) : selection, state.extent),
+                  selection1 = dim.input(typeof selection === "function" ? selection.apply(that, args) : selection, state.extent),
                   emit = emitter(that, args).beforestart();
 
               d3Transition.interrupt(that);
-              state.selection = empty(selection) ? null : selection;
+              state.selection = selection1 == null || empty(selection1) ? null : selection1;
               redraw.call(that);
               emit.start().brush().end();
             });
