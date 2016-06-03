@@ -4,7 +4,7 @@
   (factory((global.d3_brush = global.d3_brush || {}),global.d3_dispatch,global.d3_drag,global.d3_interpolate,global.d3_selection,global.d3_transition));
 }(this, function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
 
-  var version = "0.1.5";
+  var version = "0.1.6";
 
   function constant(x) {
     return function() {
@@ -183,8 +183,8 @@
         .enter().append("rect")
           .attr("class", "selection")
           .attr("cursor", cursors.selection)
-          .attr("fill", "#000")
-          .attr("fill-opacity", 0.15)
+          .attr("fill", "#777")
+          .attr("fill-opacity", 0.3)
           .attr("stroke", "#fff")
           .attr("shape-rendering", "crispEdges");
 
