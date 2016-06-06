@@ -4,7 +4,7 @@
   (factory((global.d3_interpolate = global.d3_interpolate || {}),global.d3_color));
 }(this, function (exports,d3Color) { 'use strict';
 
-  var version = "0.8.1";
+  var version = "0.8.2";
 
   function basis(t1, v0, v1, v2, v3) {
     var t2 = t1 * t1, t3 = t2 * t1;
@@ -17,7 +17,7 @@
   function basis$1(values) {
     var n = values.length - 1;
     return function(t) {
-      var i = Math.min(n - 1, Math.floor(t * n)),
+      var i = t <= 0 ? (t = 0) : t >= 1 ? (t = 1, n - 1) : Math.floor(t * n),
           v1 = values[i],
           v2 = values[i + 1],
           v0 = i > 0 ? values[i - 1] : 2 * v1 - v2,
@@ -29,7 +29,7 @@
   function basisClosed(values) {
     var n = values.length;
     return function(t) {
-      var i = Math.floor(t * n),
+      var i = Math.floor(((t %= 1) < 0 ? ++t : t) * n),
           v0 = values[(i + n - 1) % n],
           v1 = values[i % n],
           v2 = values[(i + 1) % n],
