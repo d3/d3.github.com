@@ -4,7 +4,7 @@
   (factory((global.d3_interpolate = global.d3_interpolate || {}),global.d3_color));
 }(this, function (exports,d3Color) { 'use strict';
 
-  var version = "0.8.2";
+  var version = "0.8.3";
 
   function basis(t1, v0, v1, v2, v3) {
     var t2 = t1 * t1, t3 = t2 * t1;
@@ -505,6 +505,12 @@
   var cubehelix$2 = cubehelix$1(hue);
   var cubehelixLong = cubehelix$1(nogamma);
 
+  function quantize(interpolate, n) {
+    var samples = new Array(n);
+    for (var i = 0; i < n; ++i) samples[i] = interpolate(i / (n - 1));
+    return samples;
+  }
+
   exports.version = version;
   exports.interpolate = value;
   exports.interpolateArray = array;
@@ -527,6 +533,7 @@
   exports.interpolateHclLong = hclLong;
   exports.interpolateCubehelix = cubehelix$2;
   exports.interpolateCubehelixLong = cubehelixLong;
+  exports.quantize = quantize;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
