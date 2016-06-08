@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ Version 0.8.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-array/ Version 0.8.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -116,6 +116,11 @@
     return [a, c];
   }
 
+  var array = Array.prototype;
+
+  var slice = array.slice;
+  var map = array.map;
+
   function constant(x) {
     return function() {
       return x;
@@ -166,10 +171,6 @@
     return Math.ceil(Math.log(values.length) / Math.LN2) + 1;
   }
 
-  function number$1(x) {
-    return +x;
-  }
-
   function histogram() {
     var value = identity,
         domain = extent,
@@ -181,22 +182,20 @@
           x,
           values = new Array(n);
 
-      // Coerce values to numbers.
       for (i = 0; i < n; ++i) {
-        values[i] = +value(data[i], i, data);
+        values[i] = value(data[i], i, data);
       }
 
       var xz = domain(values),
-          x0 = +xz[0],
-          x1 = +xz[1],
+          x0 = xz[0],
+          x1 = xz[1],
           tz = threshold(values, x0, x1);
 
       // Convert number of thresholds into uniform thresholds.
-      if (!Array.isArray(tz)) tz = ticks(x0, x1, +tz);
+      if (!Array.isArray(tz)) tz = ticks(x0, x1, tz);
 
-      // Coerce thresholds to numbers, ignoring any outside the domain.
+      // Remove any thresholds outside the domain.
       var m = tz.length;
-      for (i = 0; i < m; ++i) tz[i] = +tz[i];
       while (tz[0] <= x0) tz.shift(), --m;
       while (tz[m - 1] >= x1) tz.pop(), --m;
 
@@ -222,19 +221,15 @@
     }
 
     histogram.value = function(_) {
-      return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), histogram) : value;
+      return arguments.length ? (value = typeof _ === "function" ? _ : constant(_), histogram) : value;
     };
 
     histogram.domain = function(_) {
-      return arguments.length ? (domain = typeof _ === "function" ? _ : constant([+_[0], +_[1]]), histogram) : domain;
+      return arguments.length ? (domain = typeof _ === "function" ? _ : constant([_[0], _[1]]), histogram) : domain;
     };
 
     histogram.thresholds = function(_) {
-      if (!arguments.length) return threshold;
-      threshold = typeof _ === "function" ? _
-          : Array.isArray(_) ? constant(Array.prototype.map.call(_, number$1))
-          : constant(+_);
-      return histogram;
+      return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_), histogram) : threshold;
     };
 
     return histogram;
@@ -254,7 +249,7 @@
   }
 
   function freedmanDiaconis(values, min, max) {
-    values.sort(ascending);
+    values = map.call(values, number).sort(ascending);
     return Math.ceil((max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(values.length, -1 / 3)));
   }
 
