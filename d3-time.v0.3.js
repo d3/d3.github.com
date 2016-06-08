@@ -1,4 +1,4 @@
-// https://d3js.org/d3-time/ Version 0.3.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-time/ Version 0.3.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -88,53 +88,63 @@
     });
   };
 
-  var second$1 = 1e3;
-  var minute = 6e4;
-  var hour = 36e5;
-  var day = 864e5;
-  var week = 6048e5;
+  var milliseconds = millisecond.range;
+
+  var durationSecond = 1e3;
+  var durationMinute = 6e4;
+  var durationHour = 36e5;
+  var durationDay = 864e5;
+  var durationWeek = 6048e5;
 
   var second = newInterval(function(date) {
-    date.setTime(Math.floor(date / second$1) * second$1);
+    date.setTime(Math.floor(date / durationSecond) * durationSecond);
   }, function(date, step) {
-    date.setTime(+date + step * second$1);
+    date.setTime(+date + step * durationSecond);
   }, function(start, end) {
-    return (end - start) / second$1;
+    return (end - start) / durationSecond;
   }, function(date) {
     return date.getUTCSeconds();
   });
 
-  var minute$1 = newInterval(function(date) {
-    date.setTime(Math.floor(date / minute) * minute);
+  var seconds = second.range;
+
+  var minute = newInterval(function(date) {
+    date.setTime(Math.floor(date / durationMinute) * durationMinute);
   }, function(date, step) {
-    date.setTime(+date + step * minute);
+    date.setTime(+date + step * durationMinute);
   }, function(start, end) {
-    return (end - start) / minute;
+    return (end - start) / durationMinute;
   }, function(date) {
     return date.getMinutes();
   });
 
-  var hour$1 = newInterval(function(date) {
-    var offset = date.getTimezoneOffset() * minute % hour;
-    if (offset < 0) offset += hour;
-    date.setTime(Math.floor((+date - offset) / hour) * hour + offset);
+  var minutes = minute.range;
+
+  var hour = newInterval(function(date) {
+    var offset = date.getTimezoneOffset() * durationMinute % durationHour;
+    if (offset < 0) offset += durationHour;
+    date.setTime(Math.floor((+date - offset) / durationHour) * durationHour + offset);
   }, function(date, step) {
-    date.setTime(+date + step * hour);
+    date.setTime(+date + step * durationHour);
   }, function(start, end) {
-    return (end - start) / hour;
+    return (end - start) / durationHour;
   }, function(date) {
     return date.getHours();
   });
 
-  var day$1 = newInterval(function(date) {
+  var hours = hour.range;
+
+  var day = newInterval(function(date) {
     date.setHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setDate(date.getDate() + step);
   }, function(start, end) {
-    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * minute) / day;
+    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay;
   }, function(date) {
     return date.getDate() - 1;
   });
+
+  var days = day.range;
 
   function weekday(i) {
     return newInterval(function(date) {
@@ -143,7 +153,7 @@
     }, function(date, step) {
       date.setDate(date.getDate() + step * 7);
     }, function(start, end) {
-      return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * minute) / week;
+      return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationWeek;
     });
   }
 
@@ -154,6 +164,14 @@
   var thursday = weekday(4);
   var friday = weekday(5);
   var saturday = weekday(6);
+
+  var sundays = sunday.range;
+  var mondays = monday.range;
+  var tuesdays = tuesday.range;
+  var wednesdays = wednesday.range;
+  var thursdays = thursday.range;
+  var fridays = friday.range;
+  var saturdays = saturday.range;
 
   var month = newInterval(function(date) {
     date.setHours(0, 0, 0, 0);
@@ -166,6 +184,8 @@
     return date.getMonth();
   });
 
+  var months = month.range;
+
   var year = newInterval(function(date) {
     date.setHours(0, 0, 0, 0);
     date.setMonth(0, 1);
@@ -177,35 +197,43 @@
     return date.getFullYear();
   });
 
+  var years = year.range;
+
   var utcMinute = newInterval(function(date) {
     date.setUTCSeconds(0, 0);
   }, function(date, step) {
-    date.setTime(+date + step * minute);
+    date.setTime(+date + step * durationMinute);
   }, function(start, end) {
-    return (end - start) / minute;
+    return (end - start) / durationMinute;
   }, function(date) {
     return date.getUTCMinutes();
   });
 
+  var utcMinutes = utcMinute.range;
+
   var utcHour = newInterval(function(date) {
     date.setUTCMinutes(0, 0, 0);
   }, function(date, step) {
-    date.setTime(+date + step * hour);
+    date.setTime(+date + step * durationHour);
   }, function(start, end) {
-    return (end - start) / hour;
+    return (end - start) / durationHour;
   }, function(date) {
     return date.getUTCHours();
   });
+
+  var utcHours = utcHour.range;
 
   var utcDay = newInterval(function(date) {
     date.setUTCHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setUTCDate(date.getUTCDate() + step);
   }, function(start, end) {
-    return (end - start) / day;
+    return (end - start) / durationDay;
   }, function(date) {
     return date.getUTCDate() - 1;
   });
+
+  var utcDays = utcDay.range;
 
   function utcWeekday(i) {
     return newInterval(function(date) {
@@ -214,7 +242,7 @@
     }, function(date, step) {
       date.setUTCDate(date.getUTCDate() + step * 7);
     }, function(start, end) {
-      return (end - start) / week;
+      return (end - start) / durationWeek;
     });
   }
 
@@ -225,6 +253,14 @@
   var utcThursday = utcWeekday(4);
   var utcFriday = utcWeekday(5);
   var utcSaturday = utcWeekday(6);
+
+  var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcTuesdays = utcTuesday.range;
+  var utcWednesdays = utcWednesday.range;
+  var utcThursdays = utcThursday.range;
+  var utcFridays = utcFriday.range;
+  var utcSaturdays = utcSaturday.range;
 
   var utcMonth = newInterval(function(date) {
     date.setUTCHours(0, 0, 0, 0);
@@ -237,6 +273,8 @@
     return date.getUTCMonth();
   });
 
+  var utcMonths = utcMonth.range;
+
   var utcYear = newInterval(function(date) {
     date.setUTCHours(0, 0, 0, 0);
     date.setUTCMonth(0, 1);
@@ -248,99 +286,69 @@
     return date.getUTCFullYear();
   });
 
-  var timeMilliseconds = millisecond.range;
-  var timeSeconds = second.range;
-  var timeMinutes = minute$1.range;
-  var timeHours = hour$1.range;
-  var timeDays = day$1.range;
-  var timeSundays = sunday.range;
-  var timeMondays = monday.range;
-  var timeTuesdays = tuesday.range;
-  var timeWednesdays = wednesday.range;
-  var timeThursdays = thursday.range;
-  var timeFridays = friday.range;
-  var timeSaturdays = saturday.range;
-  var timeWeeks = sunday.range;
-  var timeMonths = month.range;
-  var timeYears = year.range;
-
-  var utcMilliseconds = timeMilliseconds;
-  var utcSeconds = timeSeconds;
-  var utcMinutes = utcMinute.range;
-  var utcHours = utcHour.range;
-  var utcDays = utcDay.range;
-  var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcTuesdays = utcTuesday.range;
-  var utcWednesdays = utcWednesday.range;
-  var utcThursdays = utcThursday.range;
-  var utcFridays = utcFriday.range;
-  var utcSaturdays = utcSaturday.range;
-  var utcWeeks = utcSunday.range;
-  var utcMonths = utcMonth.range;
   var utcYears = utcYear.range;
 
-  exports.timeMilliseconds = timeMilliseconds;
-  exports.timeSeconds = timeSeconds;
-  exports.timeMinutes = timeMinutes;
-  exports.timeHours = timeHours;
-  exports.timeDays = timeDays;
-  exports.timeSundays = timeSundays;
-  exports.timeMondays = timeMondays;
-  exports.timeTuesdays = timeTuesdays;
-  exports.timeWednesdays = timeWednesdays;
-  exports.timeThursdays = timeThursdays;
-  exports.timeFridays = timeFridays;
-  exports.timeSaturdays = timeSaturdays;
-  exports.timeWeeks = timeWeeks;
-  exports.timeMonths = timeMonths;
-  exports.timeYears = timeYears;
-  exports.utcMilliseconds = utcMilliseconds;
-  exports.utcSeconds = utcSeconds;
-  exports.utcMinutes = utcMinutes;
-  exports.utcHours = utcHours;
-  exports.utcDays = utcDays;
-  exports.utcSundays = utcSundays;
-  exports.utcMondays = utcMondays;
-  exports.utcTuesdays = utcTuesdays;
-  exports.utcWednesdays = utcWednesdays;
-  exports.utcThursdays = utcThursdays;
-  exports.utcFridays = utcFridays;
-  exports.utcSaturdays = utcSaturdays;
-  exports.utcWeeks = utcWeeks;
-  exports.utcMonths = utcMonths;
-  exports.utcYears = utcYears;
-  exports.timeMillisecond = millisecond;
-  exports.timeSecond = second;
-  exports.timeMinute = minute$1;
-  exports.timeHour = hour$1;
-  exports.timeDay = day$1;
-  exports.timeSunday = sunday;
-  exports.timeMonday = monday;
-  exports.timeTuesday = tuesday;
-  exports.timeWednesday = wednesday;
-  exports.timeThursday = thursday;
-  exports.timeFriday = friday;
-  exports.timeSaturday = saturday;
-  exports.timeWeek = sunday;
-  exports.timeMonth = month;
-  exports.timeYear = year;
-  exports.utcMillisecond = millisecond;
-  exports.utcSecond = second;
-  exports.utcMinute = utcMinute;
-  exports.utcHour = utcHour;
-  exports.utcDay = utcDay;
-  exports.utcSunday = utcSunday;
-  exports.utcMonday = utcMonday;
-  exports.utcTuesday = utcTuesday;
-  exports.utcWednesday = utcWednesday;
-  exports.utcThursday = utcThursday;
-  exports.utcFriday = utcFriday;
-  exports.utcSaturday = utcSaturday;
-  exports.utcWeek = utcSunday;
-  exports.utcMonth = utcMonth;
-  exports.utcYear = utcYear;
   exports.timeInterval = newInterval;
+  exports.timeMillisecond = millisecond;
+  exports.timeMilliseconds = milliseconds;
+  exports.utcMillisecond = millisecond;
+  exports.utcMilliseconds = milliseconds;
+  exports.timeSecond = second;
+  exports.timeSeconds = seconds;
+  exports.utcSecond = second;
+  exports.utcSeconds = seconds;
+  exports.timeMinute = minute;
+  exports.timeMinutes = minutes;
+  exports.timeHour = hour;
+  exports.timeHours = hours;
+  exports.timeDay = day;
+  exports.timeDays = days;
+  exports.timeWeek = sunday;
+  exports.timeWeeks = sundays;
+  exports.timeSunday = sunday;
+  exports.timeSundays = sundays;
+  exports.timeMonday = monday;
+  exports.timeMondays = mondays;
+  exports.timeTuesday = tuesday;
+  exports.timeTuesdays = tuesdays;
+  exports.timeWednesday = wednesday;
+  exports.timeWednesdays = wednesdays;
+  exports.timeThursday = thursday;
+  exports.timeThursdays = thursdays;
+  exports.timeFriday = friday;
+  exports.timeFridays = fridays;
+  exports.timeSaturday = saturday;
+  exports.timeSaturdays = saturdays;
+  exports.timeMonth = month;
+  exports.timeMonths = months;
+  exports.timeYear = year;
+  exports.timeYears = years;
+  exports.utcMinute = utcMinute;
+  exports.utcMinutes = utcMinutes;
+  exports.utcHour = utcHour;
+  exports.utcHours = utcHours;
+  exports.utcDay = utcDay;
+  exports.utcDays = utcDays;
+  exports.utcWeek = utcSunday;
+  exports.utcWeeks = utcSundays;
+  exports.utcSunday = utcSunday;
+  exports.utcSundays = utcSundays;
+  exports.utcMonday = utcMonday;
+  exports.utcMondays = utcMondays;
+  exports.utcTuesday = utcTuesday;
+  exports.utcTuesdays = utcTuesdays;
+  exports.utcWednesday = utcWednesday;
+  exports.utcWednesdays = utcWednesdays;
+  exports.utcThursday = utcThursday;
+  exports.utcThursdays = utcThursdays;
+  exports.utcFriday = utcFriday;
+  exports.utcFridays = utcFridays;
+  exports.utcSaturday = utcSaturday;
+  exports.utcSaturdays = utcSaturdays;
+  exports.utcMonth = utcMonth;
+  exports.utcMonths = utcMonths;
+  exports.utcYear = utcYear;
+  exports.utcYears = utcYears;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
