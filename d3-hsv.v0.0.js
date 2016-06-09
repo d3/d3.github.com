@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hsv/ Version 0.0.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-hsv/ Version 0.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
@@ -17,15 +17,13 @@
         max = Math.max(r, g, b),
         d = max - min,
         h = NaN,
-        s = max ? d/max : 0,
+        s = d / max,
         v = max;
     if (d) {
       if (r === max) h = (g - b) / d + (g < b) * 6;
       else if (g === max) h = (b - r) / d + 2;
       else h = (r - g) / d + 4;
       h *= 60;
-    } else {
-      s = v > 0 && v < 1 ? 0 : h;
     }
     return new Hsv(h, s, v, o.opacity);
   }
