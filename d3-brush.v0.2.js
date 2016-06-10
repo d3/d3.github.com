@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ Version 0.2.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-brush/ Version 0.2.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -427,6 +427,8 @@
           if (type in flipY) overlay.attr("cursor", cursors[type = flipY[type]]);
         }
 
+        selection = state.selection; // May be set by brush.move!
+
         if (lockX) w1 = selection[0][0], e1 = selection[1][0];
         if (lockY) n1 = selection[0][1], s1 = selection[1][1];
 
@@ -434,10 +436,7 @@
             || selection[0][1] !== n1
             || selection[1][0] !== e1
             || selection[1][1] !== s1) {
-          selection[0][0] = w1;
-          selection[0][1] = n1;
-          selection[1][0] = e1;
-          selection[1][1] = s1;
+          state.selection = [[w1, n1], [e1, e1]];
           redraw.call(that);
           emit.brush();
         }
