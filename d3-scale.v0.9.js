@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale/ Version 0.9.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-scale/ Version 0.9.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-collection', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
@@ -671,8 +671,12 @@
   var durationWeek = durationDay * 7;
   var durationMonth = durationDay * 30;
   var durationYear = durationDay * 365;
-  function newDate(t) {
+  function date(t) {
     return new Date(t);
+  }
+
+  function number$1(t) {
+    return t instanceof Date ? +t : +new Date(+t);
   }
 
   function calendar(year, month, week, day, hour, minute, second, millisecond, format) {
@@ -750,7 +754,7 @@
     };
 
     scale.domain = function(_) {
-      return arguments.length ? domain(_) : domain().map(newDate);
+      return arguments.length ? domain(map$1.call(_, number$1)) : domain().map(date);
     };
 
     scale.ticks = function(interval, step) {
