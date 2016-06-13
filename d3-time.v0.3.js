@@ -1,4 +1,4 @@
-// https://d3js.org/d3-time/ Version 0.3.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-time/ Version 0.3.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -148,8 +148,8 @@
 
   function weekday(i) {
     return newInterval(function(date) {
-      date.setHours(0, 0, 0, 0);
       date.setDate(date.getDate() - (date.getDay() + 7 - i) % 7);
+      date.setHours(0, 0, 0, 0);
     }, function(date, step) {
       date.setDate(date.getDate() + step * 7);
     }, function(start, end) {
@@ -174,8 +174,8 @@
   var saturdays = saturday.range;
 
   var month = newInterval(function(date) {
-    date.setHours(0, 0, 0, 0);
     date.setDate(1);
+    date.setHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setMonth(date.getMonth() + step);
   }, function(start, end) {
@@ -187,8 +187,8 @@
   var months = month.range;
 
   var year = newInterval(function(date) {
-    date.setHours(0, 0, 0, 0);
     date.setMonth(0, 1);
+    date.setHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setFullYear(date.getFullYear() + step);
   }, function(start, end) {
@@ -196,6 +196,17 @@
   }, function(date) {
     return date.getFullYear();
   });
+
+  // An optimized implementation for this simple case.
+  year.every = function(k) {
+    return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+      date.setFullYear(Math.floor(date.getFullYear() / k) * k);
+      date.setMonth(0, 1);
+      date.setHours(0, 0, 0, 0);
+    }, function(date, step) {
+      date.setFullYear(date.getFullYear() + step * k);
+    });
+  };
 
   var years = year.range;
 
@@ -237,8 +248,8 @@
 
   function utcWeekday(i) {
     return newInterval(function(date) {
-      date.setUTCHours(0, 0, 0, 0);
       date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 7 - i) % 7);
+      date.setUTCHours(0, 0, 0, 0);
     }, function(date, step) {
       date.setUTCDate(date.getUTCDate() + step * 7);
     }, function(start, end) {
@@ -263,8 +274,8 @@
   var utcSaturdays = utcSaturday.range;
 
   var utcMonth = newInterval(function(date) {
-    date.setUTCHours(0, 0, 0, 0);
     date.setUTCDate(1);
+    date.setUTCHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setUTCMonth(date.getUTCMonth() + step);
   }, function(start, end) {
@@ -276,8 +287,8 @@
   var utcMonths = utcMonth.range;
 
   var utcYear = newInterval(function(date) {
-    date.setUTCHours(0, 0, 0, 0);
     date.setUTCMonth(0, 1);
+    date.setUTCHours(0, 0, 0, 0);
   }, function(date, step) {
     date.setUTCFullYear(date.getUTCFullYear() + step);
   }, function(start, end) {
@@ -285,6 +296,17 @@
   }, function(date) {
     return date.getUTCFullYear();
   });
+
+  // An optimized implementation for this simple case.
+  utcYear.every = function(k) {
+    return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+      date.setUTCFullYear(Math.floor(date.getUTCFullYear() / k) * k);
+      date.setUTCMonth(0, 1);
+      date.setUTCHours(0, 0, 0, 0);
+    }, function(date, step) {
+      date.setUTCFullYear(date.getUTCFullYear() + step * k);
+    });
+  };
 
   var utcYears = utcYear.range;
 
