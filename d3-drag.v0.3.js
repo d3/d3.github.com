@@ -1,4 +1,4 @@
-// https://d3js.org/d3-drag/ Version 0.3.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-drag/ Version 0.3.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-selection'], factory) :
