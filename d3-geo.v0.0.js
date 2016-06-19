@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 0.0.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 0.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -2114,8 +2114,8 @@ var   y0$3;
   var cosMinDistance = cos(30 * radians);
   // cos(minimum angular distance)
 
-  function resample(project, delta) {
-    return +delta ? resample$1(project, delta * delta) : resampleNone(project);
+  function resample(project, delta2) {
+    return +delta2 ? resample$1(project, delta2) : resampleNone(project);
   }
 
   function resampleNone(project) {
@@ -2229,7 +2229,7 @@ var   y0$3;
         deltaLambda = 0, deltaPhi = 0, deltaGamma = 0, rotate, projectRotate, // rotate
         theta = null, preclip = clipAntimeridian, // clip angle
         x0 = null, y0, x1, y1, postclip = identity, // clip extent
-        delta = 6 * radians, projectResample = resample(projectTransform, delta), // precision
+        delta2 = 0.5, projectResample = resample(projectTransform, delta2), // precision
         stream,
         streamSink;
 
@@ -2252,7 +2252,7 @@ var   y0$3;
     };
 
     projection.clipAngle = function(_) {
-      return arguments.length ? (preclip = +_ ? clipCircle(theta = _ * radians, delta) : (theta = null, clipAntimeridian), reset()) : theta * degrees;
+      return arguments.length ? (preclip = +_ ? clipCircle(theta = _ * radians, 6 * radians) : (theta = null, clipAntimeridian), reset()) : theta * degrees;
     };
 
     projection.clipExtent = function(_) {
@@ -2276,7 +2276,7 @@ var   y0$3;
     };
 
     projection.precision = function(_) {
-      return arguments.length ? (projectResample = resample(projectTransform, delta = _ * radians), theta && (preclip = clipCircle(theta, delta)), reset()) : delta * degrees;
+      return arguments.length ? (projectResample = resample(projectTransform, delta2 = _ * _), reset()) : sqrt(delta2);
     };
 
     function recenter() {
@@ -2332,15 +2332,18 @@ var   y0$3;
   }
 
   function conicEqualArea$1() {
-    return conicProjection(conicEqualArea);
+    return conicProjection(conicEqualArea)
+        .scale(151)
+        .translate([480, 347]);
   }
 
   function albers() {
     return conicEqualArea$1()
-        .rotate([96, 0])
-        .center([-0.6, 38.7])
         .parallels([29.5, 45.5])
-        .scale(1070);
+        .scale(1070)
+        .translate([480, 250])
+        .rotate([96, 0])
+        .center([-0.6, 38.7]);
   }
 
   // The projections must have mutually exclusive clip regions on the sphere,
@@ -2459,7 +2462,9 @@ var   y0$3;
   });
 
   function azimuthalEqualArea$1() {
-    return projection(azimuthalEqualArea);
+    return projection(azimuthalEqualArea)
+        .scale(120)
+        .clipAngle(180 - 1e-3);
   }
 
   var azimuthalEquidistant = azimuthal(function(c) {
@@ -2471,7 +2476,9 @@ var   y0$3;
   });
 
   function azimuthalEquidistant$1() {
-    return projection(azimuthalEquidistant);
+    return projection(azimuthalEquidistant)
+        .scale(480 / tau)
+        .clipAngle(180 - 1e-3);
   }
 
   function mercator(lambda, phi) {
@@ -2511,7 +2518,7 @@ var   y0$3;
       return m;
     };
 
-    return m.clipExtent(null);
+    return m.clipExtent(null).scale(961 / tau);
   }
 
   function tany(y) {
@@ -2575,7 +2582,9 @@ var   y0$3;
   }
 
   function conicEquidistant$1() {
-    return conicProjection(conicEquidistant);
+    return conicProjection(conicEquidistant)
+      .scale(128)
+      .translate([480, 280]);
   }
 
   function gnomonic(x, y) {
@@ -2586,7 +2595,9 @@ var   y0$3;
   gnomonic.invert = azimuthalInvert(atan);
 
   function gnomonic$1() {
-    return projection(gnomonic);
+    return projection(gnomonic)
+        .scale(139)
+        .clipAngle(70);
   }
 
   function orthographic(x, y) {
@@ -2596,7 +2607,9 @@ var   y0$3;
   orthographic.invert = azimuthalInvert(asin);
 
   function orthographic$1() {
-    return projection(orthographic);
+    return projection(orthographic)
+        .scale(240)
+        .clipAngle(90 + epsilon);
   }
 
   function stereographic(x, y) {
@@ -2609,7 +2622,9 @@ var   y0$3;
   });
 
   function stereographic$1() {
-    return projection(stereographic);
+    return projection(stereographic)
+        .scale(240)
+        .clipAngle(180 - 1e-3);
   }
 
   function transverseMercator(lambda, phi) {
