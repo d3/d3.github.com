@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 0.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 0.0.4. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -2374,7 +2374,10 @@ var   y0$3;
 
     function albersUsa(coordinates) {
       var x = coordinates[0], y = coordinates[1];
-      return point = null, (lower48Point(x, y), point) || (alaskaPoint(x, y), point) || (hawaiiPoint(x, y), point);
+      return point = null,
+          (lower48Point.point(x, y), point)
+          || (alaskaPoint.point(x, y), point)
+          || (hawaiiPoint.point(x, y), point);
     }
 
     albersUsa.invert = function(coordinates) {
@@ -2410,17 +2413,17 @@ var   y0$3;
       lower48Point = lower48
           .translate(_)
           .clipExtent([[x - 0.455 * k, y - 0.238 * k], [x + 0.455 * k, y + 0.238 * k]])
-          .stream(pointSink).point;
+          .stream(pointSink);
 
       alaskaPoint = alaska
           .translate([x - 0.307 * k, y + 0.201 * k])
           .clipExtent([[x - 0.425 * k + epsilon, y + 0.120 * k + epsilon], [x - 0.214 * k - epsilon, y + 0.234 * k - epsilon]])
-          .stream(pointSink).point;
+          .stream(pointSink);
 
       hawaiiPoint = hawaii
           .translate([x - 0.205 * k, y + 0.212 * k])
           .clipExtent([[x - 0.214 * k + epsilon, y + 0.166 * k + epsilon], [x - 0.115 * k - epsilon, y + 0.234 * k - epsilon]])
-          .stream(pointSink).point;
+          .stream(pointSink);
 
       return albersUsa;
     };
@@ -2583,8 +2586,8 @@ var   y0$3;
 
   function conicEquidistant$1() {
     return conicProjection(conicEquidistant)
-      .scale(128)
-      .translate([480, 280]);
+        .scale(128)
+        .translate([480, 280]);
   }
 
   function gnomonic(x, y) {
@@ -2597,7 +2600,7 @@ var   y0$3;
   function gnomonic$1() {
     return projection(gnomonic)
         .scale(139)
-        .clipAngle(70);
+        .clipAngle(60);
   }
 
   function orthographic(x, y) {
@@ -2624,7 +2627,7 @@ var   y0$3;
   function stereographic$1() {
     return projection(stereographic)
         .scale(240)
-        .clipAngle(180 - 1e-3);
+        .clipAngle(142);
   }
 
   function transverseMercator(lambda, phi) {
