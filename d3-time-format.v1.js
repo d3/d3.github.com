@@ -1,25 +1,9 @@
-// https://d3js.org/d3-time-format/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-time-format/ Version 1.1.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
   (factory((global.d3 = global.d3 || {}),global.d3));
 }(this, function (exports,d3Time) { 'use strict';
-
-  var defaultLocale = formatLocale({
-    dateTime: "%a %b %e %X %Y",
-    date: "%m/%d/%Y",
-    time: "%H:%M:%S",
-    periods: ["AM", "PM"],
-    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  });
-
-  var timeFormat = defaultLocale.format;
-  var timeParse = defaultLocale.parse;
-  var utcFormat = defaultLocale.utcFormat;
-  var utcParse = defaultLocale.utcParse;
 
   function localDate(d) {
     if (0 <= d.y && d.y < 100) {
@@ -548,6 +532,32 @@
     return "%";
   }
 
+  var locale;
+  exports.timeFormat;
+  exports.timeParse;
+  exports.utcFormat;
+  exports.utcParse;
+
+  defaultLocale({
+    dateTime: "%a %b %e %X %Y",
+    date: "%m/%d/%Y",
+    time: "%H:%M:%S",
+    periods: ["AM", "PM"],
+    days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  });
+
+  function defaultLocale(definition) {
+    locale = formatLocale(definition);
+    exports.timeFormat = locale.format;
+    exports.timeParse = locale.parse;
+    exports.utcFormat = locale.utcFormat;
+    exports.utcParse = locale.utcParse;
+    return locale;
+  }
+
   var isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ";
 
   function formatIsoNative(date) {
@@ -556,7 +566,7 @@
 
   var formatIso = Date.prototype.toISOString
       ? formatIsoNative
-      : utcFormat(isoSpecifier);
+      : exports.utcFormat(isoSpecifier);
 
   function parseIsoNative(string) {
     var date = new Date(string);
@@ -565,13 +575,10 @@
 
   var parseIso = +new Date("2000-01-01T00:00:00.000Z")
       ? parseIsoNative
-      : utcParse(isoSpecifier);
+      : exports.utcParse(isoSpecifier);
 
+  exports.timeFormatDefaultLocale = defaultLocale;
   exports.timeFormatLocale = formatLocale;
-  exports.timeFormat = timeFormat;
-  exports.timeParse = timeParse;
-  exports.utcFormat = utcFormat;
-  exports.utcParse = utcParse;
   exports.isoFormat = formatIso;
   exports.isoParse = parseIso;
 
