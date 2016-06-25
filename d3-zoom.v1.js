@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-zoom/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -83,10 +83,16 @@
   }
 
   function defaultExtent() {
-    var svg = this.ownerSVGElement;
-    return [[0, 0], svg
-        ? [svg.width.baseVal.value, svg.height.baseVal.value]
-        : [this.clientWidth, this.clientHeight]];
+    var e = this, w, h;
+    if (e instanceof SVGElement) {
+      e = e.ownerSVGElement || e;
+      w = e.width.baseVal.value;
+      h = e.height.baseVal.value;
+    } else {
+      w = e.clientWidth;
+      h = e.clientHeight;
+    }
+    return [[0, 0], [w, h]];
   }
 
   function defaultTransform() {
