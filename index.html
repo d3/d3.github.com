@@ -249,7 +249,7 @@ pre {
   <div id="examples-deep"></div>
 </div>
 
-<script src="d3.v3.min.js" charset="utf-8"></script>
+<script src="d3.v4.min.js" charset="utf-8"></script>
 <script>
 
 /* https://github.com/d3/d3-plugins/tree/master/hexbin Copyright 2013 Michael Bostock. */
@@ -366,7 +366,7 @@ data.forEach(function(d, i) {
   d.j = i / 10 | 0;
 });
 
-Math.seedrandom(+d3.time.hour(new Date));
+Math.seedrandom(+d3.timeHour(new Date));
 
 d3.shuffle(data);
 
@@ -407,8 +407,8 @@ var mesh = svg.append("path")
     .attr("class", "example-mesh");
 
 var anchor = svg.append("g")
-      .attr("class", "example-anchor")
-    .selectAll("a");
+    .attr("class", "example-anchor")
+  .selectAll("a");
 
 var graphic = deep.selectAll("svg,canvas");
 
@@ -470,13 +470,14 @@ function resized() {
 
   anchor.exit().remove();
 
-  anchor.enter().append("a")
+  var anchorEnter = anchor.enter().append("a")
       .attr("xlink:href", function(d) { return d.example.url; })
-      .attr("xlink:title", function(d) { return d.example.title; })
-    .append("path")
+      .attr("xlink:title", function(d) { return d.example.title; });
+
+  anchorEnter.append("path")
       .attr("d", hexbin.hexagon());
 
-  anchor
+  anchor = anchorEnter.merge(anchor)
       .attr("transform", function(d) { return "translate(" + d + ")"; });
 }
 
@@ -523,7 +524,7 @@ d3.select("#version").text(" (" + d3.version + ")");
 
 <p>To link directly to the latest release, copy this snippet:
 
-<pre><code class="html">&lt;script src="https://d3js.org/d3.v3.min.js" charset="utf-8">&lt;/script></code></pre>
+<pre><code class="html">&lt;script src="https://d3js.org/d3.v4.min.js">&lt;/script></code></pre>
 
 <p>The <a href="https://github.com/d3/d3">full source and tests</a> are also available <a href="https://github.com/d3/d3/zipball/master">for download</a> on GitHub.
 
@@ -580,7 +581,7 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 <p>Computed properties often refer to bound data. Data is specified as an array of values, and each value is passed as the first argument (<code>d</code>) to selection functions. With the default join-by-index, the first element in the data array is passed to the first node in the selection, the second element to the second node, and so on. For example, if you bind an array of numbers to paragraph elements, you can use these numbers to compute dynamic font sizes:
 
 <pre><code>d3.selectAll("p")
-    .data([4, 8, 15, 16, 23, 42])
+  .data([4, 8, 15, 16, 23, 42])
     .style("font-size", function(d) { return d + "px"; });</code></pre>
 
 <p>Once the data has been bound to the document, you can omit the <code>data</code> operator; D3 will retrieve the previously-bound data. This allows you to recompute properties without rebinding.
@@ -593,16 +594,18 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 
 <p>When data is bound to a selection, each element in the data array is paired with the corresponding node in the selection. If there are fewer nodes than data, the extra data elements form the enter selection, which you can instantiate by appending to the <code>enter</code> selection. For example:
 
-<pre><code>d3.select("body").selectAll("p")
-    .data([4, 8, 15, 16, 23, 42])
+<pre><code>d3.select("body")
+  .selectAll("p")
+  .data([4, 8, 15, 16, 23, 42])
   .enter().append("p")
     .text(function(d) { return "I’m number " + d + "!"; });</code></pre>
 
 <p>Updating nodes are the default selection—the result of the <code>data</code> operator. Thus, if you forget about the enter and exit selections, you will automatically select only the elements for which there exists corresponding data. A common pattern is to break the initial selection into three parts: the updating nodes to modify, the entering nodes to add, and the exiting nodes to remove.
 
 <pre><code>// Update…
-var p = d3.select("body").selectAll("p")
-    .data([4, 8, 15, 16, 23, 42])
+var p = d3.select("body")
+  .selectAll("p")
+  .data([4, 8, 15, 16, 23, 42])
     .text(function(d) { return d; });
 
 // Enter…
