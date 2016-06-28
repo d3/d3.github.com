@@ -1,4 +1,4 @@
-// https://d3js.org/d3-interpolate/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-interpolate/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
@@ -281,15 +281,17 @@
     cssNode.style.transform = value;
     value = cssView.getComputedStyle(cssRoot.appendChild(cssNode), null).getPropertyValue("transform");
     cssRoot.removeChild(cssNode);
-    var m = value.slice(7, -1).split(",");
-    return decompose(+m[0], +m[1], +m[2], +m[3], +m[4], +m[5]);
+    value = value.slice(7, -1).split(",");
+    return decompose(+value[0], +value[1], +value[2], +value[3], +value[4], +value[5]);
   }
 
   function parseSvg(value) {
+    if (value == null) return identity;
     if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    svgNode.setAttribute("transform", value == null ? "" : value);
-    var m = svgNode.transform.baseVal.consolidate().matrix;
-    return decompose(m.a, m.b, m.c, m.d, m.e, m.f);
+    svgNode.setAttribute("transform", value);
+    if (!(value = svgNode.transform.baseVal.consolidate())) return identity;
+    value = value.matrix;
+    return decompose(value.a, value.b, value.c, value.d, value.e, value.f);
   }
 
   function interpolateTransform(parse, pxComma, pxParen, degParen) {
@@ -496,9 +498,9 @@
   var cubehelix$2 = cubehelix$1(hue);
   var cubehelixLong = cubehelix$1(nogamma);
 
-  function quantize(interpolate, n) {
+  function quantize(interpolator, n) {
     var samples = new Array(n);
-    for (var i = 0; i < n; ++i) samples[i] = interpolate(i / (n - 1));
+    for (var i = 0; i < n; ++i) samples[i] = interpolator(i / (n - 1));
     return samples;
   }
 
