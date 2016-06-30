@@ -1,4 +1,4 @@
-// https://d3js.org/d3-interpolate/ Version 1.0.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-interpolate/ Version 1.1.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
@@ -138,6 +138,13 @@
     };
   }
 
+  function date(a, b) {
+    var d = new Date;
+    return a = +a, b -= a, function(t) {
+      return d.setTime(a + b * t), d;
+    };
+  }
+
   function number(a, b) {
     return a = +a, b -= a, function(t) {
       return a + b * t;
@@ -234,8 +241,10 @@
         : (t === "number" ? number
         : t === "string" ? ((c = d3Color.color(b)) ? (b = c, rgb$1) : string)
         : b instanceof d3Color.color ? rgb$1
+        : b instanceof Date ? date
         : Array.isArray(b) ? array
-        : object)(a, b);
+        : isNaN(b) ? object
+        : number)(a, b);
   }
 
   function round(a, b) {
@@ -508,6 +517,7 @@
   exports.interpolateArray = array;
   exports.interpolateBasis = basis$1;
   exports.interpolateBasisClosed = basisClosed;
+  exports.interpolateDate = date;
   exports.interpolateNumber = number;
   exports.interpolateObject = object;
   exports.interpolateRound = round;
