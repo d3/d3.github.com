@@ -1,4 +1,4 @@
-// https://d3js.org/d3-timer/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-timer/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -14,7 +14,7 @@
   var clockLast = 0;
   var clockNow = 0;
   var clockSkew = 0;
-  var clock = typeof performance === "object" ? performance : Date;
+  var clock = typeof performance === "object" && performance.now ? performance : Date;
   var setFrame = typeof requestAnimationFrame === "function"
           ? (clock === Date ? function(f) { requestAnimationFrame(function() { f(clock.now()); }); } : requestAnimationFrame)
           : function(f) { setTimeout(f, 17); };
