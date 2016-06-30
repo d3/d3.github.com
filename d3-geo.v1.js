@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.1.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -2315,7 +2315,7 @@ var   y0$3;
     return p;
   }
 
-  function conicEqualArea(y0, y1) {
+  function conicEqualAreaRaw(y0, y1) {
     var sy0 = sin(y0),
         n = (sy0 + sin(y1)) / 2,
         c = 1 + sy0 * (2 * n - sy0),
@@ -2334,14 +2334,14 @@ var   y0$3;
     return project;
   }
 
-  function conicEqualArea$1() {
-    return conicProjection(conicEqualArea)
+  function conicEqualArea() {
+    return conicProjection(conicEqualAreaRaw)
         .scale(151)
         .translate([480, 347]);
   }
 
   function albers() {
-    return conicEqualArea$1()
+    return conicEqualArea()
         .parallels([29.5, 45.5])
         .scale(1070)
         .translate([480, 250])
@@ -2371,8 +2371,8 @@ var   y0$3;
     var cache,
         cacheStream,
         lower48 = albers(), lower48Point,
-        alaska = conicEqualArea$1().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]), alaskaPoint, // EPSG:3338
-        hawaii = conicEqualArea$1().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]), hawaiiPoint, // ESRI:102007
+        alaska = conicEqualArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]), alaskaPoint, // EPSG:3338
+        hawaii = conicEqualArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]), hawaiiPoint, // ESRI:102007
         point, pointStream = {point: function(x, y) { point = [x, y]; }};
 
     function albersUsa(coordinates) {
@@ -2434,7 +2434,7 @@ var   y0$3;
     return albersUsa.scale(1070);
   }
 
-  function azimuthal(scale) {
+  function azimuthalRaw(scale) {
     return function(x, y) {
       var cx = cos(x),
           cy = cos(y),
@@ -2459,44 +2459,44 @@ var   y0$3;
     }
   }
 
-  var azimuthalEqualArea = azimuthal(function(cxcy) {
+  var azimuthalEqualAreaRaw = azimuthalRaw(function(cxcy) {
     return sqrt(2 / (1 + cxcy));
   });
 
-  azimuthalEqualArea.invert = azimuthalInvert(function(z) {
+  azimuthalEqualAreaRaw.invert = azimuthalInvert(function(z) {
     return 2 * asin(z / 2);
   });
 
-  function azimuthalEqualArea$1() {
-    return projection(azimuthalEqualArea)
+  function azimuthalEqualArea() {
+    return projection(azimuthalEqualAreaRaw)
         .scale(120)
         .clipAngle(180 - 1e-3);
   }
 
-  var azimuthalEquidistant = azimuthal(function(c) {
+  var azimuthalEquidistantRaw = azimuthalRaw(function(c) {
     return (c = acos(c)) && c / sin(c);
   });
 
-  azimuthalEquidistant.invert = azimuthalInvert(function(z) {
+  azimuthalEquidistantRaw.invert = azimuthalInvert(function(z) {
     return z;
   });
 
-  function azimuthalEquidistant$1() {
-    return projection(azimuthalEquidistant)
+  function azimuthalEquidistant() {
+    return projection(azimuthalEquidistantRaw)
         .scale(480 / tau)
         .clipAngle(180 - 1e-3);
   }
 
-  function mercator(lambda, phi) {
+  function mercatorRaw(lambda, phi) {
     return [lambda, log(tan((halfPi + phi) / 2))];
   }
 
-  mercator.invert = function(x, y) {
+  mercatorRaw.invert = function(x, y) {
     return [x, 2 * atan(exp(y)) - halfPi];
   };
 
-  function mercator$1() {
-    return mercatorProjection(mercator);
+  function mercator() {
+    return mercatorProjection(mercatorRaw);
   }
 
   function mercatorProjection(project) {
@@ -2531,12 +2531,12 @@ var   y0$3;
     return tan((halfPi + y) / 2);
   }
 
-  function conicConformal(y0, y1) {
+  function conicConformalRaw(y0, y1) {
     var cy0 = cos(y0),
         n = y0 === y1 ? sin(y0) : log(cy0 / cos(y1)) / log(tany(y1) / tany(y0)),
         f = cy0 * pow(tany(y0), n) / n;
 
-    if (!n) return mercator;
+    if (!n) return mercatorRaw;
 
     function project(x, y) {
       if (f > 0) { if (y < -halfPi + epsilon) y = -halfPi + epsilon; }
@@ -2553,26 +2553,26 @@ var   y0$3;
     return project;
   }
 
-  function conicConformal$1() {
-    return conicProjection(conicConformal);
+  function conicConformal() {
+    return conicProjection(conicConformalRaw);
   }
 
-  function equirectangular(lambda, phi) {
+  function equirectangularRaw(lambda, phi) {
     return [lambda, phi];
   }
 
-  equirectangular.invert = equirectangular;
+  equirectangularRaw.invert = equirectangularRaw;
 
-  function equirectangular$1() {
-    return projection(equirectangular).scale(480 / pi);
+  function equirectangular() {
+    return projection(equirectangularRaw).scale(480 / pi);
   }
 
-  function conicEquidistant(y0, y1) {
+  function conicEquidistantRaw(y0, y1) {
     var cy0 = cos(y0),
         n = y0 === y1 ? sin(y0) : (cy0 - cos(y1)) / (y1 - y0),
         g = cy0 / n + y0;
 
-    if (abs(n) < epsilon) return equirectangular;
+    if (abs(n) < epsilon) return equirectangularRaw;
 
     function project(x, y) {
       var gy = g - y, nx = n * x;
@@ -2587,62 +2587,62 @@ var   y0$3;
     return project;
   }
 
-  function conicEquidistant$1() {
-    return conicProjection(conicEquidistant)
+  function conicEquidistant() {
+    return conicProjection(conicEquidistantRaw)
         .scale(128)
         .translate([480, 280]);
   }
 
-  function gnomonic(x, y) {
+  function gnomonicRaw(x, y) {
     var cy = cos(y), k = cos(x) * cy;
     return [cy * sin(x) / k, sin(y) / k];
   }
 
-  gnomonic.invert = azimuthalInvert(atan);
+  gnomonicRaw.invert = azimuthalInvert(atan);
 
-  function gnomonic$1() {
-    return projection(gnomonic)
+  function gnomonic() {
+    return projection(gnomonicRaw)
         .scale(139)
         .clipAngle(60);
   }
 
-  function orthographic(x, y) {
+  function orthographicRaw(x, y) {
     return [cos(y) * sin(x), sin(y)];
   }
 
-  orthographic.invert = azimuthalInvert(asin);
+  orthographicRaw.invert = azimuthalInvert(asin);
 
-  function orthographic$1() {
-    return projection(orthographic)
+  function orthographic() {
+    return projection(orthographicRaw)
         .scale(240)
         .clipAngle(90 + epsilon);
   }
 
-  function stereographic(x, y) {
+  function stereographicRaw(x, y) {
     var cy = cos(y), k = 1 + cos(x) * cy;
     return [cy * sin(x) / k, sin(y) / k];
   }
 
-  stereographic.invert = azimuthalInvert(function(z) {
+  stereographicRaw.invert = azimuthalInvert(function(z) {
     return 2 + atan(z);
   });
 
-  function stereographic$1() {
-    return projection(stereographic)
+  function stereographic() {
+    return projection(stereographicRaw)
         .scale(240)
         .clipAngle(142);
   }
 
-  function transverseMercator(lambda, phi) {
+  function transverseMercatorRaw(lambda, phi) {
     return [log(tan((halfPi + phi) / 2)), -lambda];
   }
 
-  transverseMercator.invert = function(x, y) {
+  transverseMercatorRaw.invert = function(x, y) {
     return [-y, 2 * atan(exp(x)) - halfPi];
   };
 
-  function transverseMercator$1() {
-    var m = mercatorProjection(transverseMercator),
+  function transverseMercator() {
+    var m = mercatorProjection(transverseMercatorRaw),
         center = m.center,
         rotate = m.rotate;
 
@@ -2669,19 +2669,30 @@ var   y0$3;
   exports.geoPath = index;
   exports.geoAlbers = albers;
   exports.geoAlbersUsa = albersUsa;
-  exports.geoAzimuthalEqualArea = azimuthalEqualArea$1;
-  exports.geoAzimuthalEquidistant = azimuthalEquidistant$1;
-  exports.geoConicConformal = conicConformal$1;
-  exports.geoConicEqualArea = conicEqualArea$1;
-  exports.geoConicEquidistant = conicEquidistant$1;
-  exports.geoEquirectangular = equirectangular$1;
-  exports.geoGnomonic = gnomonic$1;
+  exports.geoAzimuthalEqualArea = azimuthalEqualArea;
+  exports.geoAzimuthalEqualAreaRaw = azimuthalEqualAreaRaw;
+  exports.geoAzimuthalEquidistant = azimuthalEquidistant;
+  exports.geoAzimuthalEquidistantRaw = azimuthalEquidistantRaw;
+  exports.geoConicConformal = conicConformal;
+  exports.geoConicConformalRaw = conicConformalRaw;
+  exports.geoConicEqualArea = conicEqualArea;
+  exports.geoConicEqualAreaRaw = conicEqualAreaRaw;
+  exports.geoConicEquidistant = conicEquidistant;
+  exports.geoConicEquidistantRaw = conicEquidistantRaw;
+  exports.geoEquirectangular = equirectangular;
+  exports.geoEquirectangularRaw = equirectangularRaw;
+  exports.geoGnomonic = gnomonic;
+  exports.geoGnomonicRaw = gnomonicRaw;
   exports.geoProjection = projection;
   exports.geoProjectionMutator = projectionMutator;
-  exports.geoMercator = mercator$1;
-  exports.geoOrthographic = orthographic$1;
-  exports.geoStereographic = stereographic$1;
-  exports.geoTransverseMercator = transverseMercator$1;
+  exports.geoMercator = mercator;
+  exports.geoMercatorRaw = mercatorRaw;
+  exports.geoOrthographic = orthographic;
+  exports.geoOrthographicRaw = orthographicRaw;
+  exports.geoStereographic = stereographic;
+  exports.geoStereographicRaw = stereographicRaw;
+  exports.geoTransverseMercator = transverseMercator;
+  exports.geoTransverseMercatorRaw = transverseMercatorRaw;
   exports.geoRotation = rotation;
   exports.geoStream = stream;
   exports.geoTransform = transform;
