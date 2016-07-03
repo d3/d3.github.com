@@ -1,4 +1,4 @@
-// https://d3js.org/d3-voronoi/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-voronoi/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -962,7 +962,7 @@
     };
 
     voronoi.size = function(_) {
-      return arguments.length ? (extent = _ == null ? null : [[0, 0], [+_[0], +_[1]]], voronoi) : extent && [extent[1][0], extent[1][1]];
+      return arguments.length ? (extent = _ == null ? null : [[0, 0], [+_[0], +_[1]]], voronoi) : extent && [extent[1][0] - extent[0][0], extent[1][1] - extent[0][1]];
     };
 
     return voronoi;
