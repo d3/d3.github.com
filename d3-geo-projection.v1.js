@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -1813,8 +1813,8 @@
         y0 = healpixLambert(0, phi0)[1],
         y1 = collignonRaw(0, phi0)[1],
         dy1 = sqrtPi - y1,
-        k = 2 * pi / H,
-        w = H / tau,
+        k = tau / H,
+        w = 4 / tau,
         h = y0 + (dy1 * dy1 * 4) / tau;
 
     function forward(lambda, phi) {
