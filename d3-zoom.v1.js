@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ Version 1.0.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-zoom/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -111,13 +111,9 @@
         duration = 250,
         gestures = [],
         listeners = d3Dispatch.dispatch("start", "zoom", "end"),
-        mousemoving,
-        mousePoint,
-        mouseLocation,
         touchstarting,
         touchending,
         touchDelay = 500,
-        wheelTimer,
         wheelDelay = 150;
 
     function zoom(selection) {
@@ -231,6 +227,7 @@
       this.args = args;
       this.index = -1;
       this.active = 0;
+      this.extent = extent.apply(that, args);
     }
 
     Gesture.prototype = {
@@ -242,7 +239,7 @@
         return this;
       },
       zoom: function(key, transform) {
-        if (mousePoint && key !== "mouse") mouseLocation = transform.invert(mousePoint);
+        if (this.mouse && key !== "mouse") this.mouse[1] = transform.invert(this.mouse[0]);
         if (this.touch0 && key !== "touch") this.touch0[1] = transform.invert(this.touch0[0]);
         if (this.touch1 && key !== "touch") this.touch1[1] = transform.invert(this.touch1[0]);
         this.that.__zoom = transform;
@@ -252,7 +249,6 @@
       end: function() {
         if (--this.active === 0) {
           gestures.splice(this.index, 1);
-          mousePoint = mouseLocation = null;
           this.index = -1;
           this.emit("end");
         }
@@ -267,16 +263,16 @@
       if (!filter.apply(this, arguments)) return;
       var g = gesture(this, arguments),
           t = this.__zoom,
-          k = Math.max(k0, Math.min(k1, t.k * Math.pow(2, -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500)));
+          k = Math.max(k0, Math.min(k1, t.k * Math.pow(2, -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500))),
+          p = d3Selection.mouse(this);
 
       // If the mouse is in the same location as before, reuse it.
       // If there were recent wheel events, reset the wheel idle timeout.
-      if (wheelTimer) {
-        var point = d3Selection.mouse(this);
-        if (mousePoint[0] !== point[0] || mousePoint[1] !== point[1]) {
-          mouseLocation = t.invert(mousePoint = point);
+      if (g.wheel) {
+        if (g.mouse[0][0] !== p[0] || g.mouse[0][1] !== p[1]) {
+          g.mouse[1] = t.invert(g.mouse[0] = p);
         }
-        clearTimeout(wheelTimer);
+        clearTimeout(g.wheel);
       }
 
       // If this wheel event won’t trigger a transform change, ignore it.
@@ -284,18 +280,17 @@
 
       // Otherwise, capture the mouse point and location at the start.
       else {
-        g.extent = extent.apply(this, arguments);
-        mouseLocation = t.invert(mousePoint = d3Selection.mouse(this));
+        g.mouse = [p, t.invert(p)];
         d3Transition.interrupt(this);
         g.start();
       }
 
       noevent();
-      wheelTimer = setTimeout(wheelidled, wheelDelay);
-      g.zoom("mouse", constrain(translate(scale(t, k), mousePoint, mouseLocation), g.extent));
+      g.wheel = setTimeout(wheelidled, wheelDelay);
+      g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent));
 
       function wheelidled() {
-        wheelTimer = null;
+        g.wheel = null;
         g.end();
       }
     }
@@ -303,25 +298,24 @@
     function mousedowned() {
       if (touchending || !filter.apply(this, arguments)) return;
       var g = gesture(this, arguments),
-          v = d3Selection.select(d3Selection.event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true);
+          v = d3Selection.select(d3Selection.event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
+          p = d3Selection.mouse(this);
 
       d3Drag.dragDisable(d3Selection.event.view);
       nopropagation();
-      mousemoving = false;
-      g.extent = extent.apply(this, arguments);
-      mouseLocation = this.__zoom.invert(mousePoint = d3Selection.mouse(this));
+      g.mouse = [p, this.__zoom.invert(p)];
       d3Transition.interrupt(this);
       g.start();
 
       function mousemoved() {
         noevent();
-        mousemoving = true;
-        g.zoom("mouse", constrain(translate(g.that.__zoom, mousePoint = d3Selection.mouse(g.that), mouseLocation), g.extent));
+        g.moved = true;
+        g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent));
       }
 
       function mouseupped() {
         v.on("mousemove.zoom mouseup.zoom", null);
-        d3Drag.dragEnable(d3Selection.event.view, mousemoving);
+        d3Drag.dragEnable(d3Selection.event.view, g.moved);
         noevent();
         g.end();
       }
@@ -360,7 +354,6 @@
       if (d3Selection.event.touches.length === n) {
         touchstarting = setTimeout(function() { touchstarting = null; }, touchDelay);
         d3Transition.interrupt(this);
-        g.extent = extent.apply(this, arguments);
         g.start();
       }
     }
