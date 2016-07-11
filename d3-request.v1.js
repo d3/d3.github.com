@@ -1,4 +1,4 @@
-// https://d3js.org/d3-request/ Version 1.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-request/ Version 1.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-dispatch'), require('d3-dsv')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-dispatch', 'd3-dsv'], factory) :
@@ -108,15 +108,15 @@
 
       // If callback is non-null, it will be used for error and load events.
       send: function(method, data, callback) {
-        if (!callback && typeof data === "function") callback = data, data = null;
-        if (callback && callback.length === 1) callback = fixCallback(callback);
         xhr.open(method, url, true, user, password);
         if (mimeType != null && !headers.has("accept")) headers.set("accept", mimeType + ",*/*");
         if (xhr.setRequestHeader) headers.each(function(value, name) { xhr.setRequestHeader(name, value); });
         if (mimeType != null && xhr.overrideMimeType) xhr.overrideMimeType(mimeType);
         if (responseType != null) xhr.responseType = responseType;
         if (timeout > 0) xhr.timeout = timeout;
-        if (callback) request.on("error", callback).on("load", function(xhr) { callback(null, xhr); });
+        if (callback == null && typeof data === "function") callback = data, data = null;
+        if (callback != null && callback.length === 1) callback = fixCallback(callback);
+        if (callback != null) request.on("error", callback).on("load", function(xhr) { callback(null, xhr); });
         event.call("beforesend", request, xhr);
         xhr.send(data == null ? null : data);
         return request;
@@ -133,9 +133,12 @@
       }
     };
 
-    return callback
-        ? request.get(callback)
-        : request;
+    if (callback != null) {
+      if (typeof callback !== "function") throw new Error("invalid callback: " + callback);
+      return request.get(callback);
+    }
+
+    return request;
   }
 
   function fixCallback(callback) {
@@ -154,7 +157,11 @@
   function type(defaultMimeType, response) {
     return function(url, callback) {
       var r = request(url).mimeType(defaultMimeType).response(response);
-      return callback ? r.get(callback) : r;
+      if (callback != null) {
+        if (typeof callback !== "function") throw new Error("invalid callback: " + callback);
+        return r.get(callback);
+      }
+      return r;
     };
   }
 
