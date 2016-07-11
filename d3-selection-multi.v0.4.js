@@ -1,4 +1,4 @@
-// https://github.com/d3/d3-selection-multi Version 0.4.0. Copyright 2016 Mike Bostock.
+// https://github.com/d3/d3-selection-multi Version 0.4.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['d3-selection', 'd3-transition'], factory) :
