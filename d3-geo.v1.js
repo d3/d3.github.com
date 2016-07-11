@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.1.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -2336,8 +2336,8 @@ var   y0$3;
 
   function conicEqualArea() {
     return conicProjection(conicEqualAreaRaw)
-        .scale(151)
-        .translate([480, 347]);
+        .scale(155.424)
+        .center([0, 33.6442]);
   }
 
   function albers() {
@@ -2364,8 +2364,9 @@ var   y0$3;
   }
 
   // A composite projection for the United States, configured by default for
-  // 960×500. Also works quite well at 960×600 with scale 1285. The set of
-  // standard parallels for each region comes from USGS, which is published here:
+  // 960×500. The projection also works quite well at 960×600 if you change the
+  // scale to 1285 and adjust the translate accordingly. The set of standard
+  // parallels for each region comes from USGS, which is published here:
   // http://egsc.usgs.gov/isb/pubs/MapProjections/projections.html#albers
   function albersUsa() {
     var cache,
@@ -2469,7 +2470,7 @@ var   y0$3;
 
   function azimuthalEqualArea() {
     return projection(azimuthalEqualAreaRaw)
-        .scale(120)
+        .scale(124.75)
         .clipAngle(180 - 1e-3);
   }
 
@@ -2483,7 +2484,7 @@ var   y0$3;
 
   function azimuthalEquidistant() {
     return projection(azimuthalEquidistantRaw)
-        .scale(480 / tau)
+        .scale(79.4188)
         .clipAngle(180 - 1e-3);
   }
 
@@ -2496,7 +2497,8 @@ var   y0$3;
   };
 
   function mercator() {
-    return mercatorProjection(mercatorRaw);
+    return mercatorProjection(mercatorRaw)
+        .scale(961 / tau);
   }
 
   function mercatorProjection(project) {
@@ -2517,14 +2519,15 @@ var   y0$3;
     m.clipExtent = function(_) {
       if (!arguments.length) return clipAuto ? null : clipExtent();
       if (clipAuto = _ == null) {
-        var k = pi * scale(), t = translate();
+        var k = pi * scale(),
+            t = translate();
         _ = [[t[0] - k, t[1] - k], [t[0] + k, t[1] + k]];
       }
       clipExtent(_);
       return m;
     };
 
-    return m.clipExtent(null).scale(961 / tau);
+    return m.clipExtent(null);
   }
 
   function tany(y) {
@@ -2554,7 +2557,9 @@ var   y0$3;
   }
 
   function conicConformal() {
-    return conicProjection(conicConformalRaw);
+    return conicProjection(conicConformalRaw)
+        .scale(109.5)
+        .parallels([30, 30]);
   }
 
   function equirectangularRaw(lambda, phi) {
@@ -2564,7 +2569,8 @@ var   y0$3;
   equirectangularRaw.invert = equirectangularRaw;
 
   function equirectangular() {
-    return projection(equirectangularRaw).scale(480 / pi);
+    return projection(equirectangularRaw)
+        .scale(152.63);
   }
 
   function conicEquidistantRaw(y0, y1) {
@@ -2589,8 +2595,8 @@ var   y0$3;
 
   function conicEquidistant() {
     return conicProjection(conicEquidistantRaw)
-        .scale(128)
-        .translate([480, 280]);
+        .scale(131.154)
+        .center([0, 13.9389]);
   }
 
   function gnomonicRaw(x, y) {
@@ -2602,7 +2608,7 @@ var   y0$3;
 
   function gnomonic() {
     return projection(gnomonicRaw)
-        .scale(139)
+        .scale(144.049)
         .clipAngle(60);
   }
 
@@ -2614,7 +2620,7 @@ var   y0$3;
 
   function orthographic() {
     return projection(orthographicRaw)
-        .scale(240)
+        .scale(249.5)
         .clipAngle(90 + epsilon);
   }
 
@@ -2629,7 +2635,7 @@ var   y0$3;
 
   function stereographic() {
     return projection(stereographicRaw)
-        .scale(240)
+        .scale(250)
         .clipAngle(142);
   }
 
@@ -2654,7 +2660,8 @@ var   y0$3;
       return arguments.length ? rotate([_[0], _[1], _.length > 2 ? _[2] + 90 : 90]) : (_ = rotate(), [_[0], _[1], _[2] - 90]);
     };
 
-    return rotate([0, 0, 90]);
+    return rotate([0, 0, 90])
+        .scale(159.155);
   }
 
   exports.geoArea = area;
