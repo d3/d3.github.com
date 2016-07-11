@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.0.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -2188,13 +2188,13 @@
   }
 
   var lobes$5 = [[ // northern hemisphere
-    [[-180,   0], [-100,  90], [ -40,   0]],
+    [[-180,   0], [-110,  90], [ -40,   0]],
     [[ -40,   0], [   0,  90], [  40,   0]],
-    [[  40,   0], [ 100,  90], [ 180,   0]]
+    [[  40,   0], [ 110,  90], [ 180,   0]]
   ], [ // southern hemisphere
-    [[-180,   0], [-100, -90], [ -40,   0]],
+    [[-180,   0], [-110, -90], [ -40,   0]],
     [[ -40,   0], [   0, -90], [  40,   0]],
-    [[  40,   0], [ 100, -90], [ 180,   0]]
+    [[  40,   0], [ 110, -90], [ 180,   0]]
   ]];
 
   function interruptedSinusoidal() {
@@ -2693,7 +2693,7 @@ var   miller$1 = [[0.9245, 0], [0, 0], [0.01943, 0]];
         .scale(139.319);
   }
 
-  function pierceQuincuncial() {
+  function peirceQuincuncial() {
     return d3Geo.geoProjection(quincuncialRaw(guyouRaw))
         .scale(111.48)
         .rotate([-90, -90, 45])
@@ -3456,7 +3456,8 @@ var   miller$1 = [[0.9245, 0], [0, 0], [0.01943, 0]];
   exports.geoNellHammerRaw = nellHammerRaw;
   exports.geoPatterson = patterson;
   exports.geoPattersonRaw = pattersonRaw;
-  exports.geoPierceQuincuncial = pierceQuincuncial;
+  exports.geoPeirceQuincuncial = peirceQuincuncial;
+  exports.geoPierceQuincuncial = peirceQuincuncial;
   exports.geoPolyconic = polyconic;
   exports.geoPolyconicRaw = polyconicRaw;
   exports.geoRectangularPolyconic = rectangularPolyconic;
