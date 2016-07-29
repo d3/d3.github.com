@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.1.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -145,7 +145,7 @@
     stream.polygonEnd();
   }
 
-  function stream(object, stream) {
+  function geoStream(object, stream) {
     if (object && streamObjectType.hasOwnProperty(object.type)) {
       streamObjectType[object.type](object, stream);
     } else {
@@ -219,7 +219,7 @@
   function area(object) {
     if (areaSum) areaSum.reset();
     else areaSum = adder(), areaRingSum = adder();
-    stream(object, areaStream);
+    geoStream(object, areaStream);
     return areaSum * 2;
   }
 
@@ -397,7 +397,7 @@ var   range$1;
     else deltaSum = adder();
     phi1 = lambda1 = -(lambda0$1 = phi0 = Infinity);
     ranges = [];
-    stream(feature, boundsStream);
+    geoStream(feature, boundsStream);
 
     // First, sort ranges by their minimum longitudes.
     if (n = ranges.length) {
@@ -558,7 +558,7 @@ var   phi00$2;
     X0 = Y0 = Z0 =
     X1 = Y1 = Z1 =
     X2 = Y2 = Z2 = 0;
-    stream(object, centroidStream);
+    geoStream(object, centroidStream);
 
     var x = X2,
         y = Y2,
@@ -1153,7 +1153,7 @@ var   cosPhi0$1;
   function length(object) {
     if (lengthSum) lengthSum.reset();
     else lengthSum = adder();
-    stream(object, lengthStream);
+    geoStream(object, lengthStream);
     return +lengthSum;
   }
 
@@ -1585,23 +1585,23 @@ var   y0$3;
     function path(object) {
       if (object) {
         if (typeof pointRadius === "function") contextStream.pointRadius(+pointRadius.apply(this, arguments));
-        stream(object, projectionStream(contextStream));
+        geoStream(object, projectionStream(contextStream));
       }
       return contextStream.result();
     }
 
     path.area = function(object) {
-      stream(object, projectionStream(areaStream$1));
+      geoStream(object, projectionStream(areaStream$1));
       return areaStream$1.result();
     };
 
     path.bounds = function(object) {
-      stream(object, projectionStream(boundsStream$1));
+      geoStream(object, projectionStream(boundsStream$1));
       return boundsStream$1.result();
     };
 
     path.centroid = function(object) {
-      stream(object, projectionStream(centroidStream$1));
+      geoStream(object, projectionStream(centroidStream$1));
       return centroidStream$1.result();
     };
 
@@ -2114,6 +2114,43 @@ var   y0$3;
     polygonEnd: function() { this.stream.polygonEnd(); }
   };
 
+  function fit(project, extent, object) {
+    var w = extent[1][0] - extent[0][0],
+        h = extent[1][1] - extent[0][1],
+        clip = project.clipExtent && project.clipExtent();
+
+    project
+        .scale(150)
+        .translate([0, 0]);
+
+    if (clip != null) project.clipExtent(null);
+
+    geoStream(object, project.stream(boundsStream$1));
+
+    var b = boundsStream$1.result(),
+        k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
+        x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
+        y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2;
+
+    if (clip != null) project.clipExtent(clip);
+
+    return project
+        .scale(k * 150)
+        .translate([x, y]);
+  }
+
+  function fitSize(project) {
+    return function(size, object) {
+      return fit(project, [[0, 0], size], object);
+    };
+  }
+
+  function fitExtent(project) {
+    return function(extent, object) {
+      return fit(project, extent, object);
+    };
+  }
+
   var maxDepth = 16;
   var cosMinDistance = cos(30 * radians);
   // cos(minimum angular distance)
@@ -2282,6 +2319,10 @@ var   y0$3;
       return arguments.length ? (projectResample = resample(projectTransform, delta2 = _ * _), reset()) : sqrt(delta2);
     };
 
+    projection.fitExtent = fitExtent(projection);
+
+    projection.fitSize = fitSize(projection);
+
     function recenter() {
       projectRotate = compose(rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma), project);
       var center = project(lambda, phi);
@@ -2431,6 +2472,10 @@ var   y0$3;
 
       return albersUsa;
     };
+
+    albersUsa.fitExtent = fitExtent(albersUsa);
+
+    albersUsa.fitSize = fitSize(albersUsa);
 
     return albersUsa.scale(1070);
   }
@@ -2701,7 +2746,7 @@ var   y0$3;
   exports.geoTransverseMercator = transverseMercator;
   exports.geoTransverseMercatorRaw = transverseMercatorRaw;
   exports.geoRotation = rotation;
-  exports.geoStream = stream;
+  exports.geoStream = geoStream;
   exports.geoTransform = transform;
 
   Object.defineProperty(exports, '__esModule', { value: true });
