@@ -1,4 +1,4 @@
-// https://d3js.org/d3-time-format/ Version 2.0.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-time-format/ Version 2.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
@@ -533,11 +533,6 @@
   }
 
   var locale;
-  exports.timeFormat;
-  exports.timeParse;
-  exports.utcFormat;
-  exports.utcParse;
-
   defaultLocale({
     dateTime: "%x, %X",
     date: "%-m/%-d/%Y",
