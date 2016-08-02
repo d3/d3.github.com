@@ -1,4 +1,4 @@
-// https://d3js.org/d3-selection/ Version 1.0.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-selection/ Version 1.0.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
