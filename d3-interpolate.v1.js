@@ -1,4 +1,4 @@
-// https://d3js.org/d3-interpolate/ Version 1.1.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-interpolate/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
