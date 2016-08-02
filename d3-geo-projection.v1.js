@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.0.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
