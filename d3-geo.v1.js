@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.2.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.2.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -153,9 +153,9 @@
     }
   }
 
-  var areaRingSum;
+  var areaRingSum = adder();
 
-  var areaSum;
+  var areaSum = adder();
   var lambda00;
   var phi00;
   var lambda0;
@@ -217,8 +217,7 @@
   }
 
   function area(object) {
-    if (areaSum) areaSum.reset();
-    else areaSum = adder(), areaRingSum = adder();
+    areaSum.reset();
     geoStream(object, areaStream);
     return areaSum * 2;
   }
@@ -263,7 +262,7 @@ var   lambda0$1;
 var   lambda00$1;
 var   phi00$1;
   var p0;
-  var deltaSum;
+  var deltaSum = adder();
   var ranges;
 var   range$1;
   var boundsStream = {
@@ -393,8 +392,6 @@ var   range$1;
   function bounds(feature) {
     var i, n, a, b, merged, deltaMax, delta;
 
-    if (deltaSum) deltaSum.reset();
-    else deltaSum = adder();
     phi1 = lambda1 = -(lambda0$1 = phi0 = Infinity);
     ranges = [];
     geoStream(feature, boundsStream);
@@ -1108,7 +1105,7 @@ var   phi00$2;
     };
   }
 
-  var lengthSum;
+  var lengthSum = adder();
 var   lambda0$2;
 var   sinPhi0$1;
 var   cosPhi0$1;
@@ -1151,8 +1148,7 @@ var   cosPhi0$1;
   }
 
   function length(object) {
-    if (lengthSum) lengthSum.reset();
-    else lengthSum = adder();
+    lengthSum.reset();
     geoStream(object, lengthStream);
     return +lengthSum;
   }
@@ -1634,6 +1630,8 @@ var   y0$3;
         angle = 0,
         winding = 0;
 
+    sum.reset();
+
     for (var i = 0, n = polygon.length; i < n; ++i) {
       if (!(m = (ring = polygon[i]).length)) continue;
       var ring,
@@ -1685,9 +1683,7 @@ var   y0$3;
     // from the point to the South pole.  If it is zero, then the point is the
     // same side as the South pole.
 
-    var contains = (angle < -epsilon || angle < epsilon && sum < -epsilon) ^ (winding & 1);
-    sum.reset();
-    return contains;
+    return (angle < -epsilon || angle < epsilon && sum < -epsilon) ^ (winding & 1);
   }
 
   function clip(pointVisible, clipLine, interpolate, start) {
