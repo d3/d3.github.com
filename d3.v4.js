@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.2.0. Copyright 2016 Mike Bostock.
+// https://d3js.org Version 4.2.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.d3 = global.d3 || {})));
 }(this, function (exports) { 'use strict';
 
-  var version = "4.2.0";
+  var version = "4.2.1";
 
   function ascending(a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -8814,9 +8814,10 @@ var   epsilon$2 = 1e-6;
   }
 
   function center(scale) {
-    var width = scale.bandwidth() / 2;
+    var offset = scale.bandwidth() / 2;
+    if (scale.round()) offset = Math.round(offset);
     return function(d) {
-      return scale(d) + width;
+      return scale(d) + offset;
     };
   }
 
@@ -8867,7 +8868,7 @@ var   epsilon$2 = 1e-6;
           .attr("fill", "#000")
           .attr(x, k * spacing)
           .attr(y, 0.5)
-          .attr("dy", orient === top ? "0em" : orient === bottom ? ".71em" : ".32em"));
+          .attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
 
       if (context !== selection) {
         path = path.transition(context);
@@ -13294,9 +13295,9 @@ var   keyPrefix$1 = "$";
     }
   }
 
-  var areaRingSum;
+  var areaRingSum = adder();
 
-  var areaSum;
+  var areaSum = adder();
   var lambda00;
   var phi00;
   var lambda0;
@@ -13358,8 +13359,7 @@ var   keyPrefix$1 = "$";
   }
 
   function area$2(object) {
-    if (areaSum) areaSum.reset();
-    else areaSum = adder(), areaRingSum = adder();
+    areaSum.reset();
     geoStream(object, areaStream);
     return areaSum * 2;
   }
@@ -13404,7 +13404,7 @@ var   lambda0$1;
 var   lambda00$1;
 var   phi00$1;
   var p0;
-  var deltaSum;
+  var deltaSum = adder();
   var ranges;
 var   range$1;
   var boundsStream = {
@@ -13534,8 +13534,6 @@ var   range$1;
   function bounds(feature) {
     var i, n, a, b, merged, deltaMax, delta;
 
-    if (deltaSum) deltaSum.reset();
-    else deltaSum = adder();
     phi1 = lambda1 = -(lambda0$1 = phi0 = Infinity);
     ranges = [];
     geoStream(feature, boundsStream);
@@ -14249,7 +14247,7 @@ var   phi00$2;
     };
   }
 
-  var lengthSum;
+  var lengthSum = adder();
 var   lambda0$2;
 var   sinPhi0$1;
 var   cosPhi0$1;
@@ -14292,8 +14290,7 @@ var   cosPhi0$1;
   }
 
   function length$2(object) {
-    if (lengthSum) lengthSum.reset();
-    else lengthSum = adder();
+    lengthSum.reset();
     geoStream(object, lengthStream);
     return +lengthSum;
   }
@@ -14775,6 +14772,8 @@ var   y0$3;
         angle = 0,
         winding = 0;
 
+    sum$2.reset();
+
     for (var i = 0, n = polygon.length; i < n; ++i) {
       if (!(m = (ring = polygon[i]).length)) continue;
       var ring,
@@ -14826,9 +14825,7 @@ var   y0$3;
     // from the point to the South pole.  If it is zero, then the point is the
     // same side as the South pole.
 
-    var contains = (angle < -epsilon$4 || angle < epsilon$4 && sum$2 < -epsilon$4) ^ (winding & 1);
-    sum$2.reset();
-    return contains;
+    return (angle < -epsilon$4 || angle < epsilon$4 && sum$2 < -epsilon$4) ^ (winding & 1);
   }
 
   function clip(pointVisible, clipLine, interpolate, start) {
