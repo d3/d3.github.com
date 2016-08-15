@@ -1,9 +1,9 @@
-// https://d3js.org/d3-geo/ Version 1.2.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.2.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
   (factory((global.d3 = global.d3 || {}),global.d3));
-}(this, function (exports,d3Array) { 'use strict';
+}(this, (function (exports,d3Array) { 'use strict';
 
   // Adds floating point numbers with twice the normal precision.
   // Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
@@ -2671,7 +2671,7 @@ var   y0$3;
   }
 
   stereographicRaw.invert = azimuthalInvert(function(z) {
-    return 2 + atan(z);
+    return 2 * atan(z);
   });
 
   function stereographic() {
@@ -2747,4 +2747,4 @@ var   y0$3;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
