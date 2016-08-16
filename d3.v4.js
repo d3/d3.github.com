@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.2.1. Copyright 2016 Mike Bostock.
+// https://d3js.org Version 4.2.2. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.d3 = global.d3 || {})));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
-  var version = "4.2.1";
+  var version = "4.2.2";
 
   function ascending(a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -15813,7 +15813,7 @@ var   y0$3;
   }
 
   stereographicRaw.invert = azimuthalInvert(function(z) {
-    return 2 + atan(z);
+    return 2 * atan(z);
   });
 
   function stereographic() {
@@ -16225,4 +16225,4 @@ var   y0$3;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
