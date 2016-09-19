@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.2.3. Copyright 2016 Mike Bostock.
+// https://d3js.org Version 4.2.4. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "4.2.3";
+var version = "4.2.4";
 
 var ascending = function(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -7214,6 +7214,13 @@ var filterEvents = {};
 
 exports.event = null;
 
+if (typeof document !== "undefined") {
+  var element$1 = document.documentElement;
+  if (!("onmouseenter" in element$1)) {
+    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
+  }
+}
+
 function filterContextListener(listener, index, group) {
   listener = contextListener(listener, index, group);
   return function(event) {
@@ -7532,7 +7539,7 @@ var selection_data = function(value, key) {
     for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
       if (previous = enterGroup[i0]) {
         if (i0 >= i1) i1 = i0 + 1;
-        while (!(next = updateGroup[i1]) && ++i1 < dataLength)
+        while (!(next = updateGroup[i1]) && ++i1 < dataLength);
         previous._next = next || null;
       }
     }
@@ -12848,8 +12855,7 @@ function brush$1(dim) {
         if (type in flipY) overlay.attr("cursor", cursors[type = flipY[type]]);
       }
 
-      selection$$1 = state.selection; // May be set by brush.move!
-
+      if (state.selection) selection$$1 = state.selection; // May be set by brush.move!
       if (lockX) w1 = selection$$1[0][0], e1 = selection$$1[1][0];
       if (lockY) n1 = selection$$1[0][1], s1 = selection$$1[1][1];
 
@@ -12876,6 +12882,7 @@ function brush$1(dim) {
       }
       group.attr("pointer-events", "all");
       overlay.attr("cursor", cursors.overlay);
+      if (state.selection) selection$$1 = state.selection; // May be set by brush.move (on start)!
       if (empty$1(selection$$1)) state.selection = null, redraw.call(that);
       emit.end();
     }
