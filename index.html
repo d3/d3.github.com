@@ -563,12 +563,12 @@ d3.select("#version").text(" (" + d3.version + ")");
 <pre><code>var paragraphs = document.getElementsByTagName("p");
 for (var i = 0; i &lt; paragraphs.length; i++) {
   var paragraph = paragraphs.item(i);
-  paragraph.style.setProperty("color", "white", null);
+  paragraph.style.setProperty("color", "blue", null);
 }</code></pre>
 
 <p>D3 employs a declarative approach, operating on arbitrary sets of nodes called <i>selections</i>. For example, you can rewrite the above loop as:
 
-<pre><code>d3.selectAll("p").style("color", "white");</code></pre>
+<pre><code>d3.selectAll("p").style("color", "blue");</code></pre>
 
 <p>Yet, you can still manipulate individual nodes as needed:
 
