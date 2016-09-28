@@ -644,7 +644,7 @@ p.exit().remove();</code></pre>
 <p>Want to learn more? Read <a href="https://github.com/d3/d3/wiki/Tutorials">these tutorials</a>.
 
 <footer>
-  Library released under <a href="http://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2015 <a href="http://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
+  Library released under <a href="http://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright <span id="footerYear"></span> <a href="http://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
 </footer>
 
 </div>
@@ -653,7 +653,7 @@ p.exit().remove();</code></pre>
 
 <script src="highlight.v9.min.js"></script>
 <script>
-
+  
 GoogleAnalyticsObject = "ga", ga = function() { ga.q.push(arguments); }, ga.q = [], ga.l = +new Date;
 ga("create", "UA-48272912-2", "d3js.org");
 ga("send", "pageview");
@@ -664,3 +664,9 @@ d3.selectAll("code").each(function() { hljs.highlightBlock(this); });
 
 </script>
 <script async src="//www.google-analytics.com/analytics.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById("footerYear").textContent = new Date().getFullYear();
+  });
+</script>
