@@ -1,4 +1,4 @@
-// https://d3js.org/d3-transition/ Version 1.0.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-transition/ Version 1.0.3. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
@@ -16,7 +16,7 @@ var RUNNING = 4;
 var ENDING = 5;
 var ENDED = 6;
 
-function schedule(node, name, id, index, group, timing) {
+var schedule = function(node, name, id, index, group, timing) {
   var schedules = node.__transition;
   if (!schedules) node.__transition = {};
   else if (id in schedules) return;
@@ -33,7 +33,7 @@ function schedule(node, name, id, index, group, timing) {
     timer: null,
     state: CREATED
   });
-}
+};
 
 function init(node, id) {
   var schedule = node.__transition;
@@ -158,7 +158,7 @@ function create(node, id, self) {
   }
 }
 
-function interrupt(node, name) {
+var interrupt = function(node, name) {
   var schedules = node.__transition,
       schedule,
       active,
@@ -171,7 +171,7 @@ function interrupt(node, name) {
 
   for (i in schedules) {
     if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
-    active = schedule.state === STARTED;
+    active = schedule.state > STARTING && schedule.state < ENDING;
     schedule.state = ENDED;
     schedule.timer.stop();
     if (active) schedule.on.call("interrupt", node, node.__data__, schedule.index, schedule.group);
@@ -179,13 +179,13 @@ function interrupt(node, name) {
   }
 
   if (empty) delete node.__transition;
-}
+};
 
-function selection_interrupt(name) {
+var selection_interrupt = function(name) {
   return this.each(function() {
     interrupt(this, name);
   });
-}
+};
 
 function tweenRemove(id, name) {
   var tween0, tween1;
@@ -236,7 +236,7 @@ function tweenFunction(id, name, value) {
   };
 }
 
-function transition_tween(name, value) {
+var transition_tween = function(name, value) {
   var id = this._id;
 
   name += "";
@@ -252,7 +252,7 @@ function transition_tween(name, value) {
   }
 
   return this.each((value == null ? tweenRemove : tweenFunction)(id, name, value));
-}
+};
 
 function tweenValue(transition, name, value) {
   var id = transition._id;
@@ -267,13 +267,13 @@ function tweenValue(transition, name, value) {
   };
 }
 
-function interpolate(a, b) {
+var interpolate = function(a, b) {
   var c;
   return (typeof b === "number" ? d3Interpolate.interpolateNumber
       : b instanceof d3Color.color ? d3Interpolate.interpolateRgb
       : (c = d3Color.color(b)) ? (b = c, d3Interpolate.interpolateRgb)
       : d3Interpolate.interpolateString)(a, b);
-}
+};
 
 function attrRemove(name) {
   return function() {
@@ -287,29 +287,29 @@ function attrRemoveNS(fullname) {
   };
 }
 
-function attrConstant(name, interpolate, value1) {
+function attrConstant(name, interpolate$$1, value1) {
   var value00,
       interpolate0;
   return function() {
     var value0 = this.getAttribute(name);
     return value0 === value1 ? null
         : value0 === value00 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value1);
   };
 }
 
-function attrConstantNS(fullname, interpolate, value1) {
+function attrConstantNS(fullname, interpolate$$1, value1) {
   var value00,
       interpolate0;
   return function() {
     var value0 = this.getAttributeNS(fullname.space, fullname.local);
     return value0 === value1 ? null
         : value0 === value00 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value1);
   };
 }
 
-function attrFunction(name, interpolate, value) {
+function attrFunction(name, interpolate$$1, value) {
   var value00,
       value10,
       interpolate0;
@@ -319,11 +319,11 @@ function attrFunction(name, interpolate, value) {
     value0 = this.getAttribute(name);
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value10 = value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
   };
 }
 
-function attrFunctionNS(fullname, interpolate, value) {
+function attrFunctionNS(fullname, interpolate$$1, value) {
   var value00,
       value10,
       interpolate0;
@@ -333,17 +333,17 @@ function attrFunctionNS(fullname, interpolate, value) {
     value0 = this.getAttributeNS(fullname.space, fullname.local);
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value10 = value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
   };
 }
 
-function transition_attr(name, value) {
+var transition_attr = function(name, value) {
   var fullname = d3Selection.namespace(name), i = fullname === "transform" ? d3Interpolate.interpolateTransformSvg : interpolate;
   return this.attrTween(name, typeof value === "function"
       ? (fullname.local ? attrFunctionNS : attrFunction)(fullname, i, tweenValue(this, "attr." + name, value))
       : value == null ? (fullname.local ? attrRemoveNS : attrRemove)(fullname)
       : (fullname.local ? attrConstantNS : attrConstant)(fullname, i, value));
-}
+};
 
 function attrTweenNS(fullname, value) {
   function tween() {
@@ -367,14 +367,14 @@ function attrTween(name, value) {
   return tween;
 }
 
-function transition_attrTween(name, value) {
+var transition_attrTween = function(name, value) {
   var key = "attr." + name;
   if (arguments.length < 2) return (key = this.tween(key)) && key._value;
   if (value == null) return this.tween(key, null);
   if (typeof value !== "function") throw new Error;
   var fullname = d3Selection.namespace(name);
   return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value));
-}
+};
 
 function delayFunction(id, value) {
   return function() {
@@ -388,7 +388,7 @@ function delayConstant(id, value) {
   };
 }
 
-function transition_delay(value) {
+var transition_delay = function(value) {
   var id = this._id;
 
   return arguments.length
@@ -396,7 +396,7 @@ function transition_delay(value) {
           ? delayFunction
           : delayConstant)(id, value))
       : get(this.node(), id).delay;
-}
+};
 
 function durationFunction(id, value) {
   return function() {
@@ -410,7 +410,7 @@ function durationConstant(id, value) {
   };
 }
 
-function transition_duration(value) {
+var transition_duration = function(value) {
   var id = this._id;
 
   return arguments.length
@@ -418,7 +418,7 @@ function transition_duration(value) {
           ? durationFunction
           : durationConstant)(id, value))
       : get(this.node(), id).duration;
-}
+};
 
 function easeConstant(id, value) {
   if (typeof value !== "function") throw new Error;
@@ -427,15 +427,15 @@ function easeConstant(id, value) {
   };
 }
 
-function transition_ease(value) {
+var transition_ease = function(value) {
   var id = this._id;
 
   return arguments.length
       ? this.each(easeConstant(id, value))
       : get(this.node(), id).ease;
-}
+};
 
-function transition_filter(match) {
+var transition_filter = function(match) {
   if (typeof match !== "function") match = d3Selection.matcher(match);
 
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
@@ -447,9 +447,9 @@ function transition_filter(match) {
   }
 
   return new Transition(subgroups, this._parents, this._name, this._id);
-}
+};
 
-function transition_merge(transition) {
+var transition_merge = function(transition) {
   if (transition._id !== this._id) throw new Error;
 
   for (var groups0 = this._groups, groups1 = transition._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
@@ -465,7 +465,7 @@ function transition_merge(transition) {
   }
 
   return new Transition(merges, this._parents, this._name, this._id);
-}
+};
 
 function start(name) {
   return (name + "").trim().split(/^|\s+/).every(function(t) {
@@ -490,13 +490,13 @@ function onFunction(id, name, listener) {
   };
 }
 
-function transition_on(name, listener) {
+var transition_on = function(name, listener) {
   var id = this._id;
 
   return arguments.length < 2
       ? get(this.node(), id).on.on(name)
       : this.each(onFunction(id, name, listener));
-}
+};
 
 function removeFunction(id) {
   return function() {
@@ -506,11 +506,11 @@ function removeFunction(id) {
   };
 }
 
-function transition_remove() {
+var transition_remove = function() {
   return this.on("end.remove", removeFunction(this._id));
-}
+};
 
-function transition_select(select) {
+var transition_select = function(select) {
   var name = this._name,
       id = this._id;
 
@@ -527,9 +527,9 @@ function transition_select(select) {
   }
 
   return new Transition(subgroups, this._parents, name, id);
-}
+};
 
-function transition_selectAll(select) {
+var transition_selectAll = function(select) {
   var name = this._name,
       id = this._id;
 
@@ -550,15 +550,15 @@ function transition_selectAll(select) {
   }
 
   return new Transition(subgroups, parents, name, id);
-}
+};
 
 var Selection = d3Selection.selection.prototype.constructor;
 
-function transition_selection() {
+var transition_selection = function() {
   return new Selection(this._groups, this._parents);
-}
+};
 
-function styleRemove(name, interpolate) {
+function styleRemove(name, interpolate$$1) {
   var value00,
       value10,
       interpolate0;
@@ -568,7 +568,7 @@ function styleRemove(name, interpolate) {
         value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value10 = value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
   };
 }
 
@@ -578,18 +578,18 @@ function styleRemoveEnd(name) {
   };
 }
 
-function styleConstant(name, interpolate, value1) {
+function styleConstant(name, interpolate$$1, value1) {
   var value00,
       interpolate0;
   return function() {
     var value0 = d3Selection.window(this).getComputedStyle(this, null).getPropertyValue(name);
     return value0 === value1 ? null
         : value0 === value00 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value1);
   };
 }
 
-function styleFunction(name, interpolate, value) {
+function styleFunction(name, interpolate$$1, value) {
   var value00,
       value10,
       interpolate0;
@@ -600,11 +600,11 @@ function styleFunction(name, interpolate, value) {
     if (value1 == null) value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
-        : interpolate0 = interpolate(value00 = value0, value10 = value1);
+        : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
   };
 }
 
-function transition_style(name, value, priority) {
+var transition_style = function(name, value, priority) {
   var i = (name += "") === "transform" ? d3Interpolate.interpolateTransformCss : interpolate;
   return value == null ? this
           .styleTween(name, styleRemove(name, i))
@@ -612,7 +612,7 @@ function transition_style(name, value, priority) {
       : this.styleTween(name, typeof value === "function"
           ? styleFunction(name, i, tweenValue(this, "style." + name, value))
           : styleConstant(name, i, value), priority);
-}
+};
 
 function styleTween(name, value, priority) {
   function tween() {
@@ -625,13 +625,13 @@ function styleTween(name, value, priority) {
   return tween;
 }
 
-function transition_styleTween(name, value, priority) {
+var transition_styleTween = function(name, value, priority) {
   var key = "style." + (name += "");
   if (arguments.length < 2) return (key = this.tween(key)) && key._value;
   if (value == null) return this.tween(key, null);
   if (typeof value !== "function") throw new Error;
   return this.tween(key, styleTween(name, value, priority == null ? "" : priority));
-}
+};
 
 function textConstant(value) {
   return function() {
@@ -646,13 +646,13 @@ function textFunction(value) {
   };
 }
 
-function transition_text(value) {
+var transition_text = function(value) {
   return this.tween("text", typeof value === "function"
       ? textFunction(tweenValue(this, "text", value))
       : textConstant(value == null ? "" : value + ""));
-}
+};
 
-function transition_transition() {
+var transition_transition = function() {
   var name = this._name,
       id0 = this._id,
       id1 = newId();
@@ -672,7 +672,7 @@ function transition_transition() {
   }
 
   return new Transition(groups, this._parents, name, id1);
-}
+};
 
 var id = 0;
 
@@ -737,7 +737,7 @@ function inherit(node, id) {
   return timing;
 }
 
-function selection_transition(name) {
+var selection_transition = function(name) {
   var id,
       timing;
 
@@ -756,14 +756,14 @@ function selection_transition(name) {
   }
 
   return new Transition(groups, this._parents, name, id);
-}
+};
 
 d3Selection.selection.prototype.interrupt = selection_interrupt;
 d3Selection.selection.prototype.transition = selection_transition;
 
 var root = [null];
 
-function active(node, name) {
+var active = function(node, name) {
   var schedules = node.__transition,
       schedule,
       i;
@@ -778,7 +778,7 @@ function active(node, name) {
   }
 
   return null;
-}
+};
 
 exports.transition = transition;
 exports.active = active;
