@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.3.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.3.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1265,6 +1265,10 @@ function graticule() {
       .extentMinor([[-180, -80 - epsilon], [180, 80 + epsilon]]);
 }
 
+function graticule10() {
+  return graticule()();
+}
+
 var interpolate = function(a, b) {
   var x0 = a[0] * radians,
       y0 = a[1] * radians,
@@ -2080,23 +2084,23 @@ var clipCircle = function(radius, delta) {
 
 var transform = function(methods) {
   return {
-    stream: transform$1(methods)
+    stream: transformer(methods)
   };
 };
 
-function transform$1(methods) {
+function transformer(methods) {
   return function(stream) {
-    var t = new Transform;
-    for (var key in methods) t[key] = methods[key];
-    t.stream = stream;
-    return t;
+    var s = new TransformStream;
+    for (var key in methods) s[key] = methods[key];
+    s.stream = stream;
+    return s;
   };
 }
 
-function Transform() {}
+function TransformStream() {}
 
-Transform.prototype = {
-  constructor: Transform,
+TransformStream.prototype = {
+  constructor: TransformStream,
   point: function(x, y) { this.stream.point(x, y); },
   sphere: function() { this.stream.sphere(); },
   lineStart: function() { this.stream.lineStart(); },
@@ -2142,7 +2146,7 @@ var resample = function(project, delta2) {
 };
 
 function resampleNone(project) {
-  return transform$1({
+  return transformer({
     point: function(x, y) {
       x = project(x, y);
       this.stream.point(x[0], x[1]);
@@ -2233,7 +2237,7 @@ function resample$1(project, delta2) {
   };
 }
 
-var transformRadians = transform$1({
+var transformRadians = transformer({
   point: function(x, y) {
     this.stream.point(x * radians, y * radians);
   }
@@ -2669,7 +2673,7 @@ var gnomonic = function() {
 };
 
 function scaleTranslate(k, tx, ty) {
-  return k === 1 && tx === 0 && ty === 0 ? identity : transform$1({
+  return k === 1 && tx === 0 && ty === 0 ? identity : transformer({
     point: function(x, y) {
       this.stream.point(x * k + tx, y * k + ty);
     }
@@ -2677,7 +2681,7 @@ function scaleTranslate(k, tx, ty) {
 }
 
 var identity$1 = function() {
-  var k = 1, tx = 0, ty = 0, transform$$1 = identity, // scale and translate
+  var k = 1, tx = 0, ty = 0, transform = identity, // scale and translate
       x0 = null, y0, x1, y1, clip = identity, // clip extent
       cache,
       cacheStream,
@@ -2690,16 +2694,16 @@ var identity$1 = function() {
 
   return projection = {
     stream: function(stream) {
-      return cache && cacheStream === stream ? cache : cache = transform$$1(clip(cacheStream = stream));
+      return cache && cacheStream === stream ? cache : cache = transform(clip(cacheStream = stream));
     },
     clipExtent: function(_) {
       return arguments.length ? (clip = _ == null ? (x0 = y0 = x1 = y1 = null, identity) : clipExtent(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
     },
     scale: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate(k = +_, tx, ty), reset()) : k;
+      return arguments.length ? (transform = scaleTranslate(k = +_, tx, ty), reset()) : k;
     },
     translate: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate(k, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
+      return arguments.length ? (transform = scaleTranslate(k, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
     },
     fitExtent: function(extent, object) {
       return fitExtent(projection, extent, object);
@@ -2769,6 +2773,7 @@ exports.geoCircle = circle;
 exports.geoClipExtent = extent;
 exports.geoDistance = distance;
 exports.geoGraticule = graticule;
+exports.geoGraticule10 = graticule10;
 exports.geoInterpolate = interpolate;
 exports.geoLength = length;
 exports.geoPath = index;
