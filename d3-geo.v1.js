@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.2.6. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.3.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1176,7 +1176,7 @@ function graticuleY(x0, x1, dx) {
   return function(y) { return x.map(function(x) { return [x, y]; }); };
 }
 
-var graticule = function() {
+function graticule() {
   var x1, x0, X1, X0,
       y1, y0, Y1, Y0,
       dx = 10, dy = dx, DX = 90, DY = 360,
@@ -1263,7 +1263,7 @@ var graticule = function() {
   return graticule
       .extentMajor([[-180, -90 + epsilon], [180, 90 - epsilon]])
       .extentMinor([[-180, -80 - epsilon], [180, 80 + epsilon]]);
-};
+}
 
 var interpolate = function(a, b) {
   var x0 = a[0] * radians,
@@ -1569,11 +1569,9 @@ function circle$1(radius) {
       + "z";
 }
 
-var index = function() {
+var index = function(projection, context) {
   var pointRadius = 4.5,
-      projection,
       projectionStream,
-      context,
       contextStream;
 
   function path(object) {
@@ -1616,7 +1614,7 @@ var index = function() {
     return path;
   };
 
-  return path.projection(null).context(null);
+  return path.projection(projection).context(context);
 };
 
 var sum = adder();
@@ -2080,18 +2078,16 @@ var clipCircle = function(radius, delta) {
   return clip(visible, clipLine, interpolate, smallRadius ? [0, -radius] : [-pi, radius - pi]);
 };
 
-var transform = function(prototype) {
+var transform = function(methods) {
   return {
-    stream: transform$1(prototype)
+    stream: transform$1(methods)
   };
 };
 
-function transform$1(prototype) {
-  function T() {}
-  var p = T.prototype = Object.create(Transform.prototype);
-  for (var k in prototype) p[k] = prototype[k];
+function transform$1(methods) {
   return function(stream) {
-    var t = new T;
+    var t = new Transform;
+    for (var key in methods) t[key] = methods[key];
     t.stream = stream;
     return t;
   };
@@ -2100,6 +2096,7 @@ function transform$1(prototype) {
 function Transform() {}
 
 Transform.prototype = {
+  constructor: Transform,
   point: function(x, y) { this.stream.point(x, y); },
   sphere: function() { this.stream.sphere(); },
   lineStart: function() { this.stream.lineStart(); },
@@ -2108,41 +2105,33 @@ Transform.prototype = {
   polygonEnd: function() { this.stream.polygonEnd(); }
 };
 
-function fit(project, extent, object) {
+function fitExtent(projection, extent, object) {
   var w = extent[1][0] - extent[0][0],
       h = extent[1][1] - extent[0][1],
-      clip = project.clipExtent && project.clipExtent();
+      clip = projection.clipExtent && projection.clipExtent();
 
-  project
+  projection
       .scale(150)
       .translate([0, 0]);
 
-  if (clip != null) project.clipExtent(null);
+  if (clip != null) projection.clipExtent(null);
 
-  geoStream(object, project.stream(boundsStream$1));
+  geoStream(object, projection.stream(boundsStream$1));
 
   var b = boundsStream$1.result(),
       k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
       x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
       y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2;
 
-  if (clip != null) project.clipExtent(clip);
+  if (clip != null) projection.clipExtent(clip);
 
-  return project
+  return projection
       .scale(k * 150)
       .translate([x, y]);
 }
 
-function fitSize(project) {
-  return function(size, object) {
-    return fit(project, [[0, 0], size], object);
-  };
-}
-
-function fitExtent(project) {
-  return function(extent, object) {
-    return fit(project, extent, object);
-  };
+function fitSize(projection, size, object) {
+  return fitExtent(projection, [[0, 0], size], object);
 }
 
 var maxDepth = 16;
@@ -2312,9 +2301,13 @@ function projectionMutator(projectAt) {
     return arguments.length ? (projectResample = resample(projectTransform, delta2 = _ * _), reset()) : sqrt(delta2);
   };
 
-  projection.fitExtent = fitExtent(projection);
+  projection.fitExtent = function(extent, object) {
+    return fitExtent(projection, extent, object);
+  };
 
-  projection.fitSize = fitSize(projection);
+  projection.fitSize = function(size, object) {
+    return fitSize(projection, size, object);
+  };
 
   function recenter() {
     projectRotate = compose(rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma), project);
@@ -2482,9 +2475,13 @@ var albersUsa = function() {
     return reset();
   };
 
-  albersUsa.fitExtent = fitExtent(albersUsa);
+  albersUsa.fitExtent = function(extent, object) {
+    return fitExtent(albersUsa, extent, object);
+  };
 
-  albersUsa.fitSize = fitSize(albersUsa);
+  albersUsa.fitSize = function(size, object) {
+    return fitSize(albersUsa, size, object);
+  };
 
   function reset() {
     cache = cacheStream = null;
@@ -2671,6 +2668,48 @@ var gnomonic = function() {
       .clipAngle(60);
 };
 
+function scaleTranslate(k, tx, ty) {
+  return k === 1 && tx === 0 && ty === 0 ? identity : transform$1({
+    point: function(x, y) {
+      this.stream.point(x * k + tx, y * k + ty);
+    }
+  });
+}
+
+var identity$1 = function() {
+  var k = 1, tx = 0, ty = 0, transform$$1 = identity, // scale and translate
+      x0 = null, y0, x1, y1, clip = identity, // clip extent
+      cache,
+      cacheStream,
+      projection;
+
+  function reset() {
+    cache = cacheStream = null;
+    return projection;
+  }
+
+  return projection = {
+    stream: function(stream) {
+      return cache && cacheStream === stream ? cache : cache = transform$$1(clip(cacheStream = stream));
+    },
+    clipExtent: function(_) {
+      return arguments.length ? (clip = _ == null ? (x0 = y0 = x1 = y1 = null, identity) : clipExtent(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
+    },
+    scale: function(_) {
+      return arguments.length ? (transform$$1 = scaleTranslate(k = +_, tx, ty), reset()) : k;
+    },
+    translate: function(_) {
+      return arguments.length ? (transform$$1 = scaleTranslate(k, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
+    },
+    fitExtent: function(extent, object) {
+      return fitExtent(projection, extent, object);
+    },
+    fitSize: function(size, object) {
+      return fitSize(projection, size, object);
+    }
+  };
+};
+
 function orthographicRaw(x, y) {
   return [cos(y) * sin(x), sin(y)];
 }
@@ -2749,6 +2788,7 @@ exports.geoEquirectangular = equirectangular;
 exports.geoEquirectangularRaw = equirectangularRaw;
 exports.geoGnomonic = gnomonic;
 exports.geoGnomonicRaw = gnomonicRaw;
+exports.geoIdentity = identity$1;
 exports.geoProjection = projection;
 exports.geoProjectionMutator = projectionMutator;
 exports.geoMercator = mercator;
