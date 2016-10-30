@@ -1,12 +1,13 @@
+// https://github.com/topojson/topojson-client Version 1.7.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.topojson = global.topojson || {})));
 }(this, (function (exports) { 'use strict';
 
-function noop() {}
+var noop = function() {};
 
-function transformAbsolute(transform) {
+function absolute(transform) {
   if (!transform) return noop;
   var x0,
       y0,
@@ -21,7 +22,7 @@ function transformAbsolute(transform) {
   };
 }
 
-function transformRelative(transform) {
+function relative(transform) {
   if (!transform) return noop;
   var x0,
       y0,
@@ -55,12 +56,12 @@ function bisect(a, x) {
   return lo;
 }
 
-function feature(topology, o) {
+var feature = function(topology, o) {
   return o.type === "GeometryCollection" ? {
     type: "FeatureCollection",
     features: o.geometries.map(function(o) { return feature$1(topology, o); })
   } : feature$1(topology, o);
-}
+};
 
 function feature$1(topology, o) {
   var f = {
@@ -74,21 +75,21 @@ function feature$1(topology, o) {
 }
 
 function object(topology, o) {
-  var absolute = transformAbsolute(topology.transform),
+  var absolute$$1 = absolute(topology.transform),
       arcs = topology.arcs;
 
   function arc(i, points) {
     if (points.length) points.pop();
     for (var a = arcs[i < 0 ? ~i : i], k = 0, n = a.length, p; k < n; ++k) {
       points.push(p = a[k].slice());
-      absolute(p, k);
+      absolute$$1(p, k);
     }
     if (i < 0) reverse(points, n);
   }
 
   function point(p) {
     p = p.slice();
-    absolute(p, 0);
+    absolute$$1(p, 0);
     return p;
   }
 
@@ -128,7 +129,7 @@ function object(topology, o) {
   return geometry(o);
 }
 
-function stitchArcs(topology, arcs) {
+var stitchArcs = function(topology, arcs) {
   var stitchedArcs = {},
       fragmentByStart = {},
       fragmentByEnd = {},
@@ -200,11 +201,11 @@ function stitchArcs(topology, arcs) {
   arcs.forEach(function(i) { if (!stitchedArcs[i < 0 ? ~i : i]) fragments.push([i]); });
 
   return fragments;
-}
+};
 
-function mesh(topology) {
+var mesh = function(topology) {
   return object(topology, meshArcs.apply(this, arguments));
-}
+};
 
 function meshArcs(topology, o, filter) {
   var arcs = [];
@@ -250,12 +251,12 @@ function meshArcs(topology, o, filter) {
   return {type: "MultiLineString", arcs: stitchArcs(topology, arcs)};
 }
 
-function cartesianTriangleArea(triangle) {
+function triangleArea(triangle) {
   var a = triangle[0], b = triangle[1], c = triangle[2];
   return Math.abs((a[0] - c[0]) * (b[1] - a[1]) - (a[0] - b[0]) * (c[1] - a[1]));
 }
 
-function ring(ring) {
+function ringArea(ring) {
   var i = -1,
       n = ring.length,
       a,
@@ -271,9 +272,9 @@ function ring(ring) {
   return area / 2;
 }
 
-function merge(topology) {
+var merge = function(topology) {
   return object(topology, mergeArcs.apply(this, arguments));
-}
+};
 
 function mergeArcs(topology, objects) {
   var polygonsByArc = {},
@@ -286,16 +287,16 @@ function mergeArcs(topology, objects) {
   });
 
   function register(polygon) {
-    polygon.forEach(function(ring$$) {
-      ring$$.forEach(function(arc) {
+    polygon.forEach(function(ring) {
+      ring.forEach(function(arc) {
         (polygonsByArc[arc = arc < 0 ? ~arc : arc] || (polygonsByArc[arc] = [])).push(polygon);
       });
     });
     polygons.push(polygon);
   }
 
-  function area(ring$$) {
-    return Math.abs(ring(object(topology, {type: "Polygon", arcs: [ring$$]}).coordinates[0]));
+  function area(ring) {
+    return Math.abs(ringArea(object(topology, {type: "Polygon", arcs: [ring]}).coordinates[0]));
   }
 
   polygons.forEach(function(polygon) {
@@ -306,8 +307,8 @@ function mergeArcs(topology, objects) {
       components.push(component);
       while (polygon = neighbors.pop()) {
         component.push(polygon);
-        polygon.forEach(function(ring$$) {
-          ring$$.forEach(function(arc) {
+        polygon.forEach(function(ring) {
+          ring.forEach(function(arc) {
             polygonsByArc[arc < 0 ? ~arc : arc].forEach(function(polygon) {
               if (!polygon._) {
                 polygon._ = 1;
@@ -331,8 +332,8 @@ function mergeArcs(topology, objects) {
 
       // Extract the exterior (unique) arcs.
       polygons.forEach(function(polygon) {
-        polygon.forEach(function(ring$$) {
-          ring$$.forEach(function(arc) {
+        polygon.forEach(function(ring) {
+          ring.forEach(function(arc) {
             if (polygonsByArc[arc < 0 ? ~arc : arc].length < 2) {
               arcs.push(arc);
             }
@@ -359,7 +360,7 @@ function mergeArcs(topology, objects) {
   };
 }
 
-function neighbors(objects) {
+var neighbors = function(objects) {
   var indexesByArc = {}, // arc index -> array of object indexes
       neighbors = objects.map(function() { return []; });
 
@@ -401,13 +402,13 @@ function neighbors(objects) {
   }
 
   return neighbors;
-}
+};
 
-function compareArea(a, b) {
+function compare(a, b) {
   return a[1][2] - b[1][2];
 }
 
-function minAreaHeap() {
+var minHeap = function() {
   var heap = {},
       array = [],
       size = 0;
@@ -427,7 +428,7 @@ function minAreaHeap() {
   heap.remove = function(removed) {
     var i = removed._, object;
     if (array[i] !== removed) return; // invalid request
-    if (i !== --size) object = array[size], (compareArea(object, removed) < 0 ? up : down)(array[object._ = i] = object, i);
+    if (i !== --size) object = array[size], (compare(object, removed) < 0 ? up : down)(array[object._ = i] = object, i);
     return i;
   };
 
@@ -435,7 +436,7 @@ function minAreaHeap() {
     while (i > 0) {
       var j = ((i + 1) >> 1) - 1,
           parent = array[j];
-      if (compareArea(object, parent) >= 0) break;
+      if (compare(object, parent) >= 0) break;
       array[parent._ = i] = parent;
       array[object._ = i = j] = object;
     }
@@ -447,8 +448,8 @@ function minAreaHeap() {
           l = r - 1,
           j = i,
           child = array[j];
-      if (l < size && compareArea(array[l], child) < 0) child = array[j = l];
-      if (r < size && compareArea(array[r], child) < 0) child = array[j = r];
+      if (l < size && compare(array[l], child) < 0) child = array[j = l];
+      if (r < size && compare(array[r], child) < 0) child = array[j = r];
       if (j === i) break;
       array[child._ = i] = child;
       array[object._ = i = j] = object;
@@ -456,14 +457,14 @@ function minAreaHeap() {
   }
 
   return heap;
-}
+};
 
-function presimplify(topology, triangleArea) {
-  var absolute = transformAbsolute(topology.transform),
-      relative = transformRelative(topology.transform),
-      heap = minAreaHeap();
+var presimplify = function(topology, triangleArea$$1) {
+  var absolute$$1 = absolute(topology.transform),
+      relative$$1 = relative(topology.transform),
+      heap = minHeap();
 
-  if (!triangleArea) triangleArea = cartesianTriangleArea;
+  if (triangleArea$$1 == null) triangleArea$$1 = triangleArea;
 
   topology.arcs.forEach(function(arc) {
     var triangles = [],
@@ -473,18 +474,18 @@ function presimplify(topology, triangleArea) {
         n,
         p;
 
-    // To store each point’s effective area, we create a new array rather than
-    // extending the passed-in point to workaround a Chrome/V8 bug (getting
-    // stuck in smi mode). For midpoints, the initial effective area of
-    // Infinity will be computed in the next step.
+    // To store each point’s area, we create a new array rather than extending
+    // the passed-in point to workaround a Chrome/V8 bug (getting stuck in smi
+    // mode). For midpoints, the initial area of Infinity will be computed in
+    // the next step.
     for (i = 0, n = arc.length; i < n; ++i) {
       p = arc[i];
-      absolute(arc[i] = [p[0], p[1], Infinity], i);
+      absolute$$1(arc[i] = [p[0], p[1], Infinity], i);
     }
 
     for (i = 1, n = arc.length - 1; i < n; ++i) {
       triangle = arc.slice(i - 1, i + 2);
-      triangle[1][2] = triangleArea(triangle);
+      triangle[1][2] = triangleArea$$1(triangle);
       triangles.push(triangle);
       heap.push(triangle);
     }
@@ -499,10 +500,10 @@ function presimplify(topology, triangleArea) {
       var previous = triangle.previous,
           next = triangle.next;
 
-      // If the area of the current point is less than that of the previous point
-      // to be eliminated, use the latter's area instead. This ensures that the
-      // current point cannot be eliminated without eliminating previously-
-      // eliminated points.
+      // If the area of the current point is less than that of the previous
+      // point to be eliminated, use the latter’s area instead. This ensures
+      // that the current point cannot be eliminated without eliminating
+      // previously-eliminated points.
       if (triangle[1][2] < maxArea) triangle[1][2] = maxArea;
       else maxArea = triangle[1][2];
 
@@ -519,21 +520,18 @@ function presimplify(topology, triangleArea) {
       }
     }
 
-    arc.forEach(relative);
+    arc.forEach(relative$$1);
   });
 
   function update(triangle) {
     heap.remove(triangle);
-    triangle[1][2] = triangleArea(triangle);
+    triangle[1][2] = triangleArea$$1(triangle);
     heap.push(triangle);
   }
 
   return topology;
-}
+};
 
-var version = "1.6.27";
-
-exports.version = version;
 exports.mesh = mesh;
 exports.meshArcs = meshArcs;
 exports.merge = merge;
