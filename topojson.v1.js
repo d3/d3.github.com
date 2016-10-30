@@ -1,4 +1,4 @@
-// https://github.com/topojson/topojson-client Version 1.7.0. Copyright 2016 Mike Bostock.
+// https://github.com/topojson/topojson-client Version 1.8.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
