@@ -1,4 +1,4 @@
-// https://github.com/topojson/topojson-client Version 2.0.0. Copyright 2016 Mike Bostock.
+// https://github.com/topojson/topojson-client Version 2.0.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -222,11 +222,11 @@ function extractArcs(topology, object$$1, filter) {
   return arcs;
 }
 
-var ringArea = function(ring) {
+function planarRingArea(ring) {
   var i = -1, n = ring.length, a, b = ring[n - 1], area = 0;
   while (++i < n) a = b, b = ring[i], area += a[0] * b[1] - a[1] * b[0];
-  return area; // Note: doubled area!
-};
+  return Math.abs(area); // Note: doubled area!
+}
 
 var merge = function(topology) {
   return object(topology, mergeArcs.apply(this, arguments));
@@ -257,7 +257,7 @@ function mergeArcs(topology, objects) {
   }
 
   function area(ring) {
-    return Math.abs(ringArea(object(topology, {type: "Polygon", arcs: [ring]}).coordinates[0]));
+    return planarRingArea(object(topology, {type: "Polygon", arcs: [ring]}).coordinates[0]);
   }
 
   polygons.forEach(function(polygon) {
