@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.1.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -3554,10 +3554,20 @@ function quantize(x) {
 }
 
 function normalizePoint(y) {
-  y = quantize(y);
-  return y <= y0 ? [0, y0] // south pole
-      : y >= y1 ? [0, y1] // north pole
-      : [x0, y]; // antimeridian
+  return y === y0 || y === y1
+      ? [0, y] // pole
+      : [x0, quantize(y)]; // antimeridian
+}
+
+function clampPoint(p) {
+  if (p[0] <= x0e) p[0] = x0;
+  else if (p[0] >= x1e) p[0] = x1;
+  if (p[1] <= y0e) p[1] = y0;
+  else if (p[1] >= y1e) p[1] = y1;
+}
+
+function clampPoints(points) {
+  points.forEach(clampPoint);
 }
 
 // For each ring, detect where it crosses the antimeridian or pole.
@@ -3576,6 +3586,7 @@ function extractFragments(polygon, fragments) {
 
       // If this is an antimeridian or polar point…
       if (x <= x0e || x >= x1e || y <= y0e || y >= y1e) {
+        clampPoint(point);
 
         // Advance through any antimeridian or polar points…
         for (var k = i + 1; k < n; ++k) {
@@ -3602,9 +3613,7 @@ function extractFragments(polygon, fragments) {
 
         // If the ring started with an antimeridian fragment,
         // we can ignore that fragment entirely.
-        else {
-          fragments.pop();
-        }
+        else fragments.pop();
 
         // If the remainder of the ring is an antimeridian fragment,
         // move on to the next ring.
@@ -3710,9 +3719,29 @@ function stitchFeature(o) {
 function stitchGeometry(o) {
   if (!o) return;
   var fragments, i, n;
+
   switch (o.type) {
-    case "GeometryCollection": return o.geometries.forEach(stitchGeometry);
-    case "Polygon": extractFragments(o.coordinates, fragments = []); break;
+    case "GeometryCollection": {
+      o.geometries.forEach(stitchGeometry);
+      return;
+    }
+    case "Point": {
+      clampPoint(o.coordinates);
+      break;
+    }
+    case "MultiPoint":
+    case "LineString": {
+      clampPoints(o.coordinates);
+      break;
+    }
+    case "MultiLineString": {
+      o.coordinates.forEach(clampPoints);
+      break;
+    }
+    case "Polygon": {
+      extractFragments(o.coordinates, fragments = []);
+      break;
+    }
     case "MultiPolygon": {
       fragments = [], i = -1, n = o.coordinates.length;
       while (++i < n) extractFragments(o.coordinates[i], fragments);
@@ -3720,6 +3749,7 @@ function stitchGeometry(o) {
     }
     default: return;
   }
+
   stitchFragments(fragments);
 }
 
