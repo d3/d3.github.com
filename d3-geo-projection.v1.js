@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.1.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.2.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -3340,6 +3340,46 @@ var peirce = function() {
       .scale(111.48);
 };
 
+var quantize = function(o, digits) {
+  if (!(0 <= (digits = +digits) && digits <= 20)) throw new Error("invalid digits");
+
+  function quantizePoint(coordinates) {
+    coordinates[0] = +coordinates[0].toFixed(digits);
+    coordinates[1] = +coordinates[1].toFixed(digits);
+  }
+
+  function quantizePoints(coordinates) {
+    coordinates.forEach(quantizePoint);
+  }
+
+  function quantizePolygon(coordinates) {
+    coordinates.forEach(quantizePoints);
+  }
+
+  function quantizeGeometry(o) {
+    if (o) switch (o.type) {
+      case "GeometryCollection": o.geometries.forEach(quantizeGeometry); break;
+      case "Point": quantizePoint(o.coordinates); break;
+      case "MultiPoint": case "LineString": quantizePoints(o.coordinates); break;
+      case "MultiLineString": case "Polygon": quantizePolygon(o.coordinates); break;
+      case "MultiPolygon": o.coordinates.forEach(quantizePolygon); break;
+      default: return;
+    }
+  }
+
+  function quantizeFeature(o) {
+    quantizeGeometry(o.geometry);
+  }
+
+  if (o) switch (o.type) {
+    case "Feature": quantizeFeature(o); break;
+    case "FeatureCollection": o.features.forEach(quantizeFeature); break;
+    default: quantizeGeometry(o); break;
+  }
+
+  return o;
+};
+
 function rectangularPolyconicRaw(phi0) {
   var sinPhi0 = sin(phi0);
 
@@ -3549,14 +3589,14 @@ var y0e = y0 + epsilon$1;
 var y1 = 90;
 var y1e = y1 - epsilon$1;
 
-function quantize(x) {
+function quantize$1(x) {
   return Math.floor(x * epsilonInverse) / epsilonInverse;
 }
 
 function normalizePoint(y) {
   return y === y0 || y === y1
       ? [0, y] // pole
-      : [x0, quantize(y)]; // antimeridian
+      : [x0, quantize$1(y)]; // antimeridian
 }
 
 function clampPoint(p) {
@@ -4297,6 +4337,7 @@ exports.geoProject = index;
 exports.geoGringortenQuincuncial = gringorten$1;
 exports.geoPeirceQuincuncial = peirce;
 exports.geoPierceQuincuncial = peirce;
+exports.geoQuantize = quantize;
 exports.geoQuincuncial = quincuncial;
 exports.geoRectangularPolyconic = rectangularPolyconic;
 exports.geoRectangularPolyconicRaw = rectangularPolyconicRaw;
