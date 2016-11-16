@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.3.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.4.0. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1602,12 +1602,12 @@ var index = function(projection, context) {
   };
 
   path.projection = function(_) {
-    return arguments.length ? (projectionStream = (projection = _) == null ? identity : _.stream, path) : projection;
+    return arguments.length ? (projectionStream = _ == null ? (projection = null, identity) : (projection = _).stream, path) : projection;
   };
 
   path.context = function(_) {
     if (!arguments.length) return context;
-    contextStream = (context = _) == null ? new PathString : new PathContext(_);
+    contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
     if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
     return path;
   };
@@ -2672,16 +2672,16 @@ var gnomonic = function() {
       .clipAngle(60);
 };
 
-function scaleTranslate(k, tx, ty) {
-  return k === 1 && tx === 0 && ty === 0 ? identity : transformer({
+function scaleTranslate(kx, ky, tx, ty) {
+  return kx === 1 && ky === 1 && tx === 0 && ty === 0 ? identity : transformer({
     point: function(x, y) {
-      this.stream.point(x * k + tx, y * k + ty);
+      this.stream.point(x * kx + tx, y * ky + ty);
     }
   });
 }
 
 var identity$1 = function() {
-  var k = 1, tx = 0, ty = 0, transform = identity, // scale and translate
+  var k = 1, tx = 0, ty = 0, sx = 1, sy = 1, transform = identity, // scale, translate and reflect
       x0 = null, y0, x1, y1, clip = identity, // clip extent
       cache,
       cacheStream,
@@ -2700,10 +2700,16 @@ var identity$1 = function() {
       return arguments.length ? (clip = _ == null ? (x0 = y0 = x1 = y1 = null, identity) : clipExtent(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
     },
     scale: function(_) {
-      return arguments.length ? (transform = scaleTranslate(k = +_, tx, ty), reset()) : k;
+      return arguments.length ? (transform = scaleTranslate((k = +_) * sx, k * sy, tx, ty), reset()) : k;
     },
     translate: function(_) {
-      return arguments.length ? (transform = scaleTranslate(k, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
+      return arguments.length ? (transform = scaleTranslate(k * sx, k * sy, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
+    },
+    reflectX: function(_) {
+      return arguments.length ? (transform = scaleTranslate(k * (sx = _ ? -1 : 1), k * sy, tx, ty), reset()) : sx < 0;
+    },
+    reflectY: function(_) {
+      return arguments.length ? (transform = scaleTranslate(k * sx, k * (sy = _ ? -1 : 1), tx, ty), reset()) : sy < 0;
     },
     fitExtent: function(extent, object) {
       return fitExtent(projection, extent, object);
