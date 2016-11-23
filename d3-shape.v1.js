@@ -1,15 +1,15 @@
-// https://d3js.org/d3-shape/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-shape/ Version 1.0.4. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
   (factory((global.d3 = global.d3 || {}),global.d3));
 }(this, (function (exports,d3Path) { 'use strict';
 
-function constant(x) {
+var constant$1 = function(x) {
   return function constant() {
     return x;
   };
-}
+};
 
 var epsilon = 1e-12;
 var pi = Math.PI;
@@ -90,10 +90,10 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
   };
 }
 
-function arc() {
+var arc = function() {
   var innerRadius = arcInnerRadius,
       outerRadius = arcOuterRadius,
-      cornerRadius = constant(0),
+      cornerRadius = constant$1(0),
       padRadius = null,
       startAngle = arcStartAngle,
       endAngle = arcEndAngle,
@@ -242,31 +242,31 @@ function arc() {
   };
 
   arc.innerRadius = function(_) {
-    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant(+_), arc) : innerRadius;
+    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : innerRadius;
   };
 
   arc.outerRadius = function(_) {
-    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant(+_), arc) : outerRadius;
+    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : outerRadius;
   };
 
   arc.cornerRadius = function(_) {
-    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant(+_), arc) : cornerRadius;
+    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : cornerRadius;
   };
 
   arc.padRadius = function(_) {
-    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_), arc) : padRadius;
+    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), arc) : padRadius;
   };
 
   arc.startAngle = function(_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant(+_), arc) : startAngle;
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : startAngle;
   };
 
   arc.endAngle = function(_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant(+_), arc) : endAngle;
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : endAngle;
   };
 
   arc.padAngle = function(_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant(+_), arc) : padAngle;
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : padAngle;
   };
 
   arc.context = function(_) {
@@ -274,7 +274,7 @@ function arc() {
   };
 
   return arc;
-}
+};
 
 function Linear(context) {
   this._context = context;
@@ -304,9 +304,9 @@ Linear.prototype = {
   }
 };
 
-function curveLinear(context) {
+var curveLinear = function(context) {
   return new Linear(context);
-}
+};
 
 function x(p) {
   return p[0];
@@ -316,10 +316,10 @@ function y(p) {
   return p[1];
 }
 
-function line() {
-  var x$$ = x,
-      y$$ = y,
-      defined = constant(true),
+var line = function() {
+  var x$$1 = x,
+      y$$1 = y,
+      defined = constant$1(true),
       context = null,
       curve = curveLinear,
       output = null;
@@ -338,22 +338,22 @@ function line() {
         if (defined0 = !defined0) output.lineStart();
         else output.lineEnd();
       }
-      if (defined0) output.point(+x$$(d, i, data), +y$$(d, i, data));
+      if (defined0) output.point(+x$$1(d, i, data), +y$$1(d, i, data));
     }
 
     if (buffer) return output = null, buffer + "" || null;
   }
 
   line.x = function(_) {
-    return arguments.length ? (x$$ = typeof _ === "function" ? _ : constant(+_), line) : x$$;
+    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$1(+_), line) : x$$1;
   };
 
   line.y = function(_) {
-    return arguments.length ? (y$$ = typeof _ === "function" ? _ : constant(+_), line) : y$$;
+    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$1(+_), line) : y$$1;
   };
 
   line.defined = function(_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant(!!_), line) : defined;
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant$1(!!_), line) : defined;
   };
 
   line.curve = function(_) {
@@ -365,14 +365,14 @@ function line() {
   };
 
   return line;
-}
+};
 
-function area() {
+var area = function() {
   var x0 = x,
       x1 = null,
-      y0 = constant(0),
+      y0 = constant$1(0),
       y1 = y,
-      defined = constant(true),
+      defined = constant$1(true),
       context = null,
       curve = curveLinear,
       output = null;
@@ -420,27 +420,27 @@ function area() {
   }
 
   area.x = function(_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant(+_), x1 = null, area) : x0;
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant$1(+_), x1 = null, area) : x0;
   };
 
   area.x0 = function(_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant(+_), area) : x0;
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant$1(+_), area) : x0;
   };
 
   area.x1 = function(_) {
-    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_), area) : x1;
+    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), area) : x1;
   };
 
   area.y = function(_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant(+_), y1 = null, area) : y0;
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant$1(+_), y1 = null, area) : y0;
   };
 
   area.y0 = function(_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant(+_), area) : y0;
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant$1(+_), area) : y0;
   };
 
   area.y1 = function(_) {
-    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_), area) : y1;
+    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), area) : y1;
   };
 
   area.lineX0 =
@@ -457,7 +457,7 @@ function area() {
   };
 
   area.defined = function(_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant(!!_), area) : defined;
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant$1(!!_), area) : defined;
   };
 
   area.curve = function(_) {
@@ -469,23 +469,23 @@ function area() {
   };
 
   return area;
-}
+};
 
-function descending(a, b) {
+var descending = function(a, b) {
   return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
-}
+};
 
-function identity(d) {
+var identity = function(d) {
   return d;
-}
+};
 
-function pie() {
+var pie = function() {
   var value = identity,
       sortValues = descending,
       sort = null,
-      startAngle = constant(0),
-      endAngle = constant(tau),
-      padAngle = constant(0);
+      startAngle = constant$1(0),
+      endAngle = constant$1(tau),
+      padAngle = constant$1(0);
 
   function pie(data) {
     var i,
@@ -528,7 +528,7 @@ function pie() {
   }
 
   pie.value = function(_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), pie) : value;
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant$1(+_), pie) : value;
   };
 
   pie.sortValues = function(_) {
@@ -540,19 +540,19 @@ function pie() {
   };
 
   pie.startAngle = function(_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant(+_), pie) : startAngle;
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : startAngle;
   };
 
   pie.endAngle = function(_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant(+_), pie) : endAngle;
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : endAngle;
   };
 
   pie.padAngle = function(_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant(+_), pie) : padAngle;
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : padAngle;
   };
 
   return pie;
-}
+};
 
 var curveRadialLinear = curveRadial(curveLinear);
 
@@ -602,11 +602,11 @@ function radialLine(l) {
   return l;
 }
 
-function radialLine$1() {
+var radialLine$1 = function() {
   return radialLine(line().curve(curveRadialLinear));
-}
+};
 
-function radialArea() {
+var radialArea = function() {
   var a = area().curve(curveRadialLinear),
       c = a.curve,
       x0 = a.lineX0,
@@ -630,7 +630,7 @@ function radialArea() {
   };
 
   return a;
-}
+};
 
 var circle = {
   draw: function(context, size) {
@@ -661,6 +661,7 @@ var cross = {
 
 var tan30 = Math.sqrt(1 / 3);
 var tan30_2 = tan30 * 2;
+
 var diamond = {
   draw: function(context, size) {
     var y = Math.sqrt(size / tan30_2),
@@ -677,6 +678,7 @@ var ka = 0.89081309152928522810;
 var kr = Math.sin(pi / 10) / Math.sin(7 * pi / 10);
 var kx = Math.sin(tau / 10) * kr;
 var ky = -Math.cos(tau / 10) * kr;
+
 var star = {
   draw: function(context, size) {
     var r = Math.sqrt(size * ka),
@@ -719,6 +721,7 @@ var c = -0.5;
 var s = Math.sqrt(3) / 2;
 var k = 1 / Math.sqrt(12);
 var a = (k / 2 + 1) * 3;
+
 var wye = {
   draw: function(context, size) {
     var r = Math.sqrt(size / a),
@@ -751,9 +754,9 @@ var symbols = [
   wye
 ];
 
-function symbol() {
-  var type = constant(circle),
-      size = constant(64),
+var symbol = function() {
+  var type = constant$1(circle),
+      size = constant$1(64),
       context = null;
 
   function symbol() {
@@ -764,11 +767,11 @@ function symbol() {
   }
 
   symbol.type = function(_) {
-    return arguments.length ? (type = typeof _ === "function" ? _ : constant(_), symbol) : type;
+    return arguments.length ? (type = typeof _ === "function" ? _ : constant$1(_), symbol) : type;
   };
 
   symbol.size = function(_) {
-    return arguments.length ? (size = typeof _ === "function" ? _ : constant(+_), symbol) : size;
+    return arguments.length ? (size = typeof _ === "function" ? _ : constant$1(+_), symbol) : size;
   };
 
   symbol.context = function(_) {
@@ -776,9 +779,9 @@ function symbol() {
   };
 
   return symbol;
-}
+};
 
-function noop() {}
+var noop = function() {};
 
 function point(that, x, y) {
   that._context.bezierCurveTo(
@@ -828,9 +831,9 @@ Basis.prototype = {
   }
 };
 
-function basis(context) {
+var basis = function(context) {
   return new Basis(context);
-}
+};
 
 function BasisClosed(context) {
   this._context = context;
@@ -878,9 +881,9 @@ BasisClosed.prototype = {
   }
 };
 
-function basisClosed(context) {
+var basisClosed = function(context) {
   return new BasisClosed(context);
-}
+};
 
 function BasisOpen(context) {
   this._context = context;
@@ -916,9 +919,9 @@ BasisOpen.prototype = {
   }
 };
 
-function basisOpen(context) {
+var basisOpen = function(context) {
   return new BasisOpen(context);
-}
+};
 
 function Bundle(context, beta) {
   this._basis = new Basis(context);
@@ -1381,9 +1384,9 @@ LinearClosed.prototype = {
   }
 };
 
-function linearClosed(context) {
+var linearClosed = function(context) {
   return new LinearClosed(context);
-}
+};
 
 function sign(x) {
   return x < 0 ? -1 : 1;
@@ -1461,7 +1464,7 @@ MonotoneX.prototype = {
     this._y0 = this._y1, this._y1 = y;
     this._t0 = t1;
   }
-}
+};
 
 function MonotoneY(context) {
   this._context = new ReflectContext(context);
@@ -1552,9 +1555,9 @@ function controlPoints(x) {
   return [a, b];
 }
 
-function natural(context) {
+var natural = function(context) {
   return new Natural(context);
-}
+};
 
 function Step(context, t) {
   this._context = context;
@@ -1598,9 +1601,9 @@ Step.prototype = {
   }
 };
 
-function step(context) {
+var step = function(context) {
   return new Step(context, 0.5);
-}
+};
 
 function stepBefore(context) {
   return new Step(context, 0);
@@ -1612,7 +1615,7 @@ function stepAfter(context) {
 
 var slice = Array.prototype.slice;
 
-function none(series, order) {
+var none = function(series, order) {
   if (!((n = series.length) > 1)) return;
   for (var i = 1, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
     s0 = s1, s1 = series[order[i]];
@@ -1620,20 +1623,20 @@ function none(series, order) {
       s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1];
     }
   }
-}
+};
 
-function none$1(series) {
+var none$1 = function(series) {
   var n = series.length, o = new Array(n);
   while (--n >= 0) o[n] = n;
   return o;
-}
+};
 
 function stackValue(d, key) {
   return d[key];
 }
 
-function stack() {
-  var keys = constant([]),
+var stack = function() {
+  var keys = constant$1([]),
       order = none$1,
       offset = none,
       value = stackValue;
@@ -1663,15 +1666,15 @@ function stack() {
   }
 
   stack.keys = function(_) {
-    return arguments.length ? (keys = typeof _ === "function" ? _ : constant(slice.call(_)), stack) : keys;
+    return arguments.length ? (keys = typeof _ === "function" ? _ : constant$1(slice.call(_)), stack) : keys;
   };
 
   stack.value = function(_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), stack) : value;
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant$1(+_), stack) : value;
   };
 
   stack.order = function(_) {
-    return arguments.length ? (order = _ == null ? none$1 : typeof _ === "function" ? _ : constant(slice.call(_)), stack) : order;
+    return arguments.length ? (order = _ == null ? none$1 : typeof _ === "function" ? _ : constant$1(slice.call(_)), stack) : order;
   };
 
   stack.offset = function(_) {
@@ -1679,27 +1682,27 @@ function stack() {
   };
 
   return stack;
-}
+};
 
-function expand(series, order) {
+var expand = function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var i, n, j = 0, m = series[0].length, y; j < m; ++j) {
     for (y = i = 0; i < n; ++i) y += series[i][j][1] || 0;
     if (y) for (i = 0; i < n; ++i) series[i][j][1] /= y;
   }
   none(series, order);
-}
+};
 
-function silhouette(series, order) {
+var silhouette = function(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var j = 0, s0 = series[order[0]], n, m = s0.length; j < m; ++j) {
     for (var i = 0, y = 0; i < n; ++i) y += series[i][j][1] || 0;
     s0[j][1] += s0[j][0] = -y / 2;
   }
   none(series, order);
-}
+};
 
-function wiggle(series, order) {
+var wiggle = function(series, order) {
   if (!((n = series.length) > 0) || !((m = (s0 = series[order[0]]).length) > 0)) return;
   for (var y = 0, j = 1, s0, m, n; j < m; ++j) {
     for (var i = 0, s1 = 0, s2 = 0; i < n; ++i) {
@@ -1720,12 +1723,12 @@ function wiggle(series, order) {
   }
   s0[j - 1][1] += s0[j - 1][0] = y;
   none(series, order);
-}
+};
 
-function ascending(series) {
+var ascending = function(series) {
   var sums = series.map(sum);
   return none$1(series).sort(function(a, b) { return sums[a] - sums[b]; });
-}
+};
 
 function sum(series) {
   var s = 0, i = -1, n = series.length, v;
@@ -1733,11 +1736,11 @@ function sum(series) {
   return s;
 }
 
-function descending$1(series) {
+var descending$1 = function(series) {
   return ascending(series).reverse();
-}
+};
 
-function insideOut(series) {
+var insideOut = function(series) {
   var n = series.length,
       i,
       j,
@@ -1760,11 +1763,11 @@ function insideOut(series) {
   }
 
   return bottoms.reverse().concat(tops);
-}
+};
 
-function reverse(series) {
+var reverse = function(series) {
   return none$1(series).reverse();
-}
+};
 
 exports.arc = arc;
 exports.area = area;
