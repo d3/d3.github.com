@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-force/ Version 1.0.4. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
@@ -40,17 +40,17 @@ var center = function(x, y) {
   };
 
   return force;
-}
+};
 
 var constant = function(x) {
   return function() {
     return x;
   };
-}
+};
 
 var jiggle = function() {
   return (Math.random() - 0.5) * 1e-6;
-}
+};
 
 function x(d) {
   return d.x + d.vx;
@@ -81,7 +81,7 @@ var collide = function(radius) {
       tree = d3Quadtree.quadtree(nodes, x, y).visitAfter(prepare);
       for (i = 0; i < n; ++i) {
         node = nodes[i];
-        ri = radii[i], ri2 = ri * ri;
+        ri = radii[node.index], ri2 = ri * ri;
         xi = node.x + node.vx;
         yi = node.y + node.vy;
         tree.visit(apply);
@@ -91,7 +91,7 @@ var collide = function(radius) {
     function apply(quad, x0, y0, x1, y1) {
       var data = quad.data, rj = quad.r, r = ri + rj;
       if (data) {
-        if (data.index > i) {
+        if (data.index > node.index) {
           var x = xi - data.x - data.vx,
               y = yi - data.y - data.vy,
               l = x * x + y * y;
@@ -122,9 +122,9 @@ var collide = function(radius) {
 
   function initialize() {
     if (!nodes) return;
-    var i, n = nodes.length;
+    var i, n = nodes.length, node;
     radii = new Array(n);
-    for (i = 0; i < n; ++i) radii[i] = +radius(nodes[i], i, nodes);
+    for (i = 0; i < n; ++i) node = nodes[i], radii[node.index] = +radius(node, i, nodes);
   }
 
   force.initialize = function(_) {
@@ -145,10 +145,10 @@ var collide = function(radius) {
   };
 
   return force;
-}
+};
 
-function index(d, i) {
-  return i;
+function index(d) {
+  return d.index;
 }
 
 function find(nodeById, nodeId) {
@@ -200,15 +200,12 @@ var link = function(links) {
         nodeById = d3Collection.map(nodes, id),
         link;
 
-    for (i = 0, count = new Array(n); i < n; ++i) {
-      count[i] = 0;
-    }
-
-    for (i = 0; i < m; ++i) {
+    for (i = 0, count = new Array(n); i < m; ++i) {
       link = links[i], link.index = i;
       if (typeof link.source !== "object") link.source = find(nodeById, link.source);
       if (typeof link.target !== "object") link.target = find(nodeById, link.target);
-      ++count[link.source.index], ++count[link.target.index];
+      count[link.source.index] = (count[link.source.index] || 0) + 1;
+      count[link.target.index] = (count[link.target.index] || 0) + 1;
     }
 
     for (i = 0, bias = new Array(m); i < m; ++i) {
@@ -261,7 +258,7 @@ var link = function(links) {
   };
 
   return force;
-}
+};
 
 function x$1(d) {
   return d.x;
@@ -401,7 +398,7 @@ var simulation = function(nodes) {
       return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name);
     }
   };
-}
+};
 
 var manyBody = function() {
   var nodes,
@@ -420,9 +417,9 @@ var manyBody = function() {
 
   function initialize() {
     if (!nodes) return;
-    var i, n = nodes.length;
+    var i, n = nodes.length, node;
     strengths = new Array(n);
-    for (i = 0; i < n; ++i) strengths[i] = +strength(nodes[i], i, nodes);
+    for (i = 0; i < n; ++i) node = nodes[i], strengths[node.index] = +strength(node, i, nodes);
   }
 
   function accumulate(quad) {
@@ -511,7 +508,7 @@ var manyBody = function() {
   };
 
   return force;
-}
+};
 
 var x$2 = function(x) {
   var strength = constant(0.1),
@@ -551,7 +548,7 @@ var x$2 = function(x) {
   };
 
   return force;
-}
+};
 
 var y$2 = function(y) {
   var strength = constant(0.1),
@@ -591,7 +588,7 @@ var y$2 = function(y) {
   };
 
   return force;
-}
+};
 
 exports.forceCenter = center;
 exports.forceCollide = collide;
