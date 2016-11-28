@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ Version 1.1.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-zoom/ Version 1.1.1. Copyright 2016 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -344,13 +344,14 @@ var zoom = function() {
     if (!filter.apply(this, arguments)) return;
     var g = gesture(this, arguments),
         touches = d3Selection.event.changedTouches,
+        started,
         n = touches.length, i, t, p;
 
     nopropagation();
     for (i = 0; i < n; ++i) {
       t = touches[i], p = d3Selection.touch(this, touches, t.identifier);
       p = [p, this.__zoom.invert(p), t.identifier];
-      if (!g.touch0) g.touch0 = p;
+      if (!g.touch0) g.touch0 = p, started = true;
       else if (!g.touch1) g.touch1 = p;
     }
 
@@ -365,7 +366,7 @@ var zoom = function() {
       }
     }
 
-    if (d3Selection.event.touches.length === n) {
+    if (started) {
       touchstarting = setTimeout(function() { touchstarting = null; }, touchDelay);
       d3Transition.interrupt(this);
       g.start();
