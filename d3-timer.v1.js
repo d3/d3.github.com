@@ -1,8 +1,8 @@
-// https://d3js.org/d3-timer/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-timer/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 var frame = 0;
@@ -16,6 +16,7 @@ var clockNow = 0;
 var clockSkew = 0;
 var clock = typeof performance === "object" && performance.now ? performance : Date;
 var setFrame = typeof requestAnimationFrame === "function" ? requestAnimationFrame : function(f) { setTimeout(f, 17); };
+
 function now() {
   return clockNow || (setFrame(clearNow), clockNow = clock.now() + clockSkew);
 }
@@ -110,12 +111,12 @@ function sleep(time) {
     if (time < Infinity) timeout = setTimeout(wake, delay);
     if (interval) interval = clearInterval(interval);
   } else {
-    if (!interval) interval = setInterval(poke, pokeDelay);
+    if (!interval) clockLast = clockNow, interval = setInterval(poke, pokeDelay);
     frame = 1, setFrame(wake);
   }
 }
 
-function timeout$1(callback, delay, time) {
+var timeout$1 = function(callback, delay, time) {
   var t = new Timer;
   delay = delay == null ? 0 : +delay;
   t.restart(function(elapsed) {
@@ -123,9 +124,9 @@ function timeout$1(callback, delay, time) {
     callback(elapsed + delay);
   }, delay, time);
   return t;
-}
+};
 
-function interval$1(callback, delay, time) {
+var interval$1 = function(callback, delay, time) {
   var t = new Timer, total = delay;
   if (delay == null) return t.restart(callback, delay, time), t;
   delay = +delay, time = time == null ? now() : +time;
@@ -135,7 +136,7 @@ function interval$1(callback, delay, time) {
     callback(elapsed);
   }, delay, time);
   return t;
-}
+};
 
 exports.now = now;
 exports.timer = timer;
