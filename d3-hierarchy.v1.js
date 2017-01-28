@@ -1,8 +1,8 @@
-// https://d3js.org/d3-hierarchy/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 function defaultSeparation(a, b) {
@@ -88,6 +88,19 @@ var cluster = function() {
   };
 
   return cluster;
+};
+
+function count(node) {
+  var sum = 0,
+      children = node.children,
+      i = children && children.length;
+  if (!i) sum = 1;
+  else while (--i >= 0) sum += children[i].value;
+  node.value = sum;
+}
+
+var node_count = function() {
+  return this.eachAfter(count);
 };
 
 var node_each = function(callback) {
@@ -268,6 +281,7 @@ function Node(data) {
 
 Node.prototype = hierarchy.prototype = {
   constructor: Node,
+  count: node_count,
   each: node_each,
   eachAfter: node_eachAfter,
   eachBefore: node_eachBefore,
@@ -428,7 +442,13 @@ function intersects(a, b) {
   var dx = b.x - a.x,
       dy = b.y - a.y,
       dr = a.r + b.r;
-  return dr * dr > dx * dx + dy * dy;
+  return dr * dr - 1e-6 > dx * dx + dy * dy;
+}
+
+function distance1(a, b) {
+  var l = a._.r;
+  while (a !== b) l += 2 * (a = a.next)._.r;
+  return l - b._.r;
 }
 
 function distance2(circle, x, y) {
@@ -478,35 +498,27 @@ function packEnclose(circles) {
   pack: for (i = 3; i < n; ++i) {
     place(a._, b._, c = circles[i]), c = new Node$1(c);
 
-    // If there are only three elements in the front-chain…
-    if ((k = a.previous) === (j = b.next)) {
-      // If the new circle intersects the third circle,
-      // rotate the front chain to try the next position.
-      if (intersects(j._, c._)) {
-        a = b, b = j, --i;
-        continue pack;
-      }
-    }
-
     // Find the closest intersecting circle on the front-chain, if any.
-    else {
-      sj = j._.r, sk = k._.r;
-      do {
-        if (sj <= sk) {
-          if (intersects(j._, c._)) {
-            b = j, a.next = b, b.previous = a, --i;
-            continue pack;
-          }
-          j = j.next, sj += j._.r;
-        } else {
-          if (intersects(k._, c._)) {
-            a = k, a.next = b, b.previous = a, --i;
-            continue pack;
-          }
-          k = k.previous, sk += k._.r;
+    // “Closeness” is determined by linear distance along the front-chain.
+    // “Ahead” or “behind” is likewise determined by linear distance.
+    j = b.next, k = a.previous, sj = b._.r + j._.r, sk = a._.r + k._.r;
+    do {
+      if (sj <= sk) {
+        if (intersects(j._, c._)) {
+          if (sj + a._.r + b._.r > distance1(j, b)) a = j; else b = j;
+          a.next = b, b.previous = a, --i;
+          continue pack;
         }
-      } while (j !== k.next);
-    }
+        sj += j._.r + (j = j.next)._.r;
+      } else {
+        if (intersects(k._, c._)) {
+          if (distance1(a, k) > sk + a._.r + b._.r) a = k; else b = k;
+          a.next = b, b.previous = a, --i;
+          continue pack;
+        }
+        sk += k._.r + (k = k.previous)._.r;
+      }
+    } while (j !== k.next);
 
     // Success! Insert the new circle c between a and b.
     c.previous = a, c.next = b, a.next = b.previous = b = c;
@@ -1076,7 +1088,7 @@ function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
   return rows;
 }
 
-var squarify = (function custom(ratio) {
+var squarify = ((function custom(ratio) {
 
   function squarify(parent, x0, y0, x1, y1) {
     squarifyRatio(ratio, parent, x0, y0, x1, y1);
@@ -1087,7 +1099,7 @@ var squarify = (function custom(ratio) {
   };
 
   return squarify;
-})(phi);
+}))(phi);
 
 var index$1 = function() {
   var tile = squarify,
@@ -1228,7 +1240,7 @@ var sliceDice = function(parent, x0, y0, x1, y1) {
   (parent.depth & 1 ? treemapSlice : treemapDice)(parent, x0, y0, x1, y1);
 };
 
-var resquarify = (function custom(ratio) {
+var resquarify = ((function custom(ratio) {
 
   function resquarify(parent, x0, y0, x1, y1) {
     if ((rows = parent._squarify) && (rows.ratio === ratio)) {
@@ -1259,7 +1271,7 @@ var resquarify = (function custom(ratio) {
   };
 
   return resquarify;
-})(phi);
+}))(phi);
 
 exports.cluster = cluster;
 exports.hierarchy = hierarchy;
