@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ Version 1.1.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ Version 1.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -501,7 +501,7 @@ function packEnclose(circles) {
     // Find the closest intersecting circle on the front-chain, if any.
     // “Closeness” is determined by linear distance along the front-chain.
     // “Ahead” or “behind” is likewise determined by linear distance.
-    j = b.next, k = a.previous, sj = b._.r + j._.r, sk = a._.r + k._.r;
+    j = b.next, k = a.previous, sj = b._.r, sk = a._.r;
     do {
       if (sj <= sk) {
         if (intersects(j._, c._)) {
@@ -509,14 +509,14 @@ function packEnclose(circles) {
           a.next = b, b.previous = a, --i;
           continue pack;
         }
-        sj += j._.r + (j = j.next)._.r;
+        sj += j._.r, j = j.next;
       } else {
         if (intersects(k._, c._)) {
           if (distance1(a, k) > sk + a._.r + b._.r) a = k; else b = k;
           a.next = b, b.previous = a, --i;
           continue pack;
         }
-        sk += k._.r + (k = k.previous)._.r;
+        sk += k._.r, k = k.previous;
       }
     } while (j !== k.next);
 
