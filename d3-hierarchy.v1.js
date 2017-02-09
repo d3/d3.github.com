@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ Version 1.1.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ Version 1.1.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -451,9 +451,12 @@ function distance1(a, b) {
   return l - b._.r;
 }
 
-function distance2(circle, x, y) {
-  var dx = circle.x - x,
-      dy = circle.y - y;
+function distance2(node, x, y) {
+  var a = node._,
+      b = node.next._,
+      ab = a.r + b.r,
+      dx = (a.x * b.r + b.x * a.r) / ab - x,
+      dy = (a.y * b.r + b.y * a.r) / ab - y;
   return dx * dx + dy * dy;
 }
 
@@ -528,10 +531,10 @@ function packEnclose(circles) {
     ox += ca * c._.x;
     oy += ca * c._.y;
 
-    // Compute the new closest circle a to centroid.
-    aa = distance2(a._, cx = ox / oa, cy = oy / oa);
+    // Compute the new closest circle pair to the centroid.
+    aa = distance2(a, cx = ox / oa, cy = oy / oa);
     while ((c = c.next) !== b) {
-      if ((ca = distance2(c._, cx, cy)) < aa) {
+      if ((ca = distance2(c, cx, cy)) < aa) {
         a = c, aa = ca;
       }
     }
