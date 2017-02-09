@@ -1,8 +1,8 @@
-// https://d3js.org/d3-geo/ Version 1.4.0. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.4.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
-  (factory((global.d3 = global.d3 || {}),global.d3));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
+	(factory((global.d3 = global.d3 || {}),global.d3));
 }(this, (function (exports,d3Array) { 'use strict';
 
 // Adds floating point numbers with twice the normal precision.
@@ -339,8 +339,10 @@ function linePoint(lambda, phi) {
       }
     }
   } else {
-    boundsPoint(lambda, phi);
+    ranges.push(range$1 = [lambda0$1 = lambda, lambda1 = lambda]);
   }
+  if (phi < phi0) phi0 = phi;
+  if (phi > phi1) phi1 = phi;
   p0 = p, lambda2 = lambda;
 }
 
@@ -1518,6 +1520,46 @@ PathContext.prototype = {
   result: noop
 };
 
+var lengthSum$1 = adder();
+var lengthRing;
+var x00$2;
+var y00$2;
+var x0$4;
+var y0$4;
+
+var lengthStream$1 = {
+  point: noop,
+  lineStart: function() {
+    lengthStream$1.point = lengthPointFirst$1;
+  },
+  lineEnd: function() {
+    if (lengthRing) lengthPoint$1(x00$2, y00$2);
+    lengthStream$1.point = noop;
+  },
+  polygonStart: function() {
+    lengthRing = true;
+  },
+  polygonEnd: function() {
+    lengthRing = null;
+  },
+  result: function() {
+    var length = +lengthSum$1;
+    lengthSum$1.reset();
+    return length;
+  }
+};
+
+function lengthPointFirst$1(x, y) {
+  lengthStream$1.point = lengthPoint$1;
+  x00$2 = x0$4 = x, y00$2 = y0$4 = y;
+}
+
+function lengthPoint$1(x, y) {
+  x0$4 -= x, y0$4 -= y;
+  lengthSum$1.add(sqrt(x0$4 * x0$4 + y0$4 * y0$4));
+  x0$4 = x, y0$4 = y;
+}
+
 function PathString() {
   this._string = [];
 }
@@ -1590,6 +1632,16 @@ var index = function(projection, context) {
     geoStream(object, projectionStream(areaStream$1));
     return areaStream$1.result();
   };
+
+  Object.defineProperty(path, "length", {
+    writable: true,
+    enumerable: true,
+    configurable: true,
+    value: function(object) {
+      geoStream(object, projectionStream(lengthStream$1));
+      return lengthStream$1.result();
+    }
+  });
 
   path.bounds = function(object) {
     geoStream(object, projectionStream(boundsStream$1));
