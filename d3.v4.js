@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.5.0. Copyright 2017 Mike Bostock.
+// https://d3js.org Version 4.5.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "4.5.0";
+var version = "4.5.1";
 
 var ascending = function(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -6874,8 +6874,10 @@ function linePoint(lambda, phi) {
       }
     }
   } else {
-    boundsPoint(lambda, phi);
+    ranges.push(range = [lambda0$1 = lambda, lambda1 = lambda]);
   }
+  if (phi < phi0) phi0 = phi;
+  if (phi > phi1) phi1 = phi;
   p0 = p, lambda2 = lambda;
 }
 
@@ -7075,7 +7077,7 @@ function centroidRingPoint(lambda, phi) {
       cz = x0 * y - y0 * x,
       m = sqrt(cx * cx + cy * cy + cz * cz),
       u = x0 * x + y0 * y + z0 * z,
-      v = m && -acos(u) / m, // area weight
+      v = m && -asin(m) / m, // area weight
       w = atan2(m, u); // line weight
   X2 += v * cx;
   Y2 += v * cy;
@@ -8053,6 +8055,46 @@ PathContext.prototype = {
   result: noop$1
 };
 
+var lengthSum$1 = adder();
+var lengthRing;
+var x00$2;
+var y00$2;
+var x0$4;
+var y0$4;
+
+var lengthStream$1 = {
+  point: noop$1,
+  lineStart: function() {
+    lengthStream$1.point = lengthPointFirst$1;
+  },
+  lineEnd: function() {
+    if (lengthRing) lengthPoint$1(x00$2, y00$2);
+    lengthStream$1.point = noop$1;
+  },
+  polygonStart: function() {
+    lengthRing = true;
+  },
+  polygonEnd: function() {
+    lengthRing = null;
+  },
+  result: function() {
+    var length = +lengthSum$1;
+    lengthSum$1.reset();
+    return length;
+  }
+};
+
+function lengthPointFirst$1(x, y) {
+  lengthStream$1.point = lengthPoint$1;
+  x00$2 = x0$4 = x, y00$2 = y0$4 = y;
+}
+
+function lengthPoint$1(x, y) {
+  x0$4 -= x, y0$4 -= y;
+  lengthSum$1.add(sqrt(x0$4 * x0$4 + y0$4 * y0$4));
+  x0$4 = x, y0$4 = y;
+}
+
 function PathString() {
   this._string = [];
 }
@@ -8125,6 +8167,16 @@ var index$1 = function(projection, context) {
     geoStream(object, projectionStream(areaStream$1));
     return areaStream$1.result();
   };
+
+  Object.defineProperty(path, "length", {
+    writable: true,
+    enumerable: true,
+    configurable: true,
+    value: function(object) {
+      geoStream(object, projectionStream(lengthStream$1));
+      return lengthStream$1.result();
+    }
+  });
 
   path.bounds = function(object) {
     geoStream(object, projectionStream(boundsStream$1));
@@ -9753,9 +9805,12 @@ function distance1(a, b) {
   return l - b._.r;
 }
 
-function distance2(circle, x, y) {
-  var dx = circle.x - x,
-      dy = circle.y - y;
+function distance2(node, x, y) {
+  var a = node._,
+      b = node.next._,
+      ab = a.r + b.r,
+      dx = (a.x * b.r + b.x * a.r) / ab - x,
+      dy = (a.y * b.r + b.y * a.r) / ab - y;
   return dx * dx + dy * dy;
 }
 
@@ -9830,10 +9885,10 @@ function packEnclose(circles) {
     ox += ca * c._.x;
     oy += ca * c._.y;
 
-    // Compute the new closest circle a to centroid.
-    aa = distance2(a._, cx = ox / oa, cy = oy / oa);
+    // Compute the new closest circle pair to the centroid.
+    aa = distance2(a, cx = ox / oa, cy = oy / oa);
     while ((c = c.next) !== b) {
-      if ((ca = distance2(c._, cx, cy)) < aa) {
+      if ((ca = distance2(c, cx, cy)) < aa) {
         a = c, aa = ca;
       }
     }
