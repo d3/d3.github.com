@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.4.2. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.5.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1633,15 +1633,10 @@ var index = function(projection, context) {
     return areaStream$1.result();
   };
 
-  Object.defineProperty(path, "length", {
-    writable: true,
-    enumerable: true,
-    configurable: true,
-    value: function(object) {
-      geoStream(object, projectionStream(lengthStream$1));
-      return lengthStream$1.result();
-    }
-  });
+  path.measure = function(object) {
+    geoStream(object, projectionStream(lengthStream$1));
+    return lengthStream$1.result();
+  };
 
   path.bounds = function(object) {
     geoStream(object, projectionStream(boundsStream$1));
