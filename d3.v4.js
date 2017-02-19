@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.5.1. Copyright 2017 Mike Bostock.
+// https://d3js.org Version 4.6.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "4.5.1";
+var version = "4.6.0";
 
 var ascending = function(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -8168,15 +8168,10 @@ var index$1 = function(projection, context) {
     return areaStream$1.result();
   };
 
-  Object.defineProperty(path, "length", {
-    writable: true,
-    enumerable: true,
-    configurable: true,
-    value: function(object) {
-      geoStream(object, projectionStream(lengthStream$1));
-      return lengthStream$1.result();
-    }
-  });
+  path.measure = function(object) {
+    geoStream(object, projectionStream(lengthStream$1));
+    return lengthStream$1.result();
+  };
 
   path.bounds = function(object) {
     geoStream(object, projectionStream(boundsStream$1));
