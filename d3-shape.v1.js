@@ -1,20 +1,36 @@
-// https://d3js.org/d3-shape/ Version 1.0.4. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-shape/ Version 1.0.5. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
-  (factory((global.d3 = global.d3 || {}),global.d3));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
+	(factory((global.d3 = global.d3 || {}),global.d3));
 }(this, (function (exports,d3Path) { 'use strict';
 
-var constant$1 = function(x) {
+var constant = function(x) {
   return function constant() {
     return x;
   };
 };
 
+var abs = Math.abs;
+var atan2 = Math.atan2;
+var cos = Math.cos;
+var max = Math.max;
+var min = Math.min;
+var sin = Math.sin;
+var sqrt = Math.sqrt;
+
 var epsilon = 1e-12;
 var pi = Math.PI;
 var halfPi = pi / 2;
 var tau = 2 * pi;
+
+function acos(x) {
+  return x > 1 ? 0 : x < -1 ? pi : Math.acos(x);
+}
+
+function asin(x) {
+  return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x);
+}
 
 function arcInnerRadius(d) {
   return d.innerRadius;
@@ -36,10 +52,6 @@ function arcPadAngle(d) {
   return d && d.padAngle; // Note: optional!
 }
 
-function asin(x) {
-  return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x);
-}
-
 function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
   var x10 = x1 - x0, y10 = y1 - y0,
       x32 = x3 - x2, y32 = y3 - y2,
@@ -52,7 +64,7 @@ function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
 function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
   var x01 = x0 - x1,
       y01 = y0 - y1,
-      lo = (cw ? rc : -rc) / Math.sqrt(x01 * x01 + y01 * y01),
+      lo = (cw ? rc : -rc) / sqrt(x01 * x01 + y01 * y01),
       ox = lo * y01,
       oy = -lo * x01,
       x11 = x0 + ox,
@@ -66,7 +78,7 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
       d2 = dx * dx + dy * dy,
       r = r1 - rc,
       D = x11 * y10 - x10 * y11,
-      d = (dy < 0 ? -1 : 1) * Math.sqrt(Math.max(0, r * r * d2 - D * D)),
+      d = (dy < 0 ? -1 : 1) * sqrt(max(0, r * r * d2 - D * D)),
       cx0 = (D * dy - dx * d) / d2,
       cy0 = (-D * dx - dy * d) / d2,
       cx1 = (D * dy + dx * d) / d2,
@@ -93,7 +105,7 @@ function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
 var arc = function() {
   var innerRadius = arcInnerRadius,
       outerRadius = arcOuterRadius,
-      cornerRadius = constant$1(0),
+      cornerRadius = constant(0),
       padRadius = null,
       startAngle = arcStartAngle,
       endAngle = arcEndAngle,
@@ -107,7 +119,7 @@ var arc = function() {
         r1 = +outerRadius.apply(this, arguments),
         a0 = startAngle.apply(this, arguments) - halfPi,
         a1 = endAngle.apply(this, arguments) - halfPi,
-        da = Math.abs(a1 - a0),
+        da = abs(a1 - a0),
         cw = a1 > a0;
 
     if (!context) context = buffer = d3Path.path();
@@ -120,10 +132,10 @@ var arc = function() {
 
     // Or is it a circle or annulus?
     else if (da > tau - epsilon) {
-      context.moveTo(r1 * Math.cos(a0), r1 * Math.sin(a0));
+      context.moveTo(r1 * cos(a0), r1 * sin(a0));
       context.arc(0, 0, r1, a0, a1, !cw);
       if (r0 > epsilon) {
-        context.moveTo(r0 * Math.cos(a1), r0 * Math.sin(a1));
+        context.moveTo(r0 * cos(a1), r0 * sin(a1));
         context.arc(0, 0, r0, a1, a0, cw);
       }
     }
@@ -137,8 +149,8 @@ var arc = function() {
           da0 = da,
           da1 = da,
           ap = padAngle.apply(this, arguments) / 2,
-          rp = (ap > epsilon) && (padRadius ? +padRadius.apply(this, arguments) : Math.sqrt(r0 * r0 + r1 * r1)),
-          rc = Math.min(Math.abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
+          rp = (ap > epsilon) && (padRadius ? +padRadius.apply(this, arguments) : sqrt(r0 * r0 + r1 * r1)),
+          rc = min(abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
           rc0 = rc,
           rc1 = rc,
           t0,
@@ -146,25 +158,25 @@ var arc = function() {
 
       // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
       if (rp > epsilon) {
-        var p0 = asin(rp / r0 * Math.sin(ap)),
-            p1 = asin(rp / r1 * Math.sin(ap));
+        var p0 = asin(rp / r0 * sin(ap)),
+            p1 = asin(rp / r1 * sin(ap));
         if ((da0 -= p0 * 2) > epsilon) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
         else da0 = 0, a00 = a10 = (a0 + a1) / 2;
         if ((da1 -= p1 * 2) > epsilon) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
         else da1 = 0, a01 = a11 = (a0 + a1) / 2;
       }
 
-      var x01 = r1 * Math.cos(a01),
-          y01 = r1 * Math.sin(a01),
-          x10 = r0 * Math.cos(a10),
-          y10 = r0 * Math.sin(a10);
+      var x01 = r1 * cos(a01),
+          y01 = r1 * sin(a01),
+          x10 = r0 * cos(a10),
+          y10 = r0 * sin(a10);
 
       // Apply rounded corners?
       if (rc > epsilon) {
-        var x11 = r1 * Math.cos(a11),
-            y11 = r1 * Math.sin(a11),
-            x00 = r0 * Math.cos(a00),
-            y00 = r0 * Math.sin(a00);
+        var x11 = r1 * cos(a11),
+            y11 = r1 * sin(a11),
+            x00 = r0 * cos(a00),
+            y00 = r0 * sin(a00);
 
         // Restrict the corner radius according to the sector angle.
         if (da < pi) {
@@ -173,10 +185,10 @@ var arc = function() {
               ay = y01 - oc[1],
               bx = x11 - oc[0],
               by = y11 - oc[1],
-              kc = 1 / Math.sin(Math.acos((ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))) / 2),
-              lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
-          rc0 = Math.min(rc, (r0 - lc) / (kc - 1));
-          rc1 = Math.min(rc, (r1 - lc) / (kc + 1));
+              kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
+              lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+          rc0 = min(rc, (r0 - lc) / (kc - 1));
+          rc1 = min(rc, (r1 - lc) / (kc + 1));
         }
       }
 
@@ -191,13 +203,13 @@ var arc = function() {
         context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01);
 
         // Have the corners merged?
-        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, Math.atan2(t0.y01, t0.x01), Math.atan2(t1.y01, t1.x01), !cw);
+        if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw);
 
         // Otherwise, draw the two corners and the ring.
         else {
-          context.arc(t0.cx, t0.cy, rc1, Math.atan2(t0.y01, t0.x01), Math.atan2(t0.y11, t0.x11), !cw);
-          context.arc(0, 0, r1, Math.atan2(t0.cy + t0.y11, t0.cx + t0.x11), Math.atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
-          context.arc(t1.cx, t1.cy, rc1, Math.atan2(t1.y11, t1.x11), Math.atan2(t1.y01, t1.x01), !cw);
+          context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw);
+          context.arc(0, 0, r1, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
+          context.arc(t1.cx, t1.cy, rc1, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw);
         }
       }
 
@@ -216,13 +228,13 @@ var arc = function() {
         context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01);
 
         // Have the corners merged?
-        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, Math.atan2(t0.y01, t0.x01), Math.atan2(t1.y01, t1.x01), !cw);
+        if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw);
 
         // Otherwise, draw the two corners and the ring.
         else {
-          context.arc(t0.cx, t0.cy, rc0, Math.atan2(t0.y01, t0.x01), Math.atan2(t0.y11, t0.x11), !cw);
-          context.arc(0, 0, r0, Math.atan2(t0.cy + t0.y11, t0.cx + t0.x11), Math.atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw);
-          context.arc(t1.cx, t1.cy, rc0, Math.atan2(t1.y11, t1.x11), Math.atan2(t1.y01, t1.x01), !cw);
+          context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw);
+          context.arc(0, 0, r0, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw);
+          context.arc(t1.cx, t1.cy, rc0, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw);
         }
       }
 
@@ -238,35 +250,35 @@ var arc = function() {
   arc.centroid = function() {
     var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
         a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi / 2;
-    return [Math.cos(a) * r, Math.sin(a) * r];
+    return [cos(a) * r, sin(a) * r];
   };
 
   arc.innerRadius = function(_) {
-    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : innerRadius;
+    return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant(+_), arc) : innerRadius;
   };
 
   arc.outerRadius = function(_) {
-    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : outerRadius;
+    return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant(+_), arc) : outerRadius;
   };
 
   arc.cornerRadius = function(_) {
-    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant$1(+_), arc) : cornerRadius;
+    return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant(+_), arc) : cornerRadius;
   };
 
   arc.padRadius = function(_) {
-    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), arc) : padRadius;
+    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_), arc) : padRadius;
   };
 
   arc.startAngle = function(_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : startAngle;
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant(+_), arc) : startAngle;
   };
 
   arc.endAngle = function(_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : endAngle;
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant(+_), arc) : endAngle;
   };
 
   arc.padAngle = function(_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$1(+_), arc) : padAngle;
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant(+_), arc) : padAngle;
   };
 
   arc.context = function(_) {
@@ -319,7 +331,7 @@ function y(p) {
 var line = function() {
   var x$$1 = x,
       y$$1 = y,
-      defined = constant$1(true),
+      defined = constant(true),
       context = null,
       curve = curveLinear,
       output = null;
@@ -345,15 +357,15 @@ var line = function() {
   }
 
   line.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$1(+_), line) : x$$1;
+    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant(+_), line) : x$$1;
   };
 
   line.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$1(+_), line) : y$$1;
+    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant(+_), line) : y$$1;
   };
 
   line.defined = function(_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant$1(!!_), line) : defined;
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant(!!_), line) : defined;
   };
 
   line.curve = function(_) {
@@ -370,9 +382,9 @@ var line = function() {
 var area = function() {
   var x0 = x,
       x1 = null,
-      y0 = constant$1(0),
+      y0 = constant(0),
       y1 = y,
-      defined = constant$1(true),
+      defined = constant(true),
       context = null,
       curve = curveLinear,
       output = null;
@@ -420,27 +432,27 @@ var area = function() {
   }
 
   area.x = function(_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant$1(+_), x1 = null, area) : x0;
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant(+_), x1 = null, area) : x0;
   };
 
   area.x0 = function(_) {
-    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant$1(+_), area) : x0;
+    return arguments.length ? (x0 = typeof _ === "function" ? _ : constant(+_), area) : x0;
   };
 
   area.x1 = function(_) {
-    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), area) : x1;
+    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_), area) : x1;
   };
 
   area.y = function(_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant$1(+_), y1 = null, area) : y0;
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant(+_), y1 = null, area) : y0;
   };
 
   area.y0 = function(_) {
-    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant$1(+_), area) : y0;
+    return arguments.length ? (y0 = typeof _ === "function" ? _ : constant(+_), area) : y0;
   };
 
   area.y1 = function(_) {
-    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant$1(+_), area) : y1;
+    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant(+_), area) : y1;
   };
 
   area.lineX0 =
@@ -457,7 +469,7 @@ var area = function() {
   };
 
   area.defined = function(_) {
-    return arguments.length ? (defined = typeof _ === "function" ? _ : constant$1(!!_), area) : defined;
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant(!!_), area) : defined;
   };
 
   area.curve = function(_) {
@@ -483,9 +495,9 @@ var pie = function() {
   var value = identity,
       sortValues = descending,
       sort = null,
-      startAngle = constant$1(0),
-      endAngle = constant$1(tau),
-      padAngle = constant$1(0);
+      startAngle = constant(0),
+      endAngle = constant(tau),
+      padAngle = constant(0);
 
   function pie(data) {
     var i,
@@ -528,7 +540,7 @@ var pie = function() {
   }
 
   pie.value = function(_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant$1(+_), pie) : value;
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), pie) : value;
   };
 
   pie.sortValues = function(_) {
@@ -540,15 +552,15 @@ var pie = function() {
   };
 
   pie.startAngle = function(_) {
-    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : startAngle;
+    return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant(+_), pie) : startAngle;
   };
 
   pie.endAngle = function(_) {
-    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : endAngle;
+    return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant(+_), pie) : endAngle;
   };
 
   pie.padAngle = function(_) {
-    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant$1(+_), pie) : padAngle;
+    return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant(+_), pie) : padAngle;
   };
 
   return pie;
@@ -755,8 +767,8 @@ var symbols = [
 ];
 
 var symbol = function() {
-  var type = constant$1(circle),
-      size = constant$1(64),
+  var type = constant(circle),
+      size = constant(64),
       context = null;
 
   function symbol() {
@@ -767,11 +779,11 @@ var symbol = function() {
   }
 
   symbol.type = function(_) {
-    return arguments.length ? (type = typeof _ === "function" ? _ : constant$1(_), symbol) : type;
+    return arguments.length ? (type = typeof _ === "function" ? _ : constant(_), symbol) : type;
   };
 
   symbol.size = function(_) {
-    return arguments.length ? (size = typeof _ === "function" ? _ : constant$1(+_), symbol) : size;
+    return arguments.length ? (size = typeof _ === "function" ? _ : constant(+_), symbol) : size;
   };
 
   symbol.context = function(_) {
@@ -965,7 +977,7 @@ Bundle.prototype = {
   }
 };
 
-var bundle = (function custom(beta) {
+var bundle = ((function custom(beta) {
 
   function bundle(context) {
     return beta === 1 ? new Basis(context) : new Bundle(context, beta);
@@ -976,7 +988,7 @@ var bundle = (function custom(beta) {
   };
 
   return bundle;
-})(0.85);
+}))(0.85);
 
 function point$1(that, x, y) {
   that._context.bezierCurveTo(
@@ -1027,7 +1039,7 @@ Cardinal.prototype = {
   }
 };
 
-var cardinal = (function custom(tension) {
+var cardinal = ((function custom(tension) {
 
   function cardinal(context) {
     return new Cardinal(context, tension);
@@ -1038,7 +1050,7 @@ var cardinal = (function custom(tension) {
   };
 
   return cardinal;
-})(0);
+}))(0);
 
 function CardinalClosed(context, tension) {
   this._context = context;
@@ -1086,7 +1098,7 @@ CardinalClosed.prototype = {
   }
 };
 
-var cardinalClosed = (function custom(tension) {
+var cardinalClosed = ((function custom(tension) {
 
   function cardinal(context) {
     return new CardinalClosed(context, tension);
@@ -1097,7 +1109,7 @@ var cardinalClosed = (function custom(tension) {
   };
 
   return cardinal;
-})(0);
+}))(0);
 
 function CardinalOpen(context, tension) {
   this._context = context;
@@ -1134,7 +1146,7 @@ CardinalOpen.prototype = {
   }
 };
 
-var cardinalOpen = (function custom(tension) {
+var cardinalOpen = ((function custom(tension) {
 
   function cardinal(context) {
     return new CardinalOpen(context, tension);
@@ -1145,7 +1157,7 @@ var cardinalOpen = (function custom(tension) {
   };
 
   return cardinal;
-})(0);
+}))(0);
 
 function point$2(that, x, y) {
   var x1 = that._x1,
@@ -1220,7 +1232,7 @@ CatmullRom.prototype = {
   }
 };
 
-var catmullRom = (function custom(alpha) {
+var catmullRom = ((function custom(alpha) {
 
   function catmullRom(context) {
     return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
@@ -1231,7 +1243,7 @@ var catmullRom = (function custom(alpha) {
   };
 
   return catmullRom;
-})(0.5);
+}))(0.5);
 
 function CatmullRomClosed(context, alpha) {
   this._context = context;
@@ -1291,7 +1303,7 @@ CatmullRomClosed.prototype = {
   }
 };
 
-var catmullRomClosed = (function custom(alpha) {
+var catmullRomClosed = ((function custom(alpha) {
 
   function catmullRom(context) {
     return alpha ? new CatmullRomClosed(context, alpha) : new CardinalClosed(context, 0);
@@ -1302,7 +1314,7 @@ var catmullRomClosed = (function custom(alpha) {
   };
 
   return catmullRom;
-})(0.5);
+}))(0.5);
 
 function CatmullRomOpen(context, alpha) {
   this._context = context;
@@ -1351,7 +1363,7 @@ CatmullRomOpen.prototype = {
   }
 };
 
-var catmullRomOpen = (function custom(alpha) {
+var catmullRomOpen = ((function custom(alpha) {
 
   function catmullRom(context) {
     return alpha ? new CatmullRomOpen(context, alpha) : new CardinalOpen(context, 0);
@@ -1362,7 +1374,7 @@ var catmullRomOpen = (function custom(alpha) {
   };
 
   return catmullRom;
-})(0.5);
+}))(0.5);
 
 function LinearClosed(context) {
   this._context = context;
@@ -1636,7 +1648,7 @@ function stackValue(d, key) {
 }
 
 var stack = function() {
-  var keys = constant$1([]),
+  var keys = constant([]),
       order = none$1,
       offset = none,
       value = stackValue;
@@ -1666,15 +1678,15 @@ var stack = function() {
   }
 
   stack.keys = function(_) {
-    return arguments.length ? (keys = typeof _ === "function" ? _ : constant$1(slice.call(_)), stack) : keys;
+    return arguments.length ? (keys = typeof _ === "function" ? _ : constant(slice.call(_)), stack) : keys;
   };
 
   stack.value = function(_) {
-    return arguments.length ? (value = typeof _ === "function" ? _ : constant$1(+_), stack) : value;
+    return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), stack) : value;
   };
 
   stack.order = function(_) {
-    return arguments.length ? (order = _ == null ? none$1 : typeof _ === "function" ? _ : constant$1(slice.call(_)), stack) : order;
+    return arguments.length ? (order = _ == null ? none$1 : typeof _ === "function" ? _ : constant(slice.call(_)), stack) : order;
   };
 
   stack.offset = function(_) {
