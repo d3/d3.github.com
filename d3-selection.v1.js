@@ -1,8 +1,8 @@
-// https://d3js.org/d3-selection/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-selection/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 var xhtml = "http://www.w3.org/1999/xhtml";
