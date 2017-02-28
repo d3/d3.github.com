@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.5.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.6.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -91,8 +91,8 @@ function streamGeometry(geometry, stream) {
 }
 
 var streamObjectType = {
-  Feature: function(feature, stream) {
-    streamGeometry(feature.geometry, stream);
+  Feature: function(object, stream) {
+    streamGeometry(object.geometry, stream);
   },
   FeatureCollection: function(object, stream) {
     var features = object.features, i = -1, n = features.length;
@@ -541,9 +541,8 @@ function centroidRingPoint(lambda, phi) {
       cy = z0 * x - x0 * z,
       cz = x0 * y - y0 * x,
       m = sqrt(cx * cx + cy * cy + cz * cz),
-      u = x0 * x + y0 * y + z0 * z,
-      v = m && -asin(m) / m, // area weight
-      w = atan2(m, u); // line weight
+      w = asin(m), // line weight = angle
+      v = m && -w / m; // area weight multiplier
   X2 += v * cx;
   Y2 += v * cy;
   Z2 += v * cz;
@@ -1110,6 +1109,71 @@ var extent = function() {
   };
 };
 
+var sum = adder();
+
+var polygonContains = function(polygon, point) {
+  var lambda = point[0],
+      phi = point[1],
+      normal = [sin(lambda), -cos(lambda), 0],
+      angle = 0,
+      winding = 0;
+
+  sum.reset();
+
+  for (var i = 0, n = polygon.length; i < n; ++i) {
+    if (!(m = (ring = polygon[i]).length)) continue;
+    var ring,
+        m,
+        point0 = ring[m - 1],
+        lambda0 = point0[0],
+        phi0 = point0[1] / 2 + quarterPi,
+        sinPhi0 = sin(phi0),
+        cosPhi0 = cos(phi0);
+
+    for (var j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
+      var point1 = ring[j],
+          lambda1 = point1[0],
+          phi1 = point1[1] / 2 + quarterPi,
+          sinPhi1 = sin(phi1),
+          cosPhi1 = cos(phi1),
+          delta = lambda1 - lambda0,
+          sign$$1 = delta >= 0 ? 1 : -1,
+          absDelta = sign$$1 * delta,
+          antimeridian = absDelta > pi,
+          k = sinPhi0 * sinPhi1;
+
+      sum.add(atan2(k * sign$$1 * sin(absDelta), cosPhi0 * cosPhi1 + k * cos(absDelta)));
+      angle += antimeridian ? delta + sign$$1 * tau : delta;
+
+      // Are the longitudes either side of the point’s meridian (lambda),
+      // and are the latitudes smaller than the parallel (phi)?
+      if (antimeridian ^ lambda0 >= lambda ^ lambda1 >= lambda) {
+        var arc = cartesianCross(cartesian(point0), cartesian(point1));
+        cartesianNormalizeInPlace(arc);
+        var intersection = cartesianCross(normal, arc);
+        cartesianNormalizeInPlace(intersection);
+        var phiArc = (antimeridian ^ delta >= 0 ? -1 : 1) * asin(intersection[2]);
+        if (phi > phiArc || phi === phiArc && (arc[0] || arc[1])) {
+          winding += antimeridian ^ delta >= 0 ? 1 : -1;
+        }
+      }
+    }
+  }
+
+  // First, determine whether the South pole is inside or outside:
+  //
+  // It is inside if:
+  // * the polygon winds around it in a clockwise direction.
+  // * the polygon does not (cumulatively) wind around it, but has a negative
+  //   (counter-clockwise) area.
+  //
+  // Second, count the (signed) number of times a segment crosses a lambda
+  // from the point to the South pole.  If it is zero, then the point is the
+  // same side as the South pole.
+
+  return (angle < -epsilon || angle < epsilon && sum < -epsilon) ^ (winding & 1);
+};
+
 var lengthSum = adder();
 var lambda0$2;
 var sinPhi0$1;
@@ -1166,6 +1230,87 @@ var distance = function(a, b) {
   coordinates[0] = a;
   coordinates[1] = b;
   return length(object);
+};
+
+var containsObjectType = {
+  Feature: function(object, point) {
+    return containsGeometry(object.geometry, point);
+  },
+  FeatureCollection: function(object, point) {
+    var features = object.features, i = -1, n = features.length;
+    while (++i < n) if (containsGeometry(features[i].geometry, point)) return true;
+    return false;
+  }
+};
+
+var containsGeometryType = {
+  Sphere: function() {
+    return true;
+  },
+  Point: function(object, point) {
+    return containsPoint(object.coordinates, point);
+  },
+  MultiPoint: function(object, point) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) if (containsPoint(coordinates[i], point)) return true;
+    return false;
+  },
+  LineString: function(object, point) {
+    return containsLine(object.coordinates, point);
+  },
+  MultiLineString: function(object, point) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) if (containsLine(coordinates[i], point)) return true;
+    return false;
+  },
+  Polygon: function(object, point) {
+    return containsPolygon(object.coordinates, point);
+  },
+  MultiPolygon: function(object, point) {
+    var coordinates = object.coordinates, i = -1, n = coordinates.length;
+    while (++i < n) if (containsPolygon(coordinates[i], point)) return true;
+    return false;
+  },
+  GeometryCollection: function(object, point) {
+    var geometries = object.geometries, i = -1, n = geometries.length;
+    while (++i < n) if (containsGeometry(geometries[i], point)) return true;
+    return false;
+  }
+};
+
+function containsGeometry(geometry, point) {
+  return geometry && containsGeometryType.hasOwnProperty(geometry.type)
+      ? containsGeometryType[geometry.type](geometry, point)
+      : false;
+}
+
+function containsPoint(coordinates, point) {
+  return distance(coordinates, point) === 0;
+}
+
+function containsLine(coordinates, point) {
+  var ab = distance(coordinates[0], coordinates[1]),
+      ao = distance(coordinates[0], point),
+      ob = distance(point, coordinates[1]);
+  return ao + ob <= ab + epsilon;
+}
+
+function containsPolygon(coordinates, point) {
+  return !!polygonContains(coordinates.map(ringRadians), pointRadians(point));
+}
+
+function ringRadians(ring) {
+  return ring = ring.map(pointRadians), ring.pop(), ring;
+}
+
+function pointRadians(point) {
+  return [point[0] * radians, point[1] * radians];
+}
+
+var contains = function(object, point) {
+  return (object && containsObjectType.hasOwnProperty(object.type)
+      ? containsObjectType[object.type]
+      : containsGeometry)(object, point);
 };
 
 function graticuleX(y0, y1, dy) {
@@ -1666,71 +1811,6 @@ var index = function(projection, context) {
   };
 
   return path.projection(projection).context(context);
-};
-
-var sum = adder();
-
-var polygonContains = function(polygon, point) {
-  var lambda = point[0],
-      phi = point[1],
-      normal = [sin(lambda), -cos(lambda), 0],
-      angle = 0,
-      winding = 0;
-
-  sum.reset();
-
-  for (var i = 0, n = polygon.length; i < n; ++i) {
-    if (!(m = (ring = polygon[i]).length)) continue;
-    var ring,
-        m,
-        point0 = ring[m - 1],
-        lambda0 = point0[0],
-        phi0 = point0[1] / 2 + quarterPi,
-        sinPhi0 = sin(phi0),
-        cosPhi0 = cos(phi0);
-
-    for (var j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
-      var point1 = ring[j],
-          lambda1 = point1[0],
-          phi1 = point1[1] / 2 + quarterPi,
-          sinPhi1 = sin(phi1),
-          cosPhi1 = cos(phi1),
-          delta = lambda1 - lambda0,
-          sign$$1 = delta >= 0 ? 1 : -1,
-          absDelta = sign$$1 * delta,
-          antimeridian = absDelta > pi,
-          k = sinPhi0 * sinPhi1;
-
-      sum.add(atan2(k * sign$$1 * sin(absDelta), cosPhi0 * cosPhi1 + k * cos(absDelta)));
-      angle += antimeridian ? delta + sign$$1 * tau : delta;
-
-      // Are the longitudes either side of the point’s meridian (lambda),
-      // and are the latitudes smaller than the parallel (phi)?
-      if (antimeridian ^ lambda0 >= lambda ^ lambda1 >= lambda) {
-        var arc = cartesianCross(cartesian(point0), cartesian(point1));
-        cartesianNormalizeInPlace(arc);
-        var intersection = cartesianCross(normal, arc);
-        cartesianNormalizeInPlace(intersection);
-        var phiArc = (antimeridian ^ delta >= 0 ? -1 : 1) * asin(intersection[2]);
-        if (phi > phiArc || phi === phiArc && (arc[0] || arc[1])) {
-          winding += antimeridian ^ delta >= 0 ? 1 : -1;
-        }
-      }
-    }
-  }
-
-  // First, determine whether the South pole is inside or outside:
-  //
-  // It is inside if:
-  // * the polygon winds around it in a clockwise direction.
-  // * the polygon does not (cumulatively) wind around it, but has a negative
-  //   (counter-clockwise) area.
-  //
-  // Second, count the (signed) number of times a segment crosses a lambda
-  // from the point to the South pole.  If it is zero, then the point is the
-  // same side as the South pole.
-
-  return (angle < -epsilon || angle < epsilon && sum < -epsilon) ^ (winding & 1);
 };
 
 var clip = function(pointVisible, clipLine, interpolate, start) {
@@ -2824,6 +2904,7 @@ exports.geoBounds = bounds;
 exports.geoCentroid = centroid;
 exports.geoCircle = circle;
 exports.geoClipExtent = extent;
+exports.geoContains = contains;
 exports.geoDistance = distance;
 exports.geoGraticule = graticule;
 exports.geoGraticule10 = graticule10;
