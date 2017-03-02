@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ Version 1.1.2. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ Version 1.1.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -1224,17 +1224,19 @@ var binary = function(parent, x0, y0, x1, y1) {
       else hi = mid;
     }
 
+    if ((valueTarget - sums[k - 1]) < (sums[k] - valueTarget) && i + 1 < k) --k;
+
     var valueLeft = sums[k] - valueOffset,
         valueRight = value - valueLeft;
 
-    if ((y1 - y0) > (x1 - x0)) {
-      var yk = (y0 * valueRight + y1 * valueLeft) / value;
-      partition(i, k, valueLeft, x0, y0, x1, yk);
-      partition(k, j, valueRight, x0, yk, x1, y1);
-    } else {
+    if ((x1 - x0) > (y1 - y0)) {
       var xk = (x0 * valueRight + x1 * valueLeft) / value;
       partition(i, k, valueLeft, x0, y0, xk, y1);
       partition(k, j, valueRight, xk, y0, x1, y1);
+    } else {
+      var yk = (y0 * valueRight + y1 * valueLeft) / value;
+      partition(i, k, valueLeft, x0, y0, x1, yk);
+      partition(k, j, valueRight, x0, yk, x1, y1);
     }
   }
 };
