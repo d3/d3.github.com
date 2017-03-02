@@ -1,11 +1,11 @@
-// https://d3js.org Version 4.7.0. Copyright 2017 Mike Bostock.
+// https://d3js.org Version 4.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "4.7.0";
+var version = "4.7.1";
 
 var ascending = function(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -4776,14 +4776,16 @@ Path.prototype = path.prototype = {
     // Is this arc empty? We’re done.
     if (!r) return;
 
+    // Does the angle go the wrong way? Flip the direction.
+    if (da < 0) da = da % tau$2 + tau$2;
+
     // Is this a complete circle? Draw two arcs to complete the circle.
     if (da > tauEpsilon) {
       this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
     }
 
-    // Otherwise, draw an arc!
-    else {
-      if (da < 0) da = da % tau$2 + tau$2;
+    // Is this arc non-empty? Draw an arc!
+    else if (da > epsilon$1) {
       this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
     }
   },
@@ -5108,7 +5110,7 @@ function inferColumns(rows) {
 }
 
 var dsv = function(delimiter) {
-  var reFormat = new RegExp("[\"" + delimiter + "\n]"),
+  var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
       delimiterCode = delimiter.charCodeAt(0);
 
   function parse(text, f) {
@@ -9233,31 +9235,37 @@ var mercator = function() {
 
 function mercatorProjection(project) {
   var m = projection(project),
+      center = m.center,
       scale = m.scale,
       translate = m.translate,
       clipExtent = m.clipExtent,
-      clipAuto;
+      x0 = null, y0, x1, y1; // clip extent
+
+  m.center = function(_) {
+    return arguments.length ? (center(_), reclip()) : center();
+  };
 
   m.scale = function(_) {
-    return arguments.length ? (scale(_), clipAuto && m.clipExtent(null), m) : scale();
+    return arguments.length ? (scale(_), reclip()) : scale();
   };
 
   m.translate = function(_) {
-    return arguments.length ? (translate(_), clipAuto && m.clipExtent(null), m) : translate();
+    return arguments.length ? (translate(_), reclip()) : translate();
   };
 
   m.clipExtent = function(_) {
-    if (!arguments.length) return clipAuto ? null : clipExtent();
-    if (clipAuto = _ == null) {
-      var k = pi$3 * scale(),
-          t = translate();
-      _ = [[t[0] - k, t[1] - k], [t[0] + k, t[1] + k]];
-    }
-    clipExtent(_);
-    return m;
+    return arguments.length ? ((_ == null ? x0 = y0 = x1 = y1 = null : (x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1])), reclip()) : x0 == null ? null : [[x0, y0], [x1, y1]];
   };
 
-  return m.clipExtent(null);
+  function reclip() {
+    var k = pi$3 * scale(),
+        t = m([0, 0]);
+    return clipExtent(x0 == null
+        ? [[t[0] - k, t[1] - k], [t[0] + k, t[1] + k]]
+        : [[Math.max(t[0] - k, x0), y0], [Math.min(t[0] + k, x1), y1]]);
+  }
+
+  return reclip();
 }
 
 function tany(y) {
