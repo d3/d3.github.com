@@ -1,4 +1,4 @@
-// https://d3js.org/d3-queue/ Version 3.0.4. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-queue/ Version 3.0.5. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
