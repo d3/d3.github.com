@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ Version 1.0.5. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-force/ Version 1.0.6. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
