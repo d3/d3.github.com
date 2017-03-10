@@ -1,8 +1,8 @@
-// https://d3js.org/d3-geo-projection/ Version 1.2.1. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.2.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
-  (factory((global.d3 = global.d3 || {}),global.d3,global.d3));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
+	(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
 }(this, (function (exports,d3Geo,d3Array) { 'use strict';
 
 var abs = Math.abs;
@@ -2036,9 +2036,6 @@ var interrupt = function(project, lobes) {
     });
   });
 
-  var p = d3Geo.geoProjection(forward),
-      stream_ = p.stream;
-
   function forward(lambda, phi) {
     var sign$$1 = phi < 0 ? -1 : +1, lobe = lobes[+(phi < 0)];
     for (var i = 0, n = lobe.length - 1; i < n && lambda > lobe[i][2][0]; ++i);
@@ -2059,6 +2056,9 @@ var interrupt = function(project, lobes) {
       }
     }
   };
+
+  var p = d3Geo.geoProjection(forward),
+      stream_ = p.stream;
 
   p.stream = function(stream) {
     var rotate = p.rotate(),
@@ -2773,26 +2773,24 @@ var polyhedral = function(root, face, r) {
 
   function recurse(node, parent) {
     node.edges = faceEdges(node.face);
-    if (parent) {
-      // Find shared edge.
-      if (parent.face) {
-        var shared = node.shared = sharedEdge(node.face, parent.face),
-            m = matrix(shared.map(parent.project), shared.map(node.project));
-        node.transform = parent.transform ? multiply(parent.transform, m) : m;
-        // Replace shared edge in parent edges array.
-        var edges = parent.edges;
-        for (var i = 0, n = edges.length; i < n; ++i) {
-          if (pointEqual$1(shared[0], edges[i][1]) && pointEqual$1(shared[1], edges[i][0])) edges[i] = node;
-          if (pointEqual$1(shared[0], edges[i][0]) && pointEqual$1(shared[1], edges[i][1])) edges[i] = node;
-        }
-        edges = node.edges;
-        for (i = 0, n = edges.length; i < n; ++i) {
-          if (pointEqual$1(shared[0], edges[i][0]) && pointEqual$1(shared[1], edges[i][1])) edges[i] = parent;
-          if (pointEqual$1(shared[0], edges[i][1]) && pointEqual$1(shared[1], edges[i][0])) edges[i] = parent;
-        }
-      } else {
-        node.transform = parent.transform;
+    // Find shared edge.
+    if (parent.face) {
+      var shared = node.shared = sharedEdge(node.face, parent.face),
+          m = matrix(shared.map(parent.project), shared.map(node.project));
+      node.transform = parent.transform ? multiply(parent.transform, m) : m;
+      // Replace shared edge in parent edges array.
+      var edges = parent.edges;
+      for (var i = 0, n = edges.length; i < n; ++i) {
+        if (pointEqual$1(shared[0], edges[i][1]) && pointEqual$1(shared[1], edges[i][0])) edges[i] = node;
+        if (pointEqual$1(shared[0], edges[i][0]) && pointEqual$1(shared[1], edges[i][1])) edges[i] = node;
       }
+      edges = node.edges;
+      for (i = 0, n = edges.length; i < n; ++i) {
+        if (pointEqual$1(shared[0], edges[i][0]) && pointEqual$1(shared[1], edges[i][1])) edges[i] = parent;
+        if (pointEqual$1(shared[0], edges[i][1]) && pointEqual$1(shared[1], edges[i][0])) edges[i] = parent;
+      }
+    } else {
+      node.transform = parent.transform;
     }
     if (node.children) {
       node.children.forEach(function(child) {
