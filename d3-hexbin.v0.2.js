@@ -1,4 +1,4 @@
-// https://github.com/d3/d3-hexbin Version 0.2.1. Copyright 2017 Mike Bostock.
+// https://github.com/d3/d3-hexbin Version 0.2.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -105,6 +105,10 @@ var hexbin = function() {
 
   hexbin.radius = function(_) {
     return arguments.length ? (r = +_, dx = r * 2 * Math.sin(thirdPi), dy = r * 1.5, hexbin) : r;
+  };
+
+  hexbin.size = function(_) {
+    return arguments.length ? (x0 = y0 = 0, x1 = +_[0], y1 = +_[1], hexbin) : [x1 - x0, y1 - y0];
   };
 
   hexbin.extent = function(_) {
