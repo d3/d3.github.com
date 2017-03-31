@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 1.2.2. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 1.2.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -3587,6 +3587,10 @@ var y0e = y0 + epsilon$1;
 var y1 = 90;
 var y1e = y1 - epsilon$1;
 
+function nonempty(coordinates) {
+  return coordinates.length > 0;
+}
+
 function quantize$1(x) {
   return Math.floor(x * epsilonInverse) / epsilonInverse;
 }
@@ -3670,7 +3674,6 @@ function extractFragments(polygon, fragments) {
 }
 
 // Now stitch the fragments back together into rings.
-// TODO remove empty polygons.
 function stitchFragments(fragments) {
   var i, n = fragments.length;
 
@@ -3757,38 +3760,24 @@ function stitchFeature(o) {
 function stitchGeometry(o) {
   if (!o) return;
   var fragments, i, n;
-
   switch (o.type) {
-    case "GeometryCollection": {
-      o.geometries.forEach(stitchGeometry);
-      return;
-    }
-    case "Point": {
-      clampPoint(o.coordinates);
-      break;
-    }
-    case "MultiPoint":
-    case "LineString": {
-      clampPoints(o.coordinates);
-      break;
-    }
-    case "MultiLineString": {
-      o.coordinates.forEach(clampPoints);
-      break;
-    }
+    case "GeometryCollection": o.geometries.forEach(stitchGeometry); break;
+    case "Point": clampPoint(o.coordinates); break;
+    case "MultiPoint": case "LineString": clampPoints(o.coordinates); break;
+    case "MultiLineString": o.coordinates.forEach(clampPoints); break;
     case "Polygon": {
       extractFragments(o.coordinates, fragments = []);
+      stitchFragments(fragments);
       break;
     }
     case "MultiPolygon": {
       fragments = [], i = -1, n = o.coordinates.length;
       while (++i < n) extractFragments(o.coordinates[i], fragments);
+      stitchFragments(fragments);
+      o.coordinates = o.coordinates.filter(nonempty);
       break;
     }
-    default: return;
   }
-
-  stitchFragments(fragments);
 }
 
 var stitch = function(o) {
