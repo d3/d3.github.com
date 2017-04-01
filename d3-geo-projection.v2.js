@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.0.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.0.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -3601,6 +3601,10 @@ var y0e = y0 + epsilon$1;
 var y1 = 90;
 var y1e = y1 - epsilon$1;
 
+function nonempty(coordinates) {
+  return coordinates.length > 0;
+}
+
 function quantize$1(x) {
   return Math.floor(x * epsilonInverse) / epsilonInverse;
 }
@@ -3623,8 +3627,8 @@ function clampPoints(points) {
 }
 
 // For each ring, detect where it crosses the antimeridian or pole.
-function extractFragments(rings, fragments) {
-  for (var j = 0, m = rings.length, polygon = []; j < m; ++j) {
+function extractFragments(rings, polygon, fragments) {
+  for (var j = 0, m = rings.length; j < m; ++j) {
     var ring = rings[j].slice();
 
     // By default, assume that this ring doesn’t need any stitching.
@@ -3681,7 +3685,7 @@ function extractFragments(rings, fragments) {
 
 // Now stitch the fragments back together into rings.
 function stitchFragments(fragments) {
-  var i, n = fragments.length, m = 0;
+  var i, n = fragments.length;
 
   // To connect the fragments start-to-end, create a simple index by end.
   var fragmentByStart = {},
@@ -3690,8 +3694,7 @@ function stitchFragments(fragments) {
       start,
       startFragment,
       end,
-      endFragment,
-      polygons = new Array(n);
+      endFragment;
 
   // For each fragment…
   for (i = 0; i < n; ++i) {
@@ -3702,7 +3705,6 @@ function stitchFragments(fragments) {
     // If this fragment is closed, add it as a standalone ring.
     if (start[0] === end[0] && start[1] === end[1]) {
       fragment.polygon.push(fragment.ring);
-      polygons[m++] = fragment.polygon;
       fragments[i] = null;
       continue;
     }
@@ -3756,17 +3758,6 @@ function stitchFragments(fragments) {
       }
     }
   }
-
-  // For each fragment…
-  for (i = 0; i < n; ++i) {
-    fragment = fragments[i];
-    if (fragment && fragment.polygon.length) {
-      polygons[m++] = fragment.polygon;
-    }
-  }
-
-  polygons.length = m;
-  return polygons;
 }
 
 function stitchFeature(input) {
@@ -3786,14 +3777,18 @@ function stitchGeometry(input) {
     case "MultiPoint": case "LineString": output = {type: input.type, coordinates: clampPoints(input.coordinates)}; break;
     case "MultiLineString": output = {type: "MultiLineString", coordinates: input.coordinates.map(clampPoints)}; break;
     case "Polygon": {
-      extractFragments(input.coordinates, fragments = []);
-      output = {type: "Polygon", coordinates: stitchFragments(fragments)[0]};
+      var polygon = [];
+      extractFragments(input.coordinates, polygon, fragments = []);
+      stitchFragments(fragments);
+      output = {type: "Polygon", coordinates: polygon};
       break;
     }
     case "MultiPolygon": {
       fragments = [], i = -1, n = input.coordinates.length;
-      while (++i < n) extractFragments(input.coordinates[i], fragments);
-      output = {type: "MultiPolygon", coordinates: stitchFragments(fragments)};
+      var polygons = new Array(n);
+      while (++i < n) extractFragments(input.coordinates[i], polygons[i] = [], fragments);
+      stitchFragments(fragments);
+      output = {type: "MultiPolygon", coordinates: polygons.filter(nonempty)};
       break;
     }
     default: return input;
