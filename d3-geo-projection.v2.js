@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.0.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.1.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -2596,6 +2596,33 @@ var naturalEarth = function() {
       .scale(175.295);
 };
 
+function naturalEarth2Raw(lambda, phi) {
+  var phi2 = phi * phi, phi4 = phi2 * phi2, phi6 = phi2 * phi4;
+  return [
+    lambda * (0.84719 - 0.13063 * phi2 + phi6 * phi6 * (-0.04515 + 0.05494 * phi2 - 0.02326 * phi4 + 0.00331 * phi6)),
+    phi * (1.01183 + phi4 * phi4 * (-0.02625 + 0.01926 * phi2 - 0.00396 * phi4))
+  ];
+}
+
+naturalEarth2Raw.invert = function(x, y) {
+  var phi = y, i = 25, delta, phi2, phi4, phi6;
+  do {
+    phi2 = phi * phi; phi4 = phi2 * phi2;
+    phi -= delta = ((phi * (1.01183 + phi4 * phi4 * (-0.02625 + 0.01926 * phi2 - 0.00396 * phi4))) - y) /
+      (1.01183 + phi4 * phi4 * ((9 * -0.02625) + (11 * 0.01926) * phi2 + (13 * -0.00396) * phi4));
+  } while (abs(delta) > epsilon2 && --i > 0);
+  phi2 = phi * phi; phi4 = phi2 * phi2; phi6 = phi2 * phi4;
+  return [
+    x / (0.84719 - 0.13063 * phi2 + phi6 * phi6 * (-0.04515 + 0.05494 * phi2 - 0.02326 * phi4 + 0.00331 * phi6)),
+    phi
+  ];
+};
+
+var naturalEarth2 = function() {
+  return d3Geo.geoProjection(naturalEarth2Raw)
+      .scale(175.295);
+};
+
 function nellHammerRaw(lambda, phi) {
   return [
     lambda * (1 + cos(phi)) / 2,
@@ -4331,6 +4358,8 @@ exports.geoMtFlatPolarSinusoidal = mtFlatPolarSinusoidal;
 exports.geoMtFlatPolarSinusoidalRaw = mtFlatPolarSinusoidalRaw;
 exports.geoNaturalEarth = naturalEarth;
 exports.geoNaturalEarthRaw = naturalEarthRaw;
+exports.geoNaturalEarth2 = naturalEarth2;
+exports.geoNaturalEarth2Raw = naturalEarth2Raw;
 exports.geoNellHammer = nellHammer;
 exports.geoNellHammerRaw = nellHammerRaw;
 exports.geoPatterson = patterson;
