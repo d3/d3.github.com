@@ -1,4 +1,4 @@
-// https://d3js.org/d3-queue/ Version 3.0.6. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-queue/ Version 3.0.7. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -10,7 +10,6 @@ var slice = [].slice;
 var noabort = {};
 
 function Queue(size) {
-  if (!((size = +size) >= 1)) throw new Error("invalid size");
   this._size = size;
   this._call =
   this._error = null;
@@ -123,7 +122,9 @@ function maybeNotify(q) {
 }
 
 function queue(concurrency) {
-  return new Queue(arguments.length ? +concurrency : Infinity);
+  if (concurrency == null) concurrency = Infinity;
+  else if (!((concurrency = +concurrency) >= 1)) throw new Error("invalid concurrency");
+  return new Queue(concurrency);
 }
 
 exports.queue = queue;
