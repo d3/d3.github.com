@@ -534,13 +534,13 @@ d3.select("#version").text(" (" + d3.version + ")");
 
 <p><b>D3</b> allows you to bind arbitrary data to a Document Object Model (DOM), and then apply data-driven transformations to the document. For example, you can use D3 to generate an HTML table from an array of numbers. Or, use the same data to create an interactive SVG bar chart with smooth transitions and interaction.
 
-<p>D3 is not a monolithic framework that seeks to provide every conceivable feature. Instead, D3 solves the crux of the problem: efficient manipulation of documents based on data. This avoids proprietary representation and affords extraordinary flexibility, exposing the full capabilities of web standards such as HTML, SVG, and CSS. With minimal overhead, D3 is extremely fast, supporting large datasets and dynamic behaviors for interaction and animation. D3’s functional style allows code reuse through a diverse collection of <a href="https://github.com/d3/d3/wiki/API-Reference">components</a> and <a href="https://github.com/d3/d3-plugins">plugins</a>.
+<p>D3 is not a monolithic framework that seeks to provide every conceivable feature. Instead, D3 solves the crux of the problem: efficient manipulation of documents based on data. This avoids proprietary representation and affords extraordinary flexibility, exposing the full capabilities of web standards such as HTML, SVG, and CSS. With minimal overhead, D3 is extremely fast, supporting large datasets and dynamic behaviors for interaction and animation. D3’s functional style allows code reuse through a diverse collection of <a href="https://github.com/d3/d3/blob/master/API.md">official</a> and <a href="https://www.npmjs.com/browse/keyword/d3-module">community-developed</a> modules.
 
 <h2><a name="selections" href="#selections">#</a>Selections</h2>
 
-<p><aside>Read <a href="https://github.com/d3/d3/wiki/Selections">more about selections</a>.</aside>
+<p><aside>Read <a href="https://github.com/d3/d3-selection">more about selections</a>.</aside>
 
-<p>Modifying documents using the <a href="http://www.w3.org/DOM/DOMTR">W3C DOM API</a> is tedious: the method names are verbose, and the imperative approach requires manual iteration and bookkeeping of temporary state. For example, to change the text color of paragraph elements:
+<p>Modifying documents using the <a href="https://www.w3.org/DOM/DOMTR">W3C DOM API</a> is tedious: the method names are verbose, and the imperative approach requires manual iteration and bookkeeping of temporary state. For example, to change the text color of paragraph elements:
 
 <pre><code>var paragraphs = document.getElementsByTagName("p");
 for (var i = 0; i &lt; paragraphs.length; i++) {
@@ -556,13 +556,13 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 
 <pre><code>d3.select("body").style("background-color", "black");</code></pre>
 
-<p>Selectors are defined by the <a href="http://www.w3.org/TR/selectors-api/">W3C Selectors API</a> and supported natively by modern browsers. Backwards-compatibility for older browsers can be provided by <a href="http://sizzlejs.com/">Sizzle</a>. The above examples select nodes by tag name (<code>"p"</code> and <code>"body"</code>, respectively). Elements may be selected using a variety of predicates, including containment, attribute values, class and ID.
+<p>Selectors are defined by the <a href="https://www.w3.org/TR/selectors-api/">W3C Selectors API</a> and supported natively by modern browsers. The above examples select nodes by tag name (<code>"p"</code> and <code>"body"</code>, respectively). Elements may be selected using a variety of predicates, including containment, attribute values, class and ID.
 
 <p>D3 provides numerous methods for mutating nodes: setting attributes or styles; registering event listeners; adding, removing or sorting nodes; and changing HTML or text content. These suffice for the vast majority of needs. Direct access to the underlying DOM is also possible, as each D3 selection is simply an array of nodes.
 
 <h2><a name="properties" href="#properties">#</a>Dynamic Properties</h2>
 
-<p>Readers familiar with other DOM frameworks such as <a href="http://jquery.com/">jQuery</a> or <a href="http://www.prototypejs.org/">Prototype</a> should immediately recognize similarities with D3. Yet styles, attributes, and other properties can be specified as <i>functions of data</i> in D3, not just simple constants. Despite their apparent simplicity, these functions can be surprisingly powerful; the <code>d3.geo.path</code> function, for example, projects <a href="http://geojson.org/">geographic coordinates</a> into SVG <a href="http://www.w3.org/TR/SVG/paths.html#PathData">path data</a>. D3 provides many built-in reusable functions and function factories, such as <a href="https://github.com/d3/d3/wiki/SVG-Shapes">graphical primitives</a> for area, line and pie charts.
+<p>Readers familiar with other DOM frameworks such as <a href="https://jquery.com/">jQuery</a> should immediately recognize similarities with D3. Yet styles, attributes, and other properties can be specified as <i>functions of data</i> in D3, not just simple constants. Despite their apparent simplicity, these functions can be surprisingly powerful; the <a href="https://github.com/d3/d3-geo/blob/master/README.md#geoPath">d3.geoPath</a> function, for example, projects <a href="https://tools.ietf.org/html/rfc7946">geographic coordinates</a> into SVG <a href="https://www.w3.org/TR/SVG/paths.html#PathData">path data</a>. D3 provides many built-in reusable functions and function factories, such as <a href="https://github.com/d3/d3-shape">graphical primitives</a> for area, line and pie charts.
 
 <p>For example, to randomly color paragraphs:
 
@@ -586,7 +586,7 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 
 <h2><a name="enter-exit" href="#enter-exit">#</a>Enter and Exit</h2>
 
-<p><aside>Read <a href="http://bost.ocks.org/mike/join/">more about data joins</a>.</aside>
+<p><aside>Read <a href="https://bost.ocks.org/mike/join/">more about data joins</a>.</aside>
 
 <p>Using D3’s <i>enter</i> and <i>exit</i> selections, you can create new nodes for incoming data and remove outgoing nodes that are no longer needed.
 
@@ -619,7 +619,7 @@ p.exit().remove();</code></pre>
 
 <h2><a name="transformation" href="#transformation">#</a>Transformation, not Representation</h2>
 
-<p>D3 does not introduce a new visual representation. Unlike <a href="http://processing.org/">Processing</a>, <a href="http://raphaeljs.com/">Raphaël</a>, or <a href="http://vis.stanford.edu/protovis/">Protovis</a>, D3’s vocabulary of graphical marks comes directly from web standards: HTML, SVG, and CSS. For example, you can create SVG elements using D3 and style them with external stylesheets. You can use composite filter effects, dashed strokes and clipping. If browser vendors introduce new features tomorrow, you’ll be able to use them immediately—no toolkit update required. And, if you decide in the future to use a toolkit other than D3, you can take your knowledge of standards with you!
+<p>D3 does not introduce a new visual representation. Unlike <a href="https://processing.org/">Processing</a> or <a href="https://mbostock.github.io/protovis/">Protovis</a>, D3’s vocabulary of graphical marks comes directly from web standards: HTML, SVG, and CSS. For example, you can create SVG elements using D3 and style them with external stylesheets. You can use composite filter effects, dashed strokes and clipping. If browser vendors introduce new features tomorrow, you’ll be able to use them immediately—no toolkit update required. And, if you decide in the future to use a toolkit other than D3, you can take your knowledge of standards with you!
 
 <p>Best of all, D3 is easy to debug using the browser’s built-in element inspector: the nodes that you manipulate with D3 are exactly those that the browser understands natively.
 
@@ -644,12 +644,12 @@ p.exit().remove();</code></pre>
 <p>Want to learn more? Read <a href="https://github.com/d3/d3/wiki/Tutorials">these tutorials</a>.
 
 <footer>
-  Library released under <a href="http://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2015 <a href="http://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
+  Library released under <a href="https://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2015 <a href="https://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
 </footer>
 
 </div>
 
-<a href="https://github.com/d3/d3"><img style="position:fixed;top:0;right:0;border:0;" width="149" height="149" src="forkme.png" alt="Fork me on GitHub"></a>
+<a href="https://github.com/d3/d3"><img style="position:fixed;top:0;right:0;border:0;z-index:2;" width="149" height="149" src="forkme.png" alt="Fork me on GitHub"></a>
 
 <script src="highlight.v9.min.js"></script>
 <script>
