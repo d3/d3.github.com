@@ -1,4 +1,4 @@
-// https://d3js.org/d3-transition/ Version 1.0.4. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-transition/ Version 1.1.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
@@ -563,9 +563,8 @@ function styleRemove(name, interpolate$$1) {
       value10,
       interpolate0;
   return function() {
-    var style = d3Selection.window(this).getComputedStyle(this, null),
-        value0 = style.getPropertyValue(name),
-        value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
+    var value0 = d3Selection.style(this, name),
+        value1 = (this.style.removeProperty(name), d3Selection.style(this, name));
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
         : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
@@ -582,7 +581,7 @@ function styleConstant(name, interpolate$$1, value1) {
   var value00,
       interpolate0;
   return function() {
-    var value0 = d3Selection.window(this).getComputedStyle(this, null).getPropertyValue(name);
+    var value0 = d3Selection.style(this, name);
     return value0 === value1 ? null
         : value0 === value00 ? interpolate0
         : interpolate0 = interpolate$$1(value00 = value0, value1);
@@ -594,10 +593,9 @@ function styleFunction(name, interpolate$$1, value) {
       value10,
       interpolate0;
   return function() {
-    var style = d3Selection.window(this).getComputedStyle(this, null),
-        value0 = style.getPropertyValue(name),
+    var value0 = d3Selection.style(this, name),
         value1 = value(this);
-    if (value1 == null) value1 = (this.style.removeProperty(name), style.getPropertyValue(name));
+    if (value1 == null) value1 = (this.style.removeProperty(name), d3Selection.style(this, name));
     return value0 === value1 ? null
         : value0 === value00 && value1 === value10 ? interpolate0
         : interpolate0 = interpolate$$1(value00 = value0, value10 = value1);
