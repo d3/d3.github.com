@@ -1,4 +1,4 @@
-// https://d3js.org/d3-shape/ Version 1.1.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-shape/ Version 1.2.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
@@ -601,7 +601,7 @@ function curveRadial(curve) {
   return radial;
 }
 
-function radialLine(l) {
+function lineRadial(l) {
   var c = l.curve;
 
   l.angle = l.x, delete l.x;
@@ -614,11 +614,11 @@ function radialLine(l) {
   return l;
 }
 
-var radialLine$1 = function() {
-  return radialLine(line().curve(curveRadialLinear));
+var lineRadial$1 = function() {
+  return lineRadial(line().curve(curveRadialLinear));
 };
 
-var radialArea = function() {
+var areaRadial = function() {
   var a = area().curve(curveRadialLinear),
       c = a.curve,
       x0 = a.lineX0,
@@ -632,10 +632,10 @@ var radialArea = function() {
   a.radius = a.y, delete a.y;
   a.innerRadius = a.y0, delete a.y0;
   a.outerRadius = a.y1, delete a.y1;
-  a.lineStartAngle = function() { return radialLine(x0()); }, delete a.lineX0;
-  a.lineEndAngle = function() { return radialLine(x1()); }, delete a.lineX1;
-  a.lineInnerRadius = function() { return radialLine(y0()); }, delete a.lineY0;
-  a.lineOuterRadius = function() { return radialLine(y1()); }, delete a.lineY1;
+  a.lineStartAngle = function() { return lineRadial(x0()); }, delete a.lineX0;
+  a.lineEndAngle = function() { return lineRadial(x1()); }, delete a.lineX1;
+  a.lineInnerRadius = function() { return lineRadial(y0()); }, delete a.lineY0;
+  a.lineOuterRadius = function() { return lineRadial(y1()); }, delete a.lineY1;
 
   a.curve = function(_) {
     return arguments.length ? c(curveRadial(_)) : c()._curve;
@@ -644,11 +644,11 @@ var radialArea = function() {
   return a;
 };
 
-var slice = Array.prototype.slice;
-
-var radialPoint = function(x, y) {
+var pointRadial = function(x, y) {
   return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)];
 };
+
+var slice = Array.prototype.slice;
 
 function linkSource(d) {
   return d.source;
@@ -706,10 +706,10 @@ function curveVertical(context, x0, y0, x1, y1) {
 }
 
 function curveRadial$1(context, x0, y0, x1, y1) {
-  var p0 = radialPoint(x0, y0),
-      p1 = radialPoint(x0, y0 = (y0 + y1) / 2),
-      p2 = radialPoint(x1, y0),
-      p3 = radialPoint(x1, y1);
+  var p0 = pointRadial(x0, y0),
+      p1 = pointRadial(x0, y0 = (y0 + y1) / 2),
+      p2 = pointRadial(x1, y0),
+      p3 = pointRadial(x1, y1);
   context.moveTo(p0[0], p0[1]);
   context.bezierCurveTo(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
 }
@@ -1883,8 +1883,11 @@ exports.arc = arc;
 exports.area = area;
 exports.line = line;
 exports.pie = pie;
-exports.radialArea = radialArea;
-exports.radialLine = radialLine$1;
+exports.areaRadial = areaRadial;
+exports.radialArea = areaRadial;
+exports.lineRadial = lineRadial$1;
+exports.radialLine = lineRadial$1;
+exports.pointRadial = pointRadial;
 exports.linkHorizontal = linkHorizontal;
 exports.linkVertical = linkVertical;
 exports.linkRadial = linkRadial;
