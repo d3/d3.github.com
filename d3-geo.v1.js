@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.6.3. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.6.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1710,9 +1710,11 @@ function PathString() {
 }
 
 PathString.prototype = {
+  _radius: 4.5,
   _circle: circle$1(4.5),
   pointRadius: function(_) {
-    return this._circle = circle$1(_), this;
+    if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
+    return this;
   },
   polygonStart: function() {
     this._line = 0;
@@ -1739,6 +1741,7 @@ PathString.prototype = {
         break;
       }
       default: {
+        if (this._circle == null) this._circle = circle$1(this._radius);
         this._string.push("M", x, ",", y, this._circle);
         break;
       }
@@ -1749,6 +1752,8 @@ PathString.prototype = {
       var result = this._string.join("");
       this._string = [];
       return result;
+    } else {
+      return null;
     }
   }
 };
@@ -2073,7 +2078,7 @@ var clipCircle = function(radius, delta) {
         // TODO ignore if not clipping polygons.
         if (v !== v0) {
           point2 = intersect(point0, point1);
-          if (pointEqual(point0, point2) || pointEqual(point1, point2)) {
+          if (!point2 || pointEqual(point0, point2) || pointEqual(point1, point2)) {
             point1[0] += epsilon;
             point1[1] += epsilon;
             v = visible(point1[0], point1[1]);
