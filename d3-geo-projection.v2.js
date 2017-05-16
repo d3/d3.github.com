@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.1.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -309,8 +309,8 @@ function berghausRaw(lobes) {
       var theta = atan2(p[1], p[0]),
           r = sqrt(p[0] * p[0] + p[1] * p[1]),
           theta0 = k * round((theta - halfPi) / k) + halfPi,
-          α = atan2(sin(theta -= theta0), 2 - cos(theta)); // angle relative to lobe end
-      theta = theta0 + asin(pi / r * sin(α)) - α;
+          alpha = atan2(sin(theta -= theta0), 2 - cos(theta)); // angle relative to lobe end
+      theta = theta0 + asin(pi / r * sin(alpha)) - alpha;
       p[0] = r * cos(theta);
       p[1] = r * sin(theta);
     }
@@ -324,8 +324,8 @@ function berghausRaw(lobes) {
           theta0 = k * round((theta - halfPi) / k) + halfPi,
           s = theta > theta0 ? -1 : 1,
           A = r * cos(theta0 - theta),
-          cotα = 1 / tan(s * acos((A - pi) / sqrt(pi * (pi - 2 * A) + r * r)));
-      theta = theta0 + 2 * atan((cotα + s * sqrt(cotα * cotα - 3)) / 3);
+          cotAlpha = 1 / tan(s * acos((A - pi) / sqrt(pi * (pi - 2 * A) + r * r)));
+      theta = theta0 + 2 * atan((cotAlpha + s * sqrt(cotAlpha * cotAlpha - 3)) / 3);
       x = r * cos(theta), y = r * sin(theta);
     }
     return d3Geo.geoAzimuthalEquidistantRaw.invert(x, y);
@@ -655,8 +655,8 @@ function craigRaw(phi0) {
 
   forward.invert = tanPhi0 ? function(x, y) {
     if (x) y *= sin(x) / x;
-    var cosλ = cos(x);
-    return [x, 2 * atan2(sqrt(cosλ * cosλ + tanPhi0 * tanPhi0 - y * y) - cosλ, tanPhi0 - y)];
+    var cosLambda = cos(x);
+    return [x, 2 * atan2(sqrt(cosLambda * cosLambda + tanPhi0 * tanPhi0 - y * y) - cosLambda, tanPhi0 - y)];
   } : function(x, y) {
     return [x, asin(x ? y * tan(x) / x : y)];
   };
@@ -1317,6 +1317,8 @@ function gringortenRaw(lambda, phi) {
 }
 
 gringortenRaw.invert = function(x, y) {
+  if (abs(x) > 1) x = sign(x) * 2 - x;
+  if (abs(y) > 1) y = sign(y) * 2 - y;
   var sx = sign(x),
       sy = sign(y),
       x0 = -sx * x,
@@ -3339,8 +3341,8 @@ var quincuncial = function(project) {
     if (!t) {
       var d = dx * sqrt1_2,
           s = x > 0 ^ y > 0 ? -1 : 1,
-          x1 = -s * (x0 + (y > 0 ? 1 : -1) * d),
-          y1 = -s * (y0 + (x > 0 ? 1 : -1) * d);
+          x1 = -s * x0 + (y > 0 ? 1 : -1) * d,
+          y1 = -s * y0 + (x > 0 ? 1 : -1) * d;
       x = (-x1 - y1) * sqrt1_2;
       y = (x1 - y1) * sqrt1_2;
     }
