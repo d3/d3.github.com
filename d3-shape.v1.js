@@ -1,4 +1,4 @@
-// https://d3js.org/d3-shape/ Version 1.1.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-shape/ Version 1.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
@@ -646,6 +646,10 @@ var radialArea = function() {
 
 var slice = Array.prototype.slice;
 
+var radialPoint = function(x, y) {
+  return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)];
+};
+
 function linkSource(d) {
   return d.source;
 }
@@ -702,10 +706,10 @@ function curveVertical(context, x0, y0, x1, y1) {
 }
 
 function curveRadial$1(context, x0, y0, x1, y1) {
-  var p0 = cartesian(x0, y0),
-      p1 = cartesian(x0, y0 = (y0 + y1) / 2),
-      p2 = cartesian(x1, y0),
-      p3 = cartesian(x1, y1);
+  var p0 = radialPoint(x0, y0),
+      p1 = radialPoint(x0, y0 = (y0 + y1) / 2),
+      p2 = radialPoint(x1, y0),
+      p3 = radialPoint(x1, y1);
   context.moveTo(p0[0], p0[1]);
   context.bezierCurveTo(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
 }
@@ -723,11 +727,6 @@ function linkRadial() {
   l.angle = l.x, delete l.x;
   l.radius = l.y, delete l.y;
   return l;
-}
-
-function cartesian(x$$1, y$$1) {
-  var angle = (x$$1 - 90) / 180 * Math.PI, radius = y$$1;
-  return [radius * Math.cos(angle), radius * Math.sin(angle)];
 }
 
 var circle = {
