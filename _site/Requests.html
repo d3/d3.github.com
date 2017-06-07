@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Requests</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Requests</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Core]] ▸ <strong>Requests</strong></p>
+</blockquote>
+
+<table>
+  <tbody>
+    <tr>
+      <td>You can’t visualize data if you can’t access it! Fortunately, there are many ways to get data into the browser. For small datasets, you might hardcode the data in your script, or embed data in the DOM using [[data attributes</td>
+      <td>http://ejohn.org/blog/html-5-data-attributes/]]. For larger datasets, you could load an external script that defines your data as a global variable. ([[JSONP</td>
+      <td>http://en.wikipedia.org/wiki/JSONP]] is a common example of this.) But, the most versatile way of loading data into the browser is using an [[XMLHttpRequest</td>
+      <td>http://en.wikipedia.org/wiki/XMLHttpRequest]], or <strong>XHR</strong>. This allows data to be loaded <em>asynchronously</em> (so the rest of the page can display while data is loading), and is safer than JSONP. D3’s xhr module simplifies loading and parsing data.</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td>When loading data asynchronously, code that depends on the loaded data should generally exist within the callback function. For example, see the [[calendar visualization</td>
+      <td>http://mbostock.github.com/d3/ex/calendar.html]] on the D3 website. Code that doesn’t depend on data can run immediately when the page loads. Also, you may find it convenient to save loaded data to the global namespace, so that you can access it after the initial render, such as during a transition. You can do this using closures, or simply assign the loaded data to a global:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>```javascript
+var data; // a global</p>
+
+<p>d3.json(“path/to/file.json”, function(error, json) {
+  if (error) return console.warn(error);
+  data = json;
+  visualizeit();
+});
+```</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>By default, most browsers do not allow cross-domain requests. To <a href="http://enable-cors.org/">enable cross-domain requests</a>, have the server set the header Access-Control-Allow-Origin: *. For more details, see the W3C recommendation on [[Cross-Origin Resource Sharing</td>
+      <td>http://www.w3.org/TR/cors/]]. For IE9, d3.xhr uses the nonstandard XDomainRequest for cross-domain requests.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="xhr">XHR</h2>
+
+<p><a name="d3_xhr" href="#d3_xhr">#</a> d3.<b>xhr</b>(<i>url</i>[, <i>mimeType</i>][, <i>callback</i>])</p>
+
+<p>Creates an asynchronous request for specified <em>url</em>. An optional <em>mime type</em> may be specified as the second argument, such as “text/plain”. If a <em>callback</em> is specified, the request is immediately issued with the GET method and the callback is invoked asynchronously when the resource is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the XMLHttpRequest object representing the response. The response is undefined if an error occurs. If the response has an unsuccessful status code, the error is the XMLHttpRequest object. If no callback is specified, the returned request can be issued using <a href="#get">xhr.get</a>, <a href="#post">xhr.post</a> or similar, and handled using <a href="#on">xhr.on</a>.</p>
+
+<p><a name="header" href="#header">#</a> xhr.<b>header</b>(<i>name</i>[, <i>value</i>])</p>
+
+<p>If <em>value</em> is specified, sets the request header with the specified <em>name</em> to the specified value. If <em>value</em> is null, removes the request header with the specified <em>name</em>. If <em>value</em> is not specified, returns the current value of the request header with the specified <em>name</em>. Header names are case-insensitive.</p>
+
+<p>Request headers can only be modified before the request is <a href="#sent">sent</a>. Therefore, you cannot pass a callback to the <a href="#d3_xhr">d3.xhr constructor</a> if you wish to specify a header. Instead, use <a href="#get">xhr.get</a> or similar. For example:</p>
+
+<p><code>js
+d3.csv("/path/to/file.csv")
+    .header("header-name", "header-value")
+    .get(function(error, data) {
+      // callback
+    });
+</code></p>
+
+<p><a name="mimeType" href="#mimeType">#</a> xhr.<b>mimeType</b>([<i>type</i>])</p>
+
+<p>If <em>type</em> is specified, sets the request mime type to the specified value. If <em>type</em> is null, clears the current mime type, if any. If <em>type</em> is not specified, returns the current mime type, which defaults to null. The mime type is used to both set the <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">“Accept” request header</a> and for <a href="http://www.w3.org/TR/XMLHttpRequest/#the-overridemimetype%28%29-method">overrideMimeType</a>, where supported. Request headers can only be modified before the request is <a href="#sent">sent</a>.</p>
+
+<p><a name="responseType" href="#responseType">#</a> xhr.<b>responseType</b>(<i>type</i>)</p>
+
+<p>If <em>type</em> is specified, sets the <a href="http://www.w3.org/TR/XMLHttpRequest/#the-responsetype-attribute">response type</a>, e.g. “”, “arraybuffer”, “blob”, “document”, or “text”. If <em>type</em> is not specified, returns the current response type, which defaults to “”.</p>
+
+<p><a name="response" href="#response">#</a> xhr.<b>response</b>(<i>value</i>)</p>
+
+<p>If <em>value</em> is specified, sets the response value function to the specified function. If <em>value</em> is not specified, returns the current response value function, which defaults to the identity function. The response value function is used to map the response XMLHttpRequest object to its associated data value. For example, for text requests, you might use <code>function(request) { return request.responseText; }</code>, whereas for JSON requests, you might use <code>function(request) { return JSON.parse(request.responseText); }</code>.</p>
+
+<p><a name="get" href="#get">#</a> xhr.<b>get</b>([<i>callback</i>])</p>
+
+<p>Issues this request using the GET method. If a <em>callback</em> is specified, it will be invoked asynchronously when the request is done or errors; the callback is invoked with two arguments: the error, if any, and the response value. The response value is undefined if an error occurs. If no <em>callback</em> is specified, then “load” and “error” listeners should be registered via <a href="#on">xhr.on</a>. This method is a convenience wrapper of <a href="#send">xhr.send</a>.</p>
+
+<p><a name="post" href="#post">#</a> xhr.<b>post</b>([<i>data</i>][, <i>callback</i>])</p>
+
+<p>Issues this request using the POST method, optionally posting the specified <em>data</em> in the request body. If a <em>callback</em> is specified, it will be invoked asynchronously when the request is done or errors; the callback is invoked with two arguments: the error, if any, and the response value. The response value is undefined if an error occurs. If no <em>callback</em> is specified, then “load” and “error” listeners should be registered via <a href="#on">xhr.on</a>. This method is a convenience wrapper of <a href="#send">xhr.send</a>.</p>
+
+<p>An example using URL encoding:</p>
+
+<p><code>js
+d3.csv("/path/to/file.csv")
+    .header("Content-Type", "application/x-www-form-urlencoded")
+    .post("a=2&amp;b=3", function(error, data) {
+      // callback
+    });
+</code></p>
+
+<p>An example using JSON encoding:</p>
+
+<p><code>js
+d3.csv("/path/to/file.csv")
+    .header("Content-Type", "application/json")
+    .post(JSON.stringify({a: 2, b: 3}), function(error, data) {
+      // callback
+    });
+</code></p>
+
+<p><a name="send" href="#send">#</a> xhr.<b>send</b>(<i>method</i>[, <i>data</i>][, <i>callback</i>])</p>
+
+<p>Issues this request using the specified <em>method</em>, optionally posting the specified <em>data</em> in the request body. If a <em>callback</em> is specified, it will be invoked asynchronously when the request is done or errors; the callback is invoked with two arguments: the error, if any, and the response value. The response value is undefined if an error occurs. If no <em>callback</em> is specified, then “load” and “error” listeners should be registered via <a href="#on">xhr.on</a>.</p>
+
+<p><a name="abort" href="#abort">#</a> xhr.<b>abort</b>()</p>
+
+<p>Aborts this request, if it is currently in-flight. See <a href="http://www.w3.org/TR/XMLHttpRequest/#the-abort%28%29-method">XMLHttpRequest’s abort</a>.</p>
+
+<p><a name="on" href="#on">#</a> xhr.<b>on</b>(<i>type</i>[, <i>listener</i>])</p>
+
+<p>Adds or removes an event <em>listener</em> to this request for the specified <em>type</em>. The type must be one of the following:</p>
+
+<ul>
+  <li><em>beforesend</em> - before the request is sent, to allow custom headers and the like to be set.</li>
+  <li><em>progress</em> - to monitor the <a href="http://www.w3.org/TR/progress-events/">progress of the request</a>.</li>
+  <li><em>load</em> - when the request completes successfully.</li>
+  <li><em>error</em> - when the request completes unsuccessfully; this includes 4xx and 5xx response codes.</li>
+</ul>
+
+<p>If an event listener was already registered for the same type, the existing listener is removed before the new listener is added. To register multiple listeners for the same event type, the type may be followed by an optional namespace, such as “load.foo” and “load.bar”. To remove a listener, pass null as the listener.</p>
+
+<p>If <em>listener</em> is not specified, returns the currently-assigned listener for the specified type, if any.</p>
+
+<h2 id="convenience-methods">Convenience Methods</h2>
+
+<p>Often, d3.xhr is not used directly. Instead, one of the type-specific methods is used instead, such as <a href="#d3_text">d3.text</a> for plain text, <a href="#d3_json">d3.json</a> for JSON, <a href="#d3_xml">d3.xml</a> for XML, <a href="#d3_html">d3.html</a> for HTML, <a href="#d3_csv">d3.csv</a> for comma-separated values, and <a href="#d3_tsv">d3.tsv</a> for tabulation-separated values.</p>
+
+<p><a name="d3_text" href="Requests#d3_text">#</a> d3.<b>text</b>(<i>url</i>[, <i>mimeType</i>][, <i>callback</i>])</p>
+
+<p>Creates a request for the text file at the specified <em>url</em>. An optional <em>mime type</em> may be specified as the second argument, such as “text/plain”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the response text. The response text is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+<p><a name="d3_json" href="Requests#d3_json">#</a> d3.<b>json</b>(<i>url</i>[, <i>callback</i>])</p>
+
+<p>Creates a request for the <a href="http://json.org">JSON</a> file at the specified <em>url</em> with the mime type “application/json”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the parsed JSON. The parsed JSON is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+<p><a name="d3_xml" href="Requests#d3_xml">#</a> d3.<b>xml</b>(<i>url</i>[, <i>mimeType</i>][, <i>callback</i>])</p>
+
+<p>Creates a request for the XML file at the specified <em>url</em>. An optional <em>mime type</em> may be specified as the second argument, such as “application/xml”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the parsed XML as a <a href="http://www.w3.org/TR/XMLHttpRequest/#the-responsexml-attribute">document</a>. The parsed XML is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+<p><a name="d3_html" href="Requests#d3_html">#</a> d3.<b>html</b>(<i>url</i>[, <i>callback</i>])</p>
+
+<p>Creates a request for the HTML file at the specified <em>url</em> with the mime type “text/html”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the parsed HTML as a <a href="https://developer.mozilla.org/en-US/docs/DOM/range.createContextualFragment">document fragment</a>. The parsed HTML is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+<p><a name="d3_csv" href="CSV">#</a> d3.<b>csv</b>(<i>url</i>[, <i>accessor</i>][, <i>callback</i>])</p>
+
+<p>Creates a request for the [[CSV]] file at the specified <em>url</em> with the mime type “text/csv”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the array of <a href="CSV#parse">parsed rows</a> per <a href="http://tools.ietf.org/html/rfc4180">RFC 4180</a>. The rows array is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+<p><a name="d3_tsv" href="CSV#tsv">#</a> d3.<b>tsv</b>(<i>url</i>[, <i>accessor</i>][, <i>callback</i>])</p>
+
+<p>Creates a request for the <a href="CSV#d3_tsv">TSV</a> file at the specified <em>url</em> with the mime type “text/tab-separated-values”. If a <em>callback</em> is specified, the request is immediately issued with the GET method, and the callback will be invoked asynchronously when the file is loaded or the request fails; the callback is invoked with two arguments: the error, if any, and the array of <a href="CSV#tsv_parse">parsed rows</a> per <a href="http://tools.ietf.org/html/rfc4180">RFC 4180</a>. The rows array is undefined if an error occurs. If no callback is specified, the returned request can be issued using xhr.get or similar, and handled using xhr.on.</p>
+
+    </div>
+  </body>
+</html>

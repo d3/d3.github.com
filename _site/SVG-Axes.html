@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>SVG Axes</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>SVG Axes</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[SVG]] ▸ <strong>SVG Axes</strong></p>
+</blockquote>
+
+<p>D3’s <a href="http://bl.ocks.org/mbostock/1166403">axis component</a> displays reference lines for scales automatically. This lets you focus on displaying the data, while the axis component takes care of the tedious task of drawing axes and labeled ticks.</p>
+
+<p><a href="http://bl.ocks.org/mbostock/1166403"><img src="http://bl.ocks.org/mbostock/raw/1166403/thumbnail.png" alt="Axis Component" /></a>
+<a href="http://bl.ocks.org/mbostock/6186172"><img src="http://bl.ocks.org/mbostock/raw/6186172/thumbnail.png" alt="6186172" /></a>
+<a href="http://bl.ocks.org/mbostock/5537697"><img src="http://bl.ocks.org/mbostock/raw/5537697/thumbnail.png" alt="5537697" /></a>
+<a href="http://bl.ocks.org/mbostock/4573883"><img src="http://bl.ocks.org/mbostock/raw/4573883/thumbnail.png" alt="4573883" /></a>
+<a href="http://bl.ocks.org/mbostock/4403522"><img src="http://bl.ocks.org/mbostock/raw/4403522/thumbnail.png" alt="4403522" /></a>
+<a href="http://bl.ocks.org/mbostock/4349486"><img src="http://bl.ocks.org/mbostock/raw/4349486/thumbnail.png" alt="4349486" /></a>
+<a href="http://bl.ocks.org/mbostock/3892919"><img src="http://bl.ocks.org/mbostock/raw/3892919/thumbnail.png" alt="3892919" /></a>
+<a href="http://bl.ocks.org/mbostock/3371592"><img src="http://bl.ocks.org/mbostock/raw/3371592/thumbnail.png" alt="3371592" /></a>
+<a href="http://bl.ocks.org/mbostock/3259783"><img src="http://bl.ocks.org/mbostock/raw/3259783/thumbnail.png" alt="3259783" /></a>
+<a href="http://bl.ocks.org/mbostock/3212294"><img src="http://bl.ocks.org/mbostock/raw/3212294/thumbnail.png" alt="3212294" /></a>
+<a href="http://bl.ocks.org/mbostock/2983699"><img src="http://bl.ocks.org/mbostock/raw/2983699/thumbnail.png" alt="2983699" /></a>
+<a href="http://bl.ocks.org/mbostock/2996766"><img src="http://bl.ocks.org/mbostock/raw/2996766/thumbnail.png" alt="2996766" /></a>
+<a href="http://bl.ocks.org/mbostock/2996785"><img src="http://bl.ocks.org/mbostock/raw/2996785/thumbnail.png" alt="2996785" /></a>
+<a href="http://bl.ocks.org/mbostock/1849162"><img src="http://bl.ocks.org/mbostock/raw/1849162/thumbnail.png" alt="1849162" /></a>
+<a href="http://bl.ocks.org/mbostock/4323929"><img src="http://bl.ocks.org/mbostock/raw/4323929/thumbnail.png" alt="4323929" /></a></p>
+
+<h2 id="axis">Axis</h2>
+
+<p>The axis component is designed to work with D3’s <a href="Quantitative-Scales">quantitative</a>, <a href="Time-Scales">time</a> and <a href="Ordinal-Scales">ordinal</a> scales.</p>
+
+<p><a name="axis" href="SVG-Axes#axis">#</a> d3.svg.<b>axis</b>()</p>
+
+<p>Create a new default axis.</p>
+
+<p><a name="_axis" href="SVG-Axes#_axis">#</a> <b>axis</b>(<i>selection</i>)</p>
+
+<p>Apply the axis to a <a href="Selections">selection</a> or <a href="Transitions">transition</a>. The selection must contain an <code>svg</code> or <code>g</code> element. For example:</p>
+
+<p><code>js
+d3.select("body").append("svg")
+    .attr("class", "axis")
+    .attr("width", 1440)
+    .attr("height", 30)
+  .append("g")
+    .attr("transform", "translate(0,30)")
+    .call(axis);
+</code></p>
+
+<p><a name="scale" href="#scale">#</a> axis.<b>scale</b>([<i>scale</i>])</p>
+
+<p>If <em>scale</em> is specified, sets the scale and returns the axis. If <em>scale</em> is not specified, returns the current scale which defaults to a linear scale.</p>
+
+<p><a name="orient" href="#orient">#</a> axis.<b>orient</b>([<i>orientation</i>])</p>
+
+<p>If <em>orientation</em> is specified, sets the orientation and returns the axis. If <em>orientation</em> is not specified, returns the current orientation which defaults to <code>"bottom"</code>. The following orientations are supported:</p>
+
+<ul>
+  <li><code>"top"</code> - horizontal axis with ticks above the domain path</li>
+  <li><code>"bottom"</code> - horizontal axis with ticks below the domain path</li>
+  <li><code>"left"</code> - vertical axis with ticks to the left of the domain path</li>
+  <li><code>"right"</code> - vertical axis with ticks to the right of the domain path</li>
+</ul>
+
+<table>
+  <tbody>
+    <tr>
+      <td>If the specified <em>orientation</em> is not one of the supported values, the axis reverts to the default orientation. Changing the orientation affects the position of the ticks and their labels in relation to the axis path, but does not change the position of the axis itself; to change the position of the axis with respect to the plot, specify a [[transform</td>
+      <td>http://www.w3.org/TR/SVG/coords.html#TransformAttribute]] attribute on the containing <code>g</code> element.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="ticks" href="#ticks">#</a> axis.<b>ticks</b>([<i>arguments…</i>])</p>
+
+<p>If <em>arguments</em> are specified, stores the specified arguments for subsequent use in generating ticks and returns the axis. The arguments will later be passed to <a href="Quantitative-Scales#linear_ticks">scale.ticks</a> to generate tick values (unless tick values are specified explicitly via <a href="#tickValues">axis.tickValues</a>). The arguments are also passed to the scale’s tickFormat method to generate the default tick format. If no arguments are specified, returns the current tick arguments, which default to [10].</p>
+
+<p>Suitable arguments depends on the associated scale: for a <a href="Quantitative-Scales">linear scale</a>, you might specify a tick count such as <code>axis.ticks(20)</code>; for a <a href="Quantitative-Scales#log_tickFormat">log scale</a>, you might specify both a count and a tick format; for a <a href="Time-Scales#ticks">time scale</a>, a <a href="Time-Intervals">time interval</a> such as <code>axis.ticks(d3.time.minutes, 15)</code> might be appropriate.</p>
+
+<p><a name="tickValues" href="#tickValues">#</a> axis.<b>tickValues</b>([<i>values</i>])</p>
+
+<p>If a <em>values</em> array is specified, the specified values are used for ticks, rather than using the scale’s automatic tick generator. If <em>values</em> is null, clears any previously-set explicit tick values, reverting back to the scale’s tick generator. If <em>values</em> is not specified, returns the currently-set tick values, which defaults to null. For example, to generate ticks at specific values:</p>
+
+<p><code>js
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .tickValues([1, 2, 3, 5, 8, 13, 21]);
+</code></p>
+
+<p>The explicit tick values take precedent over the tick arguments set by <a href="#ticks">axis.ticks</a>. However, any  tick arguments will still be passed to the scale’s <a href="#tickFormat">tickFormat</a> function if a tick format is not also set; thus, it may be valid to set both axis.ticks and axis.tickValues.</p>
+
+<p><a name="tickSize" href="#tickSize">#</a> axis.<b>tickSize</b>([<i>inner, outer</i>])</p>
+
+<p>If <em>inner, outer</em> are specified, sets the <a href="#innerTickSize">inner</a> and <a href="#outerTickSize">outer</a> tick sizes to the specified value and returns the axis. If <em>inner, outer</em> are not specified, returns the current inner tick size, which defaults to 6.</p>
+
+<p><a name="innerTickSize" href="#innerTickSize">#</a> axis.<b>innerTickSize</b>([<i>size</i>])</p>
+
+<p>If <em>size</em> is specified, sets the inner tick size to the specified value and returns the axis. If <em>size</em> is not specified, returns the current inner tick size, which defaults to 6. The inner tick size controls the length of the tick lines, offset from the native position of the axis.</p>
+
+<p><a name="outerTickSize" href="#outerTickSize">#</a> axis.<b>outerTickSize</b>([<i>size</i>])</p>
+
+<p>If <em>size</em> is specified, sets the outer tick size to the specified value and returns the axis. If <em>size</em> is not specified, returns the current outer tick size, which defaults to 6. The outer tick size controls the length of the square ends of the domain path, offset from the native position of the axis. Thus, the “outer ticks” are not actually ticks but part of the domain path, and their position is determined by the associated scale’s domain extent. Thus, outer ticks may overlap with the first or last inner tick. An outer tick size of 0 suppresses the square ends of the domain path, instead producing a straight line.</p>
+
+<p><a name="tickPadding" href="#tickPadding">#</a> axis.<b>tickPadding</b>([<i>padding</i>])</p>
+
+<p>If <em>padding</em> is specified, sets the padding to the specified value in pixels and returns the axis. If <em>padding</em> is not specified, returns the current padding which defaults to 3 pixels.</p>
+
+<p><a name="tickFormat" href="#tickFormat">#</a> axis.<b>tickFormat</b>([<i>format</i>])</p>
+
+<p>If <em>format</em> is specified, sets the format to the specified function and returns the axis. If <em>format</em> is not specified, returns the current format function, which defaults to null. A null format indicates that the scale’s default formatter should be used, which is generated by calling <a href="Quantitative-Scales#linear_tickFormat">scale.tickFormat</a>. In this case, the arguments specified by <a href="#ticks">ticks</a> are likewise passed to scale.tickFormat.</p>
+
+<p>See <a href="Formatting#d3_format">d3.format</a> for help creating formatters. For example, <code>axis.tickFormat(d3.format(",.0f"))</code> will display integers with comma-grouping for thousands. Defining the formatter first: <code>var commasFormatter = d3.format(",.0f")</code> lets you to call it as a function of your data, for example, to add currency units in front of the comma-grouped integers: <code>.tickFormat(function(d) { return "$" + commasFormatter(d); })</code>.</p>
+
+<p>Note: for log scales, the number of ticks cannot be customized; however, the number of tick labels <em>can</em> be customized via <a href="#ticks">ticks</a>. Likewise, the tick formatter for log scales is typically specified via ticks rather than tickFormat, so as to preserve the default label-hiding behavior.</p>
+
+    </div>
+  </body>
+</html>

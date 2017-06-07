@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Upgrading to-3.0</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Upgrading to-3.0</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ <a href="/mbostock/d3/releases">Release Notes</a> ▸ <a href="/mbostock/d3/releases/v3.0.0">3.0</a> ▸ <strong>Upgrading to 3.0</strong></p>
+</blockquote>
+
+<p>D3 3.0, released December 2012, is the first major release since 2.0 was released in August 2011. Since 2.0.0, there have been 10 minor releases and 37 patch releases. 3.0 includes more than 400 commits, significant new features and improvements. In accordance with <a href="http://semver.org/">semantic versioning</a>, this rare major release also includes several backwards incompatibilities. Major releases are needed to keep the API and the code lean by removing deprecated, broken or confusing functionality. This document guides you on how to upgrade from 2.x to 3.0.</p>
+
+<h2 id="how-to-upgrade">How to Upgrade</h2>
+
+<p>If you’re using the official hosted copy of D3, simply <strong>replace d3.v2.min.js with d3.v3.min.js</strong> in your script tag, like this:</p>
+
+<p><code>html
+&lt;script src="http://d3js.org/d3.v3.min.js" charset="utf-8"&gt;&lt;/script&gt;
+</code></p>
+
+<p>(There’s also a <a href="http://d3js.org/d3.v3.js">d3.v3.js</a> for development.) Also, check that you have the DOCTYPE and charset set correctly on your HTML page:</p>
+
+<p><code>html
+&lt;!DOCTYPE html&gt;
+&lt;meta charset="utf-8"&gt;
+</code></p>
+
+<p>If you’d prefer to host your own copy of D3, download the <a href="https://github.com/mbostock/d3/archive/3.0.zip">zipball</a> or clone the repository and pull out the contained d3.js and d3.min.js. Don’t copy-and-paste the JavaScript contents from your browser; that can corrupt UTF-8 characters.</p>
+
+<h2 id="selections">Selections</h2>
+
+<p>The deprecated <strong>selection.map method has been removed</strong>; use <a href="Selections#datum">selection.datum</a> instead.</p>
+
+<h2 id="transitions">Transitions</h2>
+
+<p>D3’s transition subsystem has been significantly overhauled for 3.0 to make it easier to construct complex sequences of transitions. If you’re using transitions extensively, I recommend also reading <a href="http://bost.ocks.org/mike/transition/">Working with Transitions</a>.</p>
+
+<p>The first change is that <strong><a href="Transitions#attr">transition.attr</a>, <a href="Transitions#style">transition.style</a> and <a href="Transitions#text">transition.text</a> now evaluate their property functions immediately</strong>. In 2.x, these functions were evaluated asynchronously when the transition started, which was frequently confusing! Consider the following code:</p>
+
+<p>```js
+// First transition the line to the new data.
+line.datum(newData).transition().attr(“d”, line);</p>
+
+<p>// Then transition the y-axis.
+y.domain(newDomain);
+line.transition().delay(250).attr(“d”, line);
+```</p>
+
+<p>You might expect this code to first transition the line to the new data, and then transition to the new domain. In 2.x, however, this would not work because the first transition.attr would be evaluated <em>after</em> the y-scale’s domain changes. While deferred evaluation is occasionally what you want, immediate evaluation is much easier to understand and debug, so that’s what transitions do in 3.0. (The selection.attr, selection.style, and related methods have always used immediate evaluation for this reason.) This means you can now easily specify transitions that depend on external state, as in the above example showing <a href="http://bl.ocks.org/mbostock/3903818">chained transitions of data and axes</a>. You can also create transitions within for loops without worrying about the dreaded <a href="http://www.mennovanslooten.nl/blog/post/62">closures in loops problem</a>.</p>
+
+<p>The other big change is that <strong><a href="Transitions#select">transition.select</a> and <a href="Transitions#selectAll">transition.selectAll</a> now reselect existing transitions</strong> rather than creating new transitions. This means that you can schedule a transition on a set of elements—say an axis—and then reselect a subset of those elements to customize the transition. This technique of customizing axes is called <em>postselection</em>, and in 3.0 you can use it for transitions as well as selections. For example, if you want to override the text-anchor for axis labels:</p>
+
+<p><code>js
+svg.select(".x.axis").transition()
+    .call(xAxis)
+  .selectAll("text")
+    .style("text-anchor", "start");
+</code></p>
+
+<p>In 2.x, transition.select and transition.selectAll would create a new transition that would conflict with the existing transition. Like selections, transitions in 3.0 and now stored entirely in the DOM, and thus can be reselected. Related to this, <strong><a href="Transitions#transition">transition.transition</a> now creates a new transition that is scheduled to start when the originating transition ends</strong>. This makes it very easy to create chained transitions, say from <a href="http://bl.ocks.org/mbostock/3943967">stacked to grouped bars</a>, without the hassle of listening for “end” events.</p>
+
+<p><code>js
+rect.transition()
+    .duration(500)
+    .delay(function(d, i) { return i * 10; })
+    .attr("x", function(d, i, j) { return x(d.x) + x.rangeBand() / n * j; })
+    .attr("width", x.rangeBand() / n)
+  .transition()
+    .attr("y", function(d) { return y(d.y); })
+    .attr("height", function(d) { return height - y(d.y); });
+</code></p>
+
+<p>The rarely-used <strong>d3.tween method has been removed</strong>. This previously provided a way to override the interpolator used during a transition. Use transition.attrTween, transition.styleTween or transition.tween instead.</p>
+
+<h2 id="requests">Requests</h2>
+
+<p>If you load external data via <a href="Requests">d3.xhr</a>, <strong>consider changing your callback to take an <code>error</code> as the first argument</strong>. While the old single-argument callback is still supported, it is now deprecated in favor of the two-argument version.</p>
+
+<p>If an error occurs loading the resource, you can use the error argument to diagnose the problem, to retry, or to inform the user. Examples of errors include network issues (such as being offline), or missing files (404) or unavailable servers (503). It also means you can now distinguish between a successfully-loaded JSON file that contains <code>null</code> and an error.</p>
+
+<p>In 2.x, you might have written this:</p>
+
+<p><code>js
+d3.json("my-data.json", function(data) {
+  console.log("there are " + data.length + " elements in my dataset");
+});
+</code></p>
+
+<p>While the above code still works, the recommended code in 3.0 handles errors, too:</p>
+
+<p><code>js
+d3.json("my-data.json", function(error, data) {
+  if (error) return console.log("there was an error loading the data: " + error);
+  console.log("there are " + data.length + " elements in my dataset");
+});
+</code></p>
+
+<p>By adopting the standard {error, result} callback convention established by Node.js, D3 can now be used with standard helpers for asynchronous JavaScript, such as <a href="https://github.com/mbostock/queue">Queue.js</a>. For example, if you wanted to load multiple resources in 2.x, you probably would have loaded them serially by nesting callbacks:</p>
+
+<p><code>js
+d3.json("us-states.json", function(states) {
+  d3.tsv("us-state-populations.tsv", function(statePopulations) {
+    // display map here
+  });
+});
+</code></p>
+
+<p>Loading resources serially is slow because it doesn’t use the user’s network connection efficiently. (Also, if one of the above requests fails, subsequent serialized requests will still continue because the error is ignored!) It’s better to parallelize those requests. You can do that manually in vanilla JavaScript, but it’s a pain since you need to track the number of outstanding requests to determine when all resources are available; it’s much easier to use Queue.js:</p>
+
+<p>```js
+queue()
+    .defer(d3.json, “us-states.json”)
+    .defer(d3.tsv, “us-state-populations.tsv”)
+    .await(ready);</p>
+
+<p>function ready(error, states, statePopulations) {
+  // display map here
+}
+```</p>
+
+<p>There are a number of other improvements to d3.xhr, such as the ability to listen for <a href="http://bl.ocks.org/mbostock/3750941">progress events</a> and set request headers. For example:</p>
+
+<p><code>js
+var xhr = d3.json(url)
+    .on("progress", function() { console.log("progress", d3.event.loaded); })
+    .on("load", function(json) { console.log("success!", json); })
+    .on("error", function(error) { console.log("failure!", error); })
+    .get();
+</code></p>
+
+<p>See the <a href="Requests">API reference</a> for details.</p>
+
+<h2 id="geo">Geo</h2>
+
+<p>D3 3.0 includes a powerful new geographic projection system featuring <a href="http://bl.ocks.org/mbostock/3734273">three-axis rotation</a>, <a href="http://bl.ocks.org/mbostock/3788999">antimeridian cutting</a> and <a href="http://bl.ocks.org/mbostock/3795544">adaptive resampling</a>. (And there’s also <a href="https://github.com/mbostock/topojson">TopoJSON</a> for more efficient representation of geometry.) These changes are almost entirely backwards-compatible.</p>
+
+<p>One gotcha is that <strong>d3.geo.path now observes the right-hand rule for polygons</strong>. Geographic features are defined in spherical coordinates. Thus, given a small polygon that approximates a circle, we might assume that this polygon represents an island. However, an equally valid interpretation is that this polygon represents everything <em>but</em> the island; that is, the polygon of the sea surrounding the island. (See Jason’s <a href="http://www.jasondavies.com/maps/clip/">geographic clipping examples</a> for more.) In 2.x, it was not possible to represent polygons that were larger than a hemisphere. By applying the right-hand rule, sub-hemisphere polygons in 3.0 must have clockwise winding order. If your GeoJSON input has polygons in the wrong winding order, you must reverse them, say via <a href="http://www.postgis.org/docs/ST_ForceRHR.html">ST_ForceRHR</a>; you can also convert your GeoJSON to <a href="/mbostock/topojson">TopoJSON</a>, and this will happen automatically.</p>
+
+<p>Many new projections are available in the <a href="https://github.com/d3/d3-geo-projection/">d3.geo.projection plugin</a>. Correspondingly, the <strong>rarely-used <a href="http://bl.ocks.org/mbostock/3734313">Bonne projection</a> has been moved</strong> to a plugin, and the modal <strong>d3.geo.azimuthal projection has been replaced</strong> with separate projections for each mode: <a href="http://bl.ocks.org/mbostock/3757125">d3.geo.orthographic</a>, <a href="http://bl.ocks.org/mbostock/3757101">d3.geo.azimuthalEqualArea</a>, <a href="http://bl.ocks.org/mbostock/3757110">d3.geo.azimuthalEquidistant</a>, <a href="http://bl.ocks.org/mbostock/3757137">d3.geo.stereographic</a> and <a href="http://bl.ocks.org/mbostock/3757349">d3.geo.gnomonic</a>. The <strong>albers.origin method has also been replaced</strong> by projection.rotate and projection.center. Lastly, the alias <strong>d3.geo.greatCircle has been removed</strong>; use the identical d3.geo.circle instead. Also, did you know that you can now use d3.geo.circle to draw circles? This is an easy way to approximate <a href="http://bl.ocks.org/mbostock/4052873">Tissot’s indicatrix</a>.</p>
+
+<h2 id="arrays">Arrays</h2>
+
+<p>The rarely-used <strong>d3.first and d3.last methods have been removed</strong>; in most cases you want to use <a href="Arrays#d3_min">d3.min</a> or <a href="Arrays#d3_max">d3.max</a>. If for some reason you want the minimum element rather than the minimum value, you can simply use array.reduce:</p>
+
+<p><code>js
+var first = objects.reduce(function(p, v) { return p.value &lt; v.value ? p : v; });
+</code></p>
+
+<p>If you want a <a href="http://en.wikipedia.org/wiki/Selection_algorithm">selection algorithm</a> (not to be confused with a D3 selection) to select the top or bottom K of an ordered set, consider using Crossfilter’s <a href="https://github.com/square/crossfilter/blob/master/src/heapselect.js">heapselect implementation</a>. The <strong>d3.split helper has also been removed</strong>, since d3.svg.line and d3.svg.area now provide a <a href="SVG-Shapes#line_defined">defined</a> property for handling <a href="http://bl.ocks.org/mbostock/3035090">missing data</a>.</p>
+
+<h2 id="geom">Geom</h2>
+
+<p>The rarely-used <strong><a href="http://bl.ocks.org/mbostock/4241134">d3.geom.contour</a> method has been moved to <a href="https://github.com/d3/d3-plugins/tree/master/geom/contour">a plugin</a></strong>. The <strong><a href="Quadtree-geom">d3.geom.quadtree</a> method no longer supports array input</strong>, where points are specified as [x, y]; instead, you should specify points as objects {x: x, y: y}.</p>
+
+<h2 id="layouts">Layouts</h2>
+
+<p><strong><a href="Hierarchy-Layout">Hierarchy layouts</a> no longer support wrapping input data</strong> to create nodes. Instead, the layout assigns the computed properties value, depth, etc. on the input data directly. If you were invoking the hierarchy layout using <a href="Hierarchy-Layout#nodes">hierarchy.nodes</a>, rather than using the deprecated method of invoking the layout directly, then you shouldn’t be affected by this change. All of the official examples were changed to use hierarchy.nodes ages ago.</p>
+
+<h2 id="svg">SVG</h2>
+
+<p>The aliases <strong>d3.svg.mouse and d3.svg.touches have been removed</strong>; use <a href="Selections#d3_mouse">d3.mouse</a> and <a href="Selections#d3_touches">d3.touches</a> instead. These methods are identical, and were moved in an earlier minor release that added support for HTML as well as SVG elements.</p>
+
+<h2 id="other-miscellany">Other Miscellany</h2>
+
+<p>The main library is now called <code>d3.js</code> in the repo, but still <code>d3.v3.js</code> on <a href="http://d3js.org/">d3js.org</a>. The official examples are now hosted on <a href="http://bl.ocks.org">bl.ocks.org</a>, rather than the git repo, so that they are easier to find and fork.</p>
+
+<p><a href="https://github.com/mishoo/UglifyJS2">UglifyJS2</a> is now used for minification; run <code>npm install</code> to ensure you have the latest version.</p>
+
+    </div>
+  </body>
+</html>

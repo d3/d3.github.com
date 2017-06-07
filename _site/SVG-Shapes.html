@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>SVG Shapes</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>SVG Shapes</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[SVG]] ▸ <strong>SVG Shapes</strong></p>
+</blockquote>
+
+<table>
+  <tbody>
+    <tr>
+      <td>SVG has a number of built-in simple shapes, such as axis-aligned rectangles and circles. For greater flexibility, you can use SVG’s [[path</td>
+      <td>http://www.w3.org/TR/SVG/paths.html#PathElement]] element in conjunction with D3’s path data generators. If you’re familiar with Protovis, you’ll note that D3’s path generators are similar to Protovis marks.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>A shape generator, such as that returned by <a href="SVG-Shapes#arc">d3.svg.arc</a>, is both an object and a function. That is: you can call the shape like any other function, and the shape has additional methods that change its behavior. Like other classes in D3, shapes follow the method chaining pattern where setter methods return the shape itself, allowing multiple setters to be invoked in a concise statement.</p>
+
+<h2 id="svg-elements">SVG Elements</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td>All SVG shapes can be transformed using the [[transform</td>
+      <td>http://www.w3.org/TR/SVG/coords.html#TransformAttribute]] attribute. You can apply the transform either to the shape directly, or to a containing [[g</td>
+      <td>http://www.w3.org/TR/SVG/struct.html#Groups]] element. Thus, when a shape is defined as “axis-aligned”, that merely means axis-aligned within the local coordinate system; you can still rotate and otherwise transform the shape. Shapes can be filled and stroked using the [[fill</td>
+      <td>http://www.w3.org/TR/SVG/painting.html#FillProperties]] and [[stroke</td>
+      <td>http://www.w3.org/TR/SVG/painting.html#StrokeProperties]] styles. (You can also use the attributes of the same name, but styles are recommended as they are compatible with external stylesheets.)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_rect" href="SVG-Shapes#svg_rect">#</a> svg:<b>rect</b> x=”0” y=”0” width=”0” height=”0” rx=”0” ry=”0”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[rect</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#RectElement]] element defines an axis-aligned rectangle. The top-left corner of the rectangle is positioned using the <em>x</em> and <em>y</em> attributes, while its size is specified using <em>width</em> and <em>height</em>. A rounded rectangle can be produced using the optional <em>rx</em> and <em>ry</em> attributes.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_circle" href="SVG-Shapes#svg_circle">#</a> svg:<b>circle</b> cx=”0” cy=”0” r=”0”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[circle</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#CircleElement]] element defines a circle based on a center point and a radius. The center is positioned using the <em>cx</em> and <em>cy</em> attributes, while the radius is specified using the <em>r</em> attribute.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_ellipse" href="SVG-Shapes#svg_ellipse">#</a> svg:<b>ellipse</b> cx=”0” cy=”0” rx=”0” ry=”0”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[ellipse</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#EllipseElement]] element defines an axis-aligned ellipse based on a center point and two radii. The center is positioned using the <em>cx</em> and <em>cy</em> attributes, while the radii are specified using the <em>rx</em> and <em>ry</em> attributes.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_line" href="SVG-Shapes#svg_line">#</a> svg:<b>line</b> x1=”0” y1=”0” x2=”0” y2=”0”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[line</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#LineElement]] element defines a line segment that starts at one point and ends at another. The first point is specified using the <em>x1</em> and <em>y1</em> attributes, while the second point is specified using the <em>x2</em> and <em>y2</em> attributes. The line element is a popular choice for drawing rules, reference lines, axes and tick marks.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_polyline" href="SVG-Shapes#svg_polyline">#</a> svg:<b>polyline</b> points=””</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[polyline</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#PolylineElement]] element defines a set of connected straight line segments. Typically, polyline elements define open shapes. The points that make up the polyline are specified using the <em>points</em> attribute. Note: in D3, it is typically more convenient and flexible to use the <a href="SVG-Shapes#line">d3.svg.line</a> path generator in conjunction with a path element.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_polygon" href="SVG-Shapes#svg_polygon">#</a> svg:<b>polygon</b> points=””</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[polygon</td>
+      <td>http://www.w3.org/TR/SVG/shapes.html#PolygonElement]] element defines a closed shape consisting of a set of connected straight line segments. The points that make up the polygon are specified using the <em>points</em> attribute. Note: in D3, it is typically more convenient and flexible to use the <a href="SVG-Shapes#line">d3.svg.line</a> path generator in conjunction with a path element. The line can be closed using the [[closepath</td>
+      <td>http://www.w3.org/TR/SVG/paths.html#PathDataClosePathCommand]] “Z” command.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_text" href="SVG-Shapes#svg_text">#</a> svg:<b>text</b> x=”0” y=”0” dx=”0” dy=”0” text-anchor=”start”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[text</td>
+      <td>http://www.w3.org/TR/SVG/text.html#TextElement]] element defines a graphics element consisting of text. The text content of the text element (see the [[text</td>
+      <td>Selections#text]] operator) define the characters to be rendered. The anchor position of the text element is controlled using the <em>x</em> and <em>y</em> attributes; additionally, the text can be offset from the anchor using <em>dx</em> and <em>dy</em> attributes. This offset is particularly convenient for controlling the text margin and baseline, as you can use “em” units which are relative to the font size. The horizontal text alignment is controlling using the <em>text-anchor</em> attribute. Here are a few examples:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code>xml
+&lt;svg:text text-anchor="start"&gt;left-align, bottom-baseline&lt;/svg:text&gt;
+&lt;svg:text text-anchor="middle"&gt;center-align, bottom-baseline&lt;/svg:text&gt;
+&lt;svg:text text-anchor="end"&gt;right-align, bottom-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".35em" text-anchor="start"&gt;left-align, middle-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".35em" text-anchor="middle"&gt;center-align, middle-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".35em" text-anchor="end"&gt;right-align, middle-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".71em" text-anchor="start"&gt;left-align, top-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".71em" text-anchor="middle"&gt;center-align, top-baseline&lt;/svg:text&gt;
+&lt;svg:text dy=".71em" text-anchor="end"&gt;right-align, top-baseline&lt;/svg:text&gt;
+</code></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>It’s possible that there is a better way to specify the text baseline using SVG’s [[baseline alignment properties</td>
+      <td>http://www.w3.org/TR/SVG/text.html#BaselineAlignmentProperties]], but these don’t seem to be widely supported by browsers. Lastly, the font color is typically specified using the <em>fill</em> style (you can also use <em>stroke</em>), and the font is controlled using the <em>font</em>, <em>font-family</em>, <em>font-size</em> and related styles. Some browsers also support CSS3 properties, such as <em>text-shadow</em>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="svg_path" href="SVG-Shapes#svg_path">#</a> svg:<b>path</b> d=”” transform=””</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The [[path</td>
+      <td>http://www.w3.org/TR/SVG/paths.html#PathElement]] element represents the outline of a shape which can be filled, stroked, used as a clipping path, or any combination of the three. The <em>d</em> attribute defines the path data, which is a [[mini-language</td>
+      <td>http://www.w3.org/TR/SVG/paths.html#PathData]] of path commands, such as <em>moveto</em> (M), <em>lineto</em> (L) and <em>closepath</em> (Z). The path element is a generalization of all other shapes in SVG, and can be used to draw nearly anything!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="path-data-generators">Path Data Generators</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td>To simplify the construction of the <em>d</em> attribute for path elements, D3 includes a number of helper classes for generating path data. If you’re familiar with [[Protovis</td>
+      <td>http://vis.stanford.edu/protovis/]], you’ll find that these path generators are similar to Protovis mark types: each generator is a function of data. So, if your data is a sequence of <em>xy</em> coordinates, you can define accessor functions that the path generators use to produce path data. For example, you might define a line generator:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code>javascript
+var line = d3.svg.line()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; })
+    .interpolate("basis");
+</code></p>
+
+<p>Then later on, you can use this function to set the <em>d</em> attribute:</p>
+
+<p><code>javascript
+g.append("path")
+    .attr("d", line);
+</code></p>
+
+<p>Whatever data is bound to <code>g</code> (in this example) will be passed to the <code>line</code> instance. Thus, the data must be specified as an array. For every element in the data array, the <em>x</em>- and <em>y</em>-accessor functions are used to pull out the control point coordinates.</p>
+
+<p>A path generator, such as that returned by d3.svg.line, is both an object and a function. That is: you can call the generator like any other function, and the generator has additional methods that change its behavior. Like other classes in D3, path generators follow the method chaining pattern where setter methods return the generator itself, allowing multiple setters to be invoked in a concise statement.</p>
+
+<p><a name="line" href="SVG-Shapes#line">#</a> d3.svg.<b>line</b>()</p>
+
+<p>Constructs a new line generator with the default <em>x</em>- and <em>y</em>-accessor functions (that assume the input data is a two-element array of numbers; see below for details), and linear interpolation. The returned function generates path data for an open piecewise linear curve, or polyline, as in a line chart:</p>
+
+<p><img src="line.png" alt="line" /></p>
+
+<p>By changing the interpolation, you can also generate splines and step functions. Also, don’t be afraid to tack on additional path commands at the end. For example, if you want to generate a closed path, append a closepath (Z) command:</p>
+
+<p><code>javascript
+g.append("path")
+    .attr("d", function(d) { return line(d) + "Z"; });
+</code></p>
+
+<p>The line generator is designed to work in conjunction with the <a href="SVG-Shapes#area">area</a> generator. For example, when producing an area chart, you might use an area generator with a fill style, and a line generator with a stroke style to emphasize the top edge of the area. Since the line generator is only used to set the <em>d</em> attribute, you can control the appearance of the line using standard SVG styles and attributes, such as <em>fill</em>, <em>stroke</em> and <em>stroke-width</em>.</p>
+
+<p><a name="_line" href="SVG-Shapes#_line">#</a> <b>line</b>(<i>data</i>)</p>
+
+<p>Returns the path data string for the specified array of <em>data</em> elements, or null if the path is empty.</p>
+
+<p><a name="line_x" href="SVG-Shapes#line_x">#</a> line.<b>x</b>([<i>x</i>])</p>
+
+<p>If <em>x</em> is specified, sets the <em>x</em>-accessor to the specified function or constant. If <em>x</em> is not specified, returns the current <em>x</em>-accessor. This accessor is invoked for each element in the data array passed to the line generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function x(d) {
+  return d[0];
+}
+</code></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Typically, an <em>x</em>-accessor is specified because the input data is in a different format, or because you want to apply a [[scale</td>
+      <td>Quantitative Scales]]. For example, if your data is specified as an object with <code>x</code> and <code>y</code> attributes, rather than a tuple, you might dereference these attributes and apply the scales simultaneously:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>```javascript
+var x = d3.scale.linear().range([0, w]),
+    y = d3.scale.linear().range([h, 0]);</p>
+
+<p>var line = d3.svg.line()
+    .x(function(d) { return x(d.x); })
+    .y(function(d) { return y(d.y); });
+```</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The <em>x</em>-accessor is invoked in the same manner as other value functions in D3. The <em>this</em> context of the function is the current element in the selection. (Technically, the same <em>this</em> context that invokes the line function; however, in the common case that the line generator is passed to the [[attr</td>
+      <td>Selections#attr]] operator, the <em>this</em> context will be the associated DOM element.) The function is passed two arguments, the current datum (d) and the current index (i). In this context, the index is the index into the array of control points, rather than the index of the current element in the selection. The <em>x</em>-accessor is invoked exactly once per datum, in the order specified by the data array. Thus, it is possible to specify a nondeterministic accessor, such as a random number generator. It is also possible to specify the <em>x</em>-accessor as a constant rather than a function, in which case all points will have the same <em>x</em>-coordinate.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="line_y" href="SVG-Shapes#line_y">#</a> line.<b>y</b>([<i>y</i>])</p>
+
+<p>If <em>y</em> is specified, sets the <em>y</em>-accessor to the specified function or constant. If <em>y</em> is not specified, returns the current <em>y</em>-accessor. This accessor is invoked for each element in the data array passed to the line generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function y(d) {
+  return d[1];
+}
+</code></p>
+
+<p>For an example of how to specify a <em>y</em>-accessor, see the similar <a href="SVG-Shapes#line_x">x</a> accessor. Note that, like most other graphics libraries, SVG uses the top-left corner as the origin and thus higher values of <em>y</em> are <em>lower</em> on the screen. For visualization we often want the origin in the bottom-left corner instead; one easy way to accomplish this is to invert the range of the <em>y</em>-scale by using range([h, 0]) instead of range([0, h]).</p>
+
+<p><a name="line_interpolate" href="SVG-Shapes#line_interpolate">#</a> line.<b>interpolate</b>([<i>interpolate</i>])</p>
+
+<p>If <em>interpolate</em> is specified, sets the interpolation mode to the specified string or function. If <em>interpolate</em> is not specified, returns the current interpolation mode. The following named interpolation modes are supported:</p>
+
+<ul>
+  <li>linear - piecewise linear segments, as in a polyline.</li>
+  <li>linear-closed - close the linear segments to form a polygon.</li>
+  <li>step - alternate between horizontal and vertical segments, as in a step function.</li>
+  <li>step-before - alternate between vertical and horizontal segments, as in a step function.</li>
+  <li>step-after - alternate between horizontal and vertical segments, as in a step function.</li>
+  <li>basis - a <a href="http://en.wikipedia.org/wiki/B-spline">B-spline</a>, with control point duplication on the ends.</li>
+  <li>basis-open - an open B-spline; may not intersect the start or end.</li>
+  <li>basis-closed - a closed B-spline, as in a loop.</li>
+  <li>bundle - equivalent to <em>basis</em>, except the <em>tension</em> parameter is used to straighten the spline.</li>
+  <li>cardinal - a <a href="http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline">Cardinal spline</a>, with control point duplication on the ends.</li>
+  <li>cardinal-open - an open Cardinal spline; may not intersect the start or end, but will intersect other control points.</li>
+  <li>cardinal-closed - a closed Cardinal spline, as in a loop.</li>
+  <li>monotone - <a href="http://en.wikipedia.org/wiki/Monotone_cubic_interpolation">cubic interpolation</a> that preserves monotonicity in <em>y</em>.</li>
+</ul>
+
+<p>The behavior of some of these interpolation modes may be further customized by specifying a <a href="SVG-Shapes#line_tension">tension</a>.</p>
+
+<p>If <em>interpolate</em> is a function, then this function will be invoked to convert an array of points of the form [​[x0, y0], [x1, y1], …], returning an <a href="http://www.w3.org/TR/SVG/paths.html#PathData">SVG path data string</a> that will be used to display the line. The “M” at the start of the string is implied and should not be returned. For example, linear interpolation is implemented as:</p>
+
+<p><code>js
+function interpolateLinear(points) {
+  return points.join("L");
+}
+</code></p>
+
+<p>This is equivalent to (and more efficient than):</p>
+
+<p><code>js
+function interpolateLinear(points) {
+  var path = "";
+  for (var i = 0; i &lt; points.length; i++) {
+    if (i) path += "L";
+    path += points[i][0] + "," + points[i][1];
+  }
+  return path;
+}
+</code></p>
+
+<p>See <a href="http://bl.ocks.org/mbostock/3310323">bl.ocks.org/3310323</a> for another example of custom line interpolation.</p>
+
+<p><a name="line_tension" href="SVG-Shapes#line_tension">#</a> line.<b>tension</b>([<i>tension</i>])</p>
+
+<p>If <em>tension</em> is specified, sets the Cardinal spline interpolation tension to the specified number in the range [0, 1]. If <em>tension</em> is not specified, returns the current tension. The tension only affects the Cardinal interpolation modes: cardinal, cardinal-open and cardinal-closed. The default tension is 0.7. In some sense, this can be interpreted as the length of the tangent; 1 will yield all zero tangents, and 0 yields a <a href="http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline">Catmull-Rom spline</a>.</p>
+
+<p>Note that the tension must be specified as a constant, rather than a function, as it is constant for the entirety of the line. However, it is still possible to generate multiple lines with different tensions using the same generator. For example:</p>
+
+<p><code>javascript
+svg.selectAll("path")
+    .data([0, 0.2, 0.4, 0.6, 0.8, 1])
+  .enter().append("path")
+    .attr("d", function(d) { return line.tension(d)(data); });
+</code></p>
+
+<p>In this example (see the <a href="http://bl.ocks.org/mbostock/1016220">live version</a>), the tension is set before each invocation of the line generator, thus resulting in lines with the same data but different paths.</p>
+
+<p><a name="line_defined" href="#line_defined">#</a> line.<b>defined</b>([<i>defined</i>])</p>
+
+<p>Gets or sets the accessor function that controls where the line is defined. If <em>defined</em> is specified, sets the new accessor function and returns the line. If <em>defined</em> is not specified, returns the current accessor which defaults to <code>function() { return true; }</code>. The defined accessor can be used to define where the line is defined and undefined, which is typically useful in conjunction with missing data; the generated path data will automatically be broken into multiple distinct subpaths, skipping undefined data. For example, if you want to ignore <em>y</em>-values that are not a number (or undefined), you can say:</p>
+
+<p><code>js
+line.defined(function(d) { return !isNaN(d[1]); });
+</code></p>
+
+<p><a name="line_radial" href="SVG-Shapes#line_radial">#</a> d3.svg.line.<b>radial</b>()</p>
+
+<p>Constructs a new radial line generator with the default <em>radius</em>- and <em>angle</em>-accessor functions (that assume the input data is a two-element array of numbers; see below for details), and linear interpolation. The returned function generates path data for an open piecewise linear curve, or polyline, as with the Cartesian <a href="SVG-Shapes#line">line</a> generator.</p>
+
+<p><a name="_line_radial" href="SVG-Shapes#_line_radial">#</a> <b>line</b>(<i>data</i>)</p>
+
+<p>Returns the path data string for the specified array of <em>data</em> elements.</p>
+
+<p><a name="line_radial_radius" href="SVG-Shapes#line_radial_radius">#</a> line.<b>radius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the <em>radius</em>-accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current <em>radius</em>-accessor. This accessor is invoked for each element in the data array passed to the line generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function radius(d) {
+  return d[0];
+}
+</code></p>
+
+<p>This method is a transformation of the Cartesian <a href="SVG-Shapes#line_x">line.x</a> method.</p>
+
+<p><a name="line_radial_angle" href="SVG-Shapes#line_radial_angle">#</a> line.<b>angle</b>([<i>angle</i>])</p>
+
+<p>If <em>angle</em> is specified, sets the <em>angle</em>-accessor to the specified function or constant in radians. If <em>angle</em> is not specified, returns the current <em>angle</em>-accessor. This accessor is invoked for each element in the data array passed to the line generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function angle(d) {
+  return d[1];
+}
+</code></p>
+
+<p>This method is a transformation of the Cartesian <a href="SVG-Shapes#line_y">line.y</a> method.</p>
+
+<p><a name="line_radial_interpolate" href="SVG-Shapes#line_radial_interpolate">#</a> line.<b>interpolate</b>([<i>interpolate</i>])</p>
+
+<p>See the Cartesian <a href="SVG-Shapes#line_interpolate">line.interpolate</a> method.  The interpolation occurs after projecting to Cartesian space.</p>
+
+<p><a name="line_radial_tension" href="SVG-Shapes#line_radial_tension">#</a> line.<b>tension</b>([<i>tension</i>])</p>
+
+<p>See the Cartesian <a href="SVG-Shapes#line_tension">line.tension</a> method.  The interpolation occurs after projecting to Cartesian space.</p>
+
+<p><a name="line_radial_defined" href="SVG-Shapes#line_radial_defined">#</a> line.<b>defined</b>([<i>defined</i>])</p>
+
+<p>See the Cartesian <a href="SVG-Shapes#line_defined">line.defined</a> method.</p>
+
+<p><a name="area" href="SVG-Shapes#area">#</a> d3.svg.<b>area</b>()</p>
+
+<p>Constructs a new area generator with the default <em>x</em>-, <em>y0</em>- and <em>y1</em>-accessor functions (that assume the input data is a two-element array of numbers; see below for details), and linear interpolation. The returned function generates path data for a closed piecewise linear curve, or polygon, as in an area chart:</p>
+
+<p><img src="area.png" alt="area" /></p>
+
+<p>Conceptually, the polygon is formed using two <a href="SVG-Shapes#line">lines</a>: the top line is formed using the <em>x</em>- and <em>y1</em>-accessor functions, and proceeds from left-to-right; the bottom line is added to this line, using the <em>x</em>- and <em>y0</em>-accessor functions, and proceeds from right-to-left. By setting the <a href="http://www.w3.org/TR/SVG/coords.html#TransformAttribute">transform</a> attribute to rotate the path element by 90 degrees, you can also generate vertical areas. By changing the interpolation, you can also generate splines and step functions.</p>
+
+<p>The area generator is designed to work in conjunction with the <a href="SVG-Shapes#line">line</a> generator. For example, when producing an area chart, you might use an area generator with a fill style, and a line generator with a stroke style to emphasize the top edge of the area. Since the area generator is only used to set the <em>d</em> attribute, you can control the appearance of the area using standard SVG styles and attributes, such as <em>fill</em>.</p>
+
+<p>To create <a href="http://mbostock.github.com/d3/ex/stream.html">streamgraphs</a> (stacked area charts), use the <a href="Stack-Layout">stack</a> layout. This layout sets the y0 attribute for each value in a series, which can be used from the <em>y0</em>- and <em>y1</em>-accessors. Note that each series must have the same number of values per series, and each value must have the same <em>x</em>-coordinate; if you have missing data or inconsistent <em>x</em>-coordinates per series, you must resample and interpolate your data before computing the stacked layout.</p>
+
+<p><a name="_area" href="SVG-Shapes#_area">#</a> <b>area</b>(<i>data</i>)</p>
+
+<p>Returns the path data string for the specified array of <em>data</em> elements, or null if the path is empty.</p>
+
+<p><a name="area_x" href="SVG-Shapes#area_x">#</a> area.<b>x</b>([<i>x</i>])</p>
+
+<p>If <em>x</em> is specified, sets the <em>x</em>-accessor to the specified function or constant. If <em>x</em> is not specified, returns the current <em>x</em>-accessor. This accessor is invoked for each element in the data array passed to the area generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function x(d) {
+  return d[0];
+}
+</code></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Typically, an <em>x</em>-accessor is specified because the input data is in a different format, or because you want to apply a [[scale</td>
+      <td>Quantitative Scales]]. For example, if your data is specified as an object with <code>x</code> and <code>y</code> attributes, rather than a tuple, you might dereference these attributes and apply the scales simultaneously:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>```javascript
+var x = d3.scale.linear().range([0, w]),
+    y = d3.scale.linear().range([h, 0]);</p>
+
+<p>var area = d3.svg.area()
+    .x(function(d) { return x(d.x); })
+    .y0(h)
+    .y1(function(d) { return y(d.y); });
+```</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The <em>x</em>-accessor is invoked in the same manner as other value functions in D3. The <em>this</em> context of the function is the current element in the selection. (Technically, the same <em>this</em> context that invokes the area function; however, in the common case that the area generator is passed to the [[attr</td>
+      <td>Selections#attr]] operator, the <em>this</em> context will be the associated DOM element.) The function is passed two arguments, the current datum (d) and the current index (i). In this context, the index is the index into the array of control points, rather than the index of the current element in the selection. The <em>x</em>-accessor is invoked exactly once per datum, in the order specified by the data array. Thus, it is possible to specify a non-deterministic accessor, such as a random number generator. It is also possible to specify the <em>x</em>-accessor as a constant rather than a function, in which case all points will have the same <em>x</em>-coordinate.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="area_x0" href="SVG-Shapes#area_x0">#</a> area.<b>x0</b>([<i>x0</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_x1" href="SVG-Shapes#area_x1">#</a> area.<b>x1</b>([<i>x1</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_y" href="SVG-Shapes#area_y">#</a> area.<b>y</b>([<i>y</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_y0" href="SVG-Shapes#area_y0">#</a> area.<b>y0</b>([<i>y0</i>])</p>
+
+<p>If <em>y0</em> is specified, sets the <em>y0</em>-accessor to the specified function or constant. If <em>y0</em> is not specified, returns the current <em>y0</em>-accessor. This accessor is invoked for each element in the data array passed to the area generator. The default accessor is the constant zero, thus using a fixed baseline at <em>y</em> = 0. For an example of how to specify a <em>y0</em>-accessor, see the similar <a href="SVG-Shapes#area_x">x</a> accessor.</p>
+
+<p><a name="area_y1" href="SVG-Shapes#area_y1">#</a> area.<b>y1</b>([<i>y1</i>])</p>
+
+<p>If <em>y1</em> is specified, sets the <em>y1</em>-accessor to the specified function or constant. If <em>y1</em> is not specified, returns the current <em>y1</em>-accessor. This accessor is invoked for each element in the data array passed to the area generator. The default accessor assumes that each input element is a two-element array of numbers:</p>
+
+<p><code>javascript
+function y1(d) {
+  return d[1];
+}
+</code></p>
+
+<p>For an example of how to specify a <em>y1</em>-accessor, see the similar <a href="SVG-Shapes#area_x">x</a> accessor. Note that, like most other graphics libraries, SVG uses the top-left corner as the origin and thus higher values of <em>y</em> are <em>lower</em> on the screen. For visualization we often want the origin in the bottom-left corner instead; one easy way to accomplish this is to invert the range of the <em>y</em>-scale by using range([h, 0]) instead of range([0, h]).</p>
+
+<p><a name="area_interpolate" href="SVG-Shapes#area_interpolate">#</a> area.<b>interpolate</b>([<i>interpolate</i>])</p>
+
+<p>If <em>interpolate</em> is specified, sets the interpolation mode to the specified string or function. If <em>interpolate</em> is not specified, returns the current interpolation mode. The following named modes are supported:</p>
+
+<ul>
+  <li>linear - piecewise linear segments, as in a polyline.</li>
+  <li>step - alternate between horizontal and vertical segments, as in a step function.</li>
+  <li>step-before - alternate between vertical and horizontal segments, as in a step function.</li>
+  <li>step-after - alternate between horizontal and vertical segments, as in a step function.</li>
+  <li>basis - a <a href="http://en.wikipedia.org/wiki/B-spline">B-spline</a>, with control point duplication on the ends.</li>
+  <li>basis-open - an open B-spline; may not intersect the start or end.</li>
+  <li>cardinal - a <a href="http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline">Cardinal spline</a>, with control point duplication on the ends.</li>
+  <li>cardinal-open - an open Cardinal spline; may not intersect the start or end, but will intersect other control points.</li>
+  <li>monotone - <a href="http://en.wikipedia.org/wiki/Monotone_cubic_interpolation">cubic interpolation</a> that preserves monotonicity in <em>y</em>.</li>
+</ul>
+
+<p>The behavior of some of these interpolation modes may be further customized by specifying a <a href="SVG-Shapes#area_tension">tension</a>. Technically, the basis-closed and cardinal-closed interpolation modes are also supported, but these make more sense in the context of a line rather than an area.</p>
+
+<p>If <em>interpolate</em> is a function, then this function will be invoked to convert an array of points of the form [​[x0, y0], [x1, y1], …], returning an <a href="http://www.w3.org/TR/SVG/paths.html#PathData">SVG path data string</a> that will be used to display the area. The “M” at the start of the string is implied and should not be returned. For example, linear interpolation is implemented as:</p>
+
+<p><code>js
+function interpolateLinear(points) {
+  return points.join("L");
+}
+</code></p>
+
+<p>This is equivalent to (and more efficient than):</p>
+
+<p><code>js
+function interpolateLinear(points) {
+  var path = "";
+  for (var i = 0; i &lt; points.length; i++) {
+    if (i) path += "L";
+    path += points[i][0] + "," + points[i][1];
+  }
+  return path;
+}
+</code></p>
+
+<p>See <a href="http://bl.ocks.org/mbostock/3310323">bl.ocks.org/3310323</a> for another example of custom interpolation.</p>
+
+<p><a name="area_tension" href="SVG-Shapes#area_tension">#</a> area.<b>tension</b>([<i>tension</i>])</p>
+
+<p>If <em>tension</em> is specified, sets the Cardinal spline interpolation tension to the specified number in the range [0, 1]. If <em>tension</em> is not specified, returns the current tension. The tension only affects the Cardinal interpolation modes: cardinal, cardinal-open and cardinal-closed. The default tension is 0.7. In some sense, this can be interpreted as the length of the tangent; 1 will yield all zero tangents, and 0 yields a <a href="http://en.wikipedia.org/wiki/Cubic_Hermite_spline#Catmull.E2.80.93Rom_spline">Catmull-Rom spline</a>. Note that the tension must be specified as a constant, rather than a function, as it is constant for the entirety of the area.</p>
+
+<p><a name="area_defined" href="#area_defined">#</a> area.<b>defined</b>([<i>defined</i>])</p>
+
+<p>Gets or sets the accessor function that controls where the area is defined. If <em>defined</em> is specified, sets the new accessor function and returns the area. If <em>defined</em> is not specified, returns the current accessor which defaults to <code>function() { return true; }</code>. The defined accessor can be used to define where the area is defined and undefined, which is typically useful in conjunction with missing data; the generated path data will automatically be broken into multiple distinct subpaths, skipping undefined data. For example, if you want to ignore <em>y</em>-values that are not a number (or undefined), you can say:</p>
+
+<p><code>js
+area.defined(function(d) { return !isNaN(d[1]); });
+</code></p>
+
+<p><a name="area_radial" href="SVG-Shapes#area_radial">#</a> d3.svg.area.<b>radial</b>()</p>
+
+<p>…</p>
+
+<p><a name="_area_radial" href="SVG-Shapes#_area_radial">#</a> <b>area</b>(<i>data</i>)</p>
+
+<p>Returns the path data string for the specified array of <em>data</em> elements.</p>
+
+<p><a name="area_radial_radius" href="SVG-Shapes#area_radial_radius">#</a> area.<b>radius</b>([<i>radius</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_radial_innerRadius" href="SVG-Shapes#area_radial_innerRadius">#</a> area.<b>innerRadius</b>([<i>radius</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_radial_outerRadius" href="SVG-Shapes#area_radial_innerRadius">#</a> area.<b>innerRadius</b>([<i>radius</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_radial_angle" href="SVG-Shapes#area_radial_angle">#</a> area.<b>angle</b>([<i>angle</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_radial_startAngle" href="SVG-Shapes#area_radial_startAngle">#</a> area.<b>startAngle</b>([<i>angle</i>])</p>
+
+<p>…</p>
+
+<p><a name="area_radial_endAngle" href="SVG-Shapes#area_radial_endAngle">#</a> area.<b>endAngle</b>([<i>angle</i>])</p>
+
+<p>…</p>
+
+<p><a name="arc" href="SVG-Shapes#arc">#</a> d3.svg.<b>arc</b>()</p>
+
+<p>Constructs a new arc generator with the default inner radius, outer radius, start angle and end angle accessor functions (that assume the input data is an object with named attributes matching the accessors; see below for details). While the default accessors assume that the arc dimensions are all specified dynamically, it is very common to set one or more of the dimensions as a constant, such as setting the inner radius to zero for a pie chart. The returned function generates path data for a closed solid arc, as in a pie or donut chart:</p>
+
+<p><img src="arc.png" alt="arc" /></p>
+
+<p>In fact, four forms are possible: a <a href="http://en.wikipedia.org/wiki/Circle">circle</a> (when the inner radius is zero and the angular span is greater than or equal to 2π), a <a href="http://en.wikipedia.org/wiki/Circular_sector">circular sector</a> (when the inner radius is zero and the angular span is less than 2π), an <a href="http://en.wikipedia.org/wiki/Annulus_(mathematics)">annulus</a> (when the inner radius is non-zero and the angular span is greater than or equal to 2π), and an annular sector (when the inner radius is non-zero and the angular span is less than 2π).</p>
+
+<p><a name="_arc" href="SVG-Shapes#_arc">#</a> <b>arc</b>(<i>datum</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the specified <em>datum</em>. An optional <em>index</em> may be specified, which is passed through to the arc’s accessor functions.</p>
+
+<p><a name="arc_innerRadius" href="SVG-Shapes#arc_innerRadius">#</a> arc.<b>innerRadius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the inner radius accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current inner radius accessor, which defaults to:</p>
+
+<p><code>javascript
+function innerRadius(d) {
+  return d.innerRadius;
+}
+</code></p>
+
+<p>The arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function. An inner radius accessor function is useful for handling data in a different format or for applying a <a href="Quantitative Scales">quantitative scale</a> to encode data. A constant inner radius may be used to create a standard pie or donut chart.</p>
+
+<p><a name="arc_outerRadius" href="SVG-Shapes#arc_outerRadius">#</a> arc.<b>outerRadius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the outer radius accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current outer radius accessor, which defaults to:</p>
+
+<p><code>javascript
+function outerRadius(d) {
+  return d.outerRadius;
+}
+</code></p>
+
+<p>The arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function. An outer radius accessor function is useful for handling data in a different format or for applying a <a href="Quantitative Scales">quantitative scale</a> to encode data. A constant outer radius may be used to create a standard pie or donut chart.</p>
+
+<p><a name="arc_cornerRadius" href="#arc_cornerRadius">#</a> arc.<b>cornerRadius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the corner radius accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current outer radius accessor, which defaults to zero. Although a constant corner radius is typically used, the corner radius may also be specified as a function. The arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function.</p>
+
+<p><a name="arc_padRadius" href="#arc_padRadius">#</a> arc.<b>padRadius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the pad radius accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current pad radius accessor, which defaults to “auto”. The “auto” pad radius method computes the pad radius based on the previously-computed <a href="#arc_innerRadius">inner</a> and <a href="#arc_outerRadius">outer</a> as:</p>
+
+<p><code>javascript
+function padRadius(innerRadius, outerRadius) {
+  return Math.sqrt(innerRadius * innerRadius + outerRadius * outerRadius);
+}
+</code></p>
+
+<p>This implementation is designed to preserve the approximate relative area of arcs in conjunction with <a href="Pie-Layout#padAngle">pie.padAngle</a>.</p>
+
+<p>The pad radius is the radius at which the <a href="#arc_padAngle">pad angle</a> is applied: the nominal padding distance between parallel edges of adjacent arcs is defined as padRadius * padAngle. (The padding distance may be smaller if the inner radius is small relative to the pad angle.) The pad radius typically does not need to be changed from “auto”, but can be useful to ensure parallel edges between arcs with differing inner or outer radii, as when <a href="http://bl.ocks.org/mbostock/32bd93b1cc0fbccc9bf9">extending an arc on hover</a>.</p>
+
+<p>If the pad radius is specified as an accessor function, the arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function.</p>
+
+<p><a name="arc_startAngle" href="SVG-Shapes#arc_startAngle">#</a> arc.<b>startAngle</b>([<i>angle</i>])</p>
+
+<p>If <em>angle</em> is specified, sets the start angle accessor to the specified function or constant. If <em>angle</em> is not specified, returns the current start angle accessor, which defaults to:</p>
+
+<p><code>javascript
+function startAngle(d) {
+  return d.startAngle;
+}
+</code></p>
+
+<p>Angles are specified in radians; 0 corresponds to 12 o’clock (negative <em>y</em>) and proceeds clockwise, repeating at 2π. If the start angle is specified as an accessor function, the arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function.</p>
+
+<p>For constructing pie or donut charts, you will need to compute the start angle of each arc as the end angle of the previous arc. This can be done conveniently using the <a href="Pie-Layout">pie layout</a>, which takes an array of input data and returns arc objects with <code>startAngle</code> and <code>endAngle</code> attributes compatible with the default arc accessors.</p>
+
+<p><a name="arc_endAngle" href="SVG-Shapes#arc_endAngle">#</a> arc.<b>endAngle</b>([<i>angle</i>])</p>
+
+<p>If <em>angle</em> is specified, sets the end angle accessor to the specified function or constant. If <em>angle</em> is not specified, returns the current end angle accessor, which defaults to:</p>
+
+<p><code>javascript
+function endAngle(d) {
+  return d.endAngle;
+}
+</code></p>
+
+<p>Angles are specified in radians; 0 corresponds to 12 o’clock (negative <em>y</em>) and proceeds clockwise, repeating at 2π. If the end angle is specified as an accessor function, the arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function.</p>
+
+<p>For constructing pie or donut charts, you will need to compute the end angle of each arc as appropriate. This can be done conveniently using the <a href="Pie-Layout">pie layout</a>, which takes an array of input data and returns arc objects with <code>startAngle</code> and <code>endAngle</code> attributes compatible with the default arc accessors.</p>
+
+<p><a name="arc_padAngle" href="#arc_padAngle">#</a> arc.<b>padAngle</b>([<i>angle</i>])</p>
+
+<p>If <em>angle</em> is specified, sets the pad angle accessor to the specified function or constant. If <em>angle</em> is not specified, returns the current pad angle accessor, which defaults to:</p>
+
+<p><code>javascript
+function padAngle(d) {
+  return d.padAngle;
+}
+</code></p>
+
+<p>Angles are specified in radians. If the pad angle is specified as an accessor function, the arc generator arguments (typically <code>d</code> and <code>i</code>) and context (<code>this</code>) are passed through to the accessor function.</p>
+
+<p>Although the pad angle can be specified as a constant, it is preferable to use the default pad angle accessor and instead use <a href="Pie-Layout#padAngle">pie.padAngle</a> to compute the appropriate pad angle, and to recompute the start and end angles of each arc so as to preserve approximate relative areas.</p>
+
+<p><a name="arc_centroid" href="SVG-Shapes#arc_centroid">#</a> arc.<b>centroid</b>(<i>arguments…</i>)</p>
+
+<p>Computes the centroid of the arc that would be generated from the specified input <em>arguments</em>; typically, the arguments are the current datum (d), and optionally the current index (i). The centroid is defined as the midpoint in polar coordinates of the inner and outer radius, and the start and end angle. This provides a convenient location for arc labels. For example:</p>
+
+<p><code>javascript
+arcs.append("text")
+    .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+    .attr("dy", ".35em")
+    .attr("text-anchor", "middle")
+    .text(function(d) { return d.value; });
+</code></p>
+
+<p>Alternatively, you can use SVG’s transform attribute to rotate text into position, though you may need to convert radians back into degrees. Yet another possibility is to use a <a href="http://www.w3.org/TR/SVG/text.html#TextPathElement">textPath</a> element to curve the label along the path of the arc!</p>
+
+<p><a name="symbol" href="SVG-Shapes#symbol">#</a> d3.svg.<b>symbol</b>()</p>
+
+<p>Constructs a new symbol generator with the default <em>type</em>- and <em>size</em>-accessor functions (that make no assumptions about input data, and produce a circle sized 64 square pixels; see below for details). While the default accessors generate static symbols, it is common to set one or more of the accessors using a function, such as setting the size proportional to a dimension of data for a scatterplot. The returned function generates path data for various symbols, as in a dot plot:</p>
+
+<p><img src="symbol.png" alt="symbol" /></p>
+
+<p>Note that the symbol does not include accessors for <em>x</em> and <em>y</em>. Instead, you can use the path element’s <a href="http://www.w3.org/TR/SVG/coords.html#TransformAttribute">transform</a> attribute to position the symbols, as in:</p>
+
+<p><code>javascript
+vis.selectAll("path")
+    .data(data)
+  .enter().append("path")
+    .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
+    .attr("d", d3.svg.symbol());
+</code></p>
+
+<p>In the future, we may add <em>x</em>- and <em>y</em>-accessors for parity with the line and area generators. The symbol will be centered at the origin (0,0) of the local coordinate system. You can also use SVG’s built-in basic shapes to produce many of these symbol types, though D3’s symbol generator is useful in conjunction with path elements because you can easily change the symbol type and size as a function of data.</p>
+
+<p><a name="_symbol" href="SVG-Shapes#_symbol">#</a> <b>symbol</b>(<i>datum</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the specified <em>datum</em>. An optional <em>index</em> may be specified, which is passed through to the symbol’s accessor functions.</p>
+
+<p><a name="symbol_type" href="SVG-Shapes#symbol_type">#</a> symbol.<b>type</b>([<i>type</i>])</p>
+
+<p>If <em>type</em> is specified, sets the <em>type</em>-accessor to the specified function or constant. If <em>type</em> is not specified, returns the current <em>type</em>-accessor. The default accessor is the constant “circle”, and the following types are supported:</p>
+
+<ul>
+  <li>circle - a <a href="http://en.wikipedia.org/wiki/Circle">circle</a>.</li>
+  <li>cross - a <a href="http://en.wikipedia.org/wiki/Cross">Greek cross</a> or plus sign.</li>
+  <li>diamond - a <a href="http://en.wikipedia.org/wiki/Rhombus">rhombus</a>.</li>
+  <li>square - an axis-aligned <a href="http://en.wikipedia.org/wiki/Square_(geometry)">square</a>.</li>
+  <li>triangle-down - a downward-pointing <a href="http://en.wikipedia.org/wiki/Equilateral_triangle">equilateral triangle</a>.</li>
+  <li>triangle-up - an upward-pointing equilateral triangle.</li>
+</ul>
+
+<p>Types are normalized to have the same area in square pixels, according to the specified <a href="SVG-Shapes#symbol_size">size</a>. However, note that different types’ sizes may be affected by the stroke and stroke width in different ways. All of the types are designed to be visible when only a fill style is used (unlike the Protovis cross), although they generally look better when both a fill and stroke is used.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The <em>type</em>-accessor is invoked in the same manner as other value functions in D3. The <em>this</em> context of the function is the current element in the selection. (Technically, the same <em>this</em> context that invokes the arc function; however, in the common case that the symbol generator is passed to the [[attr</td>
+      <td>Selections#attr]] operator, the <em>this</em> context will be the associated DOM element.) The function is passed two arguments, the current datum (d) and the current index (i). It is also possible to specify the <em>type</em>-accessor as a constant rather than a function.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="symbol_size" href="SVG-Shapes#symbol_size">#</a> symbol.<b>size</b>([<i>size</i>])</p>
+
+<p>If <em>size</em> is specified, sets the <em>size</em>-accessor to the specified function or constant in square pixels. If <em>size</em> is not specified, returns the current <em>size</em>-accessor.  The default is 64. This accessor is invoked on the argument passed to the symbol generator. Typically, a <em>size</em>-accessor is specified as a function when you want the size of the symbol to encode a <a href="Quantitative-Scales">quantitative dimension</a> of data, or a constant it you simply want to make all the dots bigger or smaller. If you want to specify a radius rather than the size, you must do so indirectly, for example using a <a href="Quantitative-Scales#pow">pow</a> scale with exponent 2.</p>
+
+<p><a name="symbolTypes" href="SVG-Shapes#symbolTypes">#</a> d3.svg.<b>symbolTypes</b></p>
+
+<p>The array of supported <a href="#symbol_type">symbol types</a>.</p>
+
+<p><a name="chord" href="SVG-Shapes#chord">#</a> d3.svg.<b>chord</b>()</p>
+
+<p>Constructs a new chord generator with the default accessor functions (that assume the input data is an object with named attributes matching the accessors; see below for details). While the default accessors assume that the chord dimensions are all specified dynamically, it is very common to set one or more of the dimensions as a constant, such as the radius. The returned function generates path data for a closed shape connecting two <a href="http://en.wikipedia.org/wiki/Arc_(geometry)">arcs</a> with quadratic Bézier curves, as in a <a href="http://mbostock.github.com/d3/ex/chord.html">chord diagram</a>:</p>
+
+<p><img src="chord.png" alt="chord" /></p>
+
+<p>A chord generator is often used in conjunction with an <a href="SVG-Shapes#arc">arc generator</a>, so as to draw annular segments at the start and end of the chords. In addition, the <a href="Chord-Layout">chord layout</a> is useful for generating objects that describe a set of grouped chords from a matrix, compatible with the default accessors.</p>
+
+<p><a name="_chord" href="SVG-Shapes#_chord">#</a> <b>chord</b>(<i>datum</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the specified <em>datum</em>. An optional <em>index</em> may be specified, which is passed through to the chord’s accessor functions.</p>
+
+<p><a name="chord_source" href="SVG-Shapes#chord_source">#</a> chord.<b>source</b>([<i>source</i>])</p>
+
+<p>If <em>source</em> is specified, sets the <em>source</em>-accessor to the specified function or constant. If <em>source</em> is not specified, returns the current <em>source</em>-accessor. The purpose of the <em>source</em> accessor is to return an object that describes the starting arc of the chord. The returned object is subsequently passed to the <a href="SVG-Shapes#chord_radius">radius</a>, <a href="SVG-Shapes#chord_startAngle">startAngle</a> and <a href="SVG-Shapes#chord_endAngle">endAngle</a> accessors. This allows these other accessors to be reused for both the source and target arc descriptions. The default accessor assumes that the input data is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function source(d) {
+  return d.source;
+}
+</code></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The <em>source</em>-accessor is invoked in the same manner as other value functions in D3. The <em>this</em> context of the function is the current element in the selection. (Technically, the same <em>this</em> context that invokes the arc function; however, in the common case that the symbol generator is passed to the [[attr</td>
+      <td>Selections#attr]] operator, the <em>this</em> context will be the associated DOM element.) The function is passed two arguments, the current datum (d) and the current index (i). It is also possible to specify the <em>source</em>-accessor as a constant rather than a function.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="chord_target" href="SVG-Shapes#chord_target">#</a> chord.<b>target</b>([<i>target</i>])</p>
+
+<p>If <em>target</em> is specified, sets the <em>target</em>-accessor to the specified function or constant. If <em>target</em> is not specified, returns the current <em>target</em>-accessor. The purpose of the <em>target</em> accessor is to return an object that describes the ending arc of the chord. The returned object is subsequently passed to the <a href="SVG-Shapes#chord_radius">radius</a>, <a href="SVG-Shapes#chord_startAngle">startAngle</a> and <a href="SVG-Shapes#chord_endAngle">endAngle</a> accessors. This allows these other accessors to be reused for both the source and target arc descriptions. The default accessor assumes that the input data is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function target(d) {
+  return d.target;
+}
+</code></p>
+
+<p>The <em>target</em>-accessor is invoked in the same manner as other value functions in D3. The function is passed two arguments, the current datum (d) and the current index (i). It is also possible to specify the <em>target</em>-accessor as a constant rather than a function.</p>
+
+<p><a name="chord_radius" href="SVG-Shapes#chord_radius">#</a> chord.<b>radius</b>([<i>radius</i>])</p>
+
+<p>If <em>radius</em> is specified, sets the <em>radius</em>-accessor to the specified function or constant. If <em>radius</em> is not specified, returns the current <em>radius</em>-accessor. The default accessor assumes that the input source or target description is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function radius(d) {
+  return d.radius;
+}
+</code></p>
+
+<p>The <em>radius</em>-accessor is invoked in a similar manner as other value functions in D3. The function is passed two arguments, the current source description (derived from the current datum, d) and the current index (i). It is also possible to specify the <em>radius</em>-accessor as a constant rather than a function.</p>
+
+<p><a name="chord_startAngle" href="SVG-Shapes#chord_startAngle">#</a> chord.<b>startAngle</b>([<i>angle</i>])</p>
+
+<p>If <em>startAngle</em> is specified, sets the <em>startAngle</em>-accessor to the specified function or constant. If <em>startAngle</em> is not specified, returns the current <em>startAngle</em>-accessor. Angles are specified in radians; 0 corresponds to 12 o’clock (negative <em>y</em>) and proceeds clockwise, repeating at 2π. The default accessor assumes that the input source or target description is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function startAngle(d) {
+  return d.startAngle;
+}
+</code></p>
+
+<p>The <em>startAngle</em>-accessor is invoked in a similar manner as other value functions in D3. The function is passed two arguments, the current source or target description (derived from the current datum, d) and the current index (i). It is also possible to specify the <em>startAngle</em>-accessor as a constant rather than a function.</p>
+
+<p><a name="chord_endAngle" href="SVG-Shapes#chord_endAngle">#</a> chord.<b>endAngle</b>([<i>angle</i>])</p>
+
+<p>If <em>endAngle</em> is specified, sets the <em>endAngle</em>-accessor to the specified function or constant. If <em>endAngle</em> is not specified, returns the current <em>endAngle</em>-accessor. Angles are specified in radians; 0 corresponds to 12 o’clock (negative <em>y</em>) and proceeds clockwise, repeating at 2π. The default accessor assumes that the input source or target description is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function endAngle(d) {
+  return d.endAngle;
+}
+</code></p>
+
+<p>The <em>endAngle</em>-accessor is invoked in a similar manner as other value functions in D3. The function is passed two arguments, the current source or target description (derived from the current datum, d) and the current index (i). It is also possible to specify the <em>endAngle</em>-accessor as a constant rather than a function.</p>
+
+<p><a name="diagonal" href="SVG-Shapes#diagonal">#</a> d3.svg.<b>diagonal</b>()</p>
+
+<p>Constructs a new diagonal generator with the default accessor functions (that assume the input data is an object with named attributes matching the accessors; see below for details). The returned function generates the path data for a cubic Bézier connecting the source and target points; the tangents are specified to produce smooth fan-in and fan-out when connecting nodes, as in a <a href="http://mbostock.github.com/d3/ex/tree.html">node-link diagram</a>:</p>
+
+<p><img src="diagonal.png" alt="diagonal" /></p>
+
+<p>Although diagonals default to Cartesian (axis-aligned) orientations, they can be used in radial and other orientations using a <a href="SVG-Shapes#diagonal_projection">projection</a>.</p>
+
+<p><a name="_diagonal" href="SVG-Shapes#_diagonal">#</a> <b>diagonal</b>(<i>datum</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the specified <em>datum</em>. An optional <em>index</em> may be specified, which is passed through to the diagonal’s accessor functions.</p>
+
+<p><a name="diagonal_source" href="SVG-Shapes#diagonal_source">#</a> diagonal.<b>source</b>([<i>source</i>])</p>
+
+<p>If <em>source</em> is specified, sets the <em>source</em>-accessor to the specified function or constant. If <em>source</em> is not specified, returns the current <em>source</em>-accessor. The purpose of the <em>source</em> accessor is to return an object of the form <code>{x, y}</code> that describes the starting point of the diagonal. (The returned object is subsequently passed to the <a href="SVG-Shapes#diagonal_projection">projection</a>.) The default accessor assumes that the input data is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function source(d) {
+  return d.source;
+}
+</code></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>The <em>source</em>-accessor is invoked in the same manner as other value functions in D3. The <em>this</em> context of the function is the current element in the selection. (Technically, the same <em>this</em> context that invokes the diagonal function; however, in the common case that the symbol generator is passed to the [[attr</td>
+      <td>Selections#attr]] operator, the <em>this</em> context will be the associated DOM element.) The function is passed two arguments, the current datum (d) and the current index (i). It is also possible to specify the <em>source</em>-accessor as a constant rather than a function.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><a name="diagonal_target" href="SVG-Shapes#diagonal_target">#</a> diagonal.<b>target</b>([<i>target</i>])</p>
+
+<p>If <em>target</em> is specified, sets the <em>target</em>-accessor to the specified function or constant. If <em>target</em> is not specified, returns the current <em>target</em>-accessor. The purpose of the <em>target</em> accessor is to return an object of the form <code>{x, y}</code> that describes the ending point of the diagonal. (The returned object is subsequently passed to the <a href="SVG-Shapes#diagonal_projection">projection</a>.) The default accessor assumes that the input data is an object with suitably-named attributes:</p>
+
+<p><code>javascript
+function target(d) {
+  return d.target;
+}
+</code></p>
+
+<p>The <em>target</em>-accessor is invoked in the same manner as other value functions in D3. The function is passed two arguments, the current datum (d) and the current index (i). It is also possible to specify the <em>source</em>-accessor as a constant rather than a function.</p>
+
+<p><a name="diagonal_projection" href="SVG-Shapes#diagonal_projection">#</a> diagonal.<b>projection</b>([<i>projection</i>])</p>
+
+<p>If <em>projection</em> is specified, sets the <em>projection</em> to the specified function. If <em>projection</em> is not specified, returns the current <em>projection</em>. The <em>projection</em> converts a point (such as that returned by the source and target accessors) of the form <code>{x, y}</code> to a two-element array of numbers. The default accessor assumes that the input point is an object with <em>x</em> and <em>y</em> attributes:</p>
+
+<p><code>javascript
+function projection(d) {
+  return [d.x, d.y];
+}
+</code></p>
+
+<p>The default accessor is thus compatible with D3’s various node layouts, including <a href="Tree-Layout">tree</a>, <a href="Partition-Layout">partition</a> and <a href="Cluster-Layout">cluster</a>. For example, to produce a radial diagonal, assuming that the <em>y</em> attribute defines the radius in pixels, and the <em>x</em> attribute defines the angle in degrees:</p>
+
+<p><code>javascript
+function projection(d) {
+  var r = d.y, a = (d.x - 90) / 180 * Math.PI;
+  return [r * Math.cos(a), r * Math.sin(a)];
+}
+</code></p>
+
+<p>The <em>projection</em> is invoked in a similar manner as other value functions in D3. The function is passed two arguments, the current source or target point (derived from the current data, d) and the current index (i).</p>
+
+<p><a name="diagonal_radial" href="SVG-Shapes#diagonal_radial">#</a> d3.svg.diagonal.<b>radial</b>()</p>
+
+<p>…</p>
+
+<p><a name="_diagonal_radial" href="SVG-Shapes#_diagonal_radial">#</a> <b>diagonal</b>(<i>datum</i>[, <i>index</i>])</p>
+
+<p>Returns the path data string for the specified <em>datum</em>. An optional <em>index</em> may be specified, which is passed through to the diagonal’s accessor functions.</p>
+
+    </div>
+  </body>
+</html>

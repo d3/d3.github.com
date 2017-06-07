@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <!-- This Handlebars template wraps compiled markdown documents
+         into complete HTML pages that look kind of like pages from
+         a GitHub Wiki. Used in compileMarkdown.js
+         
+         Created by Curran Kelleher March 2015 -->
+  
+    <!-- Use Github-like style, from https://github.com/sindresorhus/github-markdown-css -->
+    <link rel="stylesheet" type="text/css" href="github-markdown.css">
+
+    <!-- CSS that makes the page look more like the GitHub Wiki. -->
+    <link rel="stylesheet" type="text/css" href="github-wiki.css">
+  
+    <title>Cluster Layout</title>
+  </head>
+  <body>
+    <div class="markdown-body">
+      <h1>Cluster Layout</h1>
+      <blockquote>
+  <p><a href="Home">Wiki</a> ▸ [[API Reference]] ▸ [[Layouts]] ▸ <a href="Hierarchy-Layout">Hierarchy</a> ▸ <strong>Cluster Layout</strong></p>
+</blockquote>
+
+<p>The <strong>cluster layout</strong> produces <a href="http://en.wikipedia.org/wiki/Dendrogram">dendrograms</a>: node-link diagrams that place leaf nodes of the tree at the same depth. For example, a cluster layout can be used to organize software classes in a package hierarchy:</p>
+
+<p><a href="http://mbostock.github.com/d3/ex/cluster.html"><img src="cluster.png" alt="cluster" /></a></p>
+
+<p>Like other classes in D3, layouts follow the method chaining pattern where setter methods return the layout itself, allowing multiple setters to be invoked in a concise statement.</p>
+
+<p><a name="cluster" href="#cluster">#</a> d3.layout.<b>cluster</b>()</p>
+
+<p>Creates a new cluster layout with the default settings: the default sort order is null; the default children accessor assumes each input data is an object with a children array; the default separation function uses one node width for siblings, and two node widths for non-siblings; the default size is 1×1.</p>
+
+<p><a name="_cluster" href="#_cluster">#</a> <b>cluster</b>(<i>root</i>)
+<br /><a name="nodes" href="#nodes">#</a> cluster.<b>nodes</b>(<i>root</i>)</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Runs the cluster layout, returning the array of nodes associated with the specified <em>root</em> node. The cluster layout is part of D3’s family of [[hierarchical</td>
+      <td>Hierarchy-Layout]] layouts. These layouts follow the same basic structure: the input argument to the layout is the <em>root</em> node of the hierarchy, and the output return value is an array representing the computed positions of all nodes. Several attributes are populated on each node:</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>parent - the parent node, or null for the root.</li>
+  <li>children - the array of child nodes, or null for leaf nodes.</li>
+  <li>depth - the depth of the node, starting at 0 for the root.</li>
+  <li>x - the computed <em>x</em>-coordinate of the node position.</li>
+  <li>y - the computed <em>y</em>-coordinate of the node position.</li>
+</ul>
+
+<p>Although the layout has a size in <em>x</em> and <em>y</em>, this represents an arbitrary coordinate system; for example, you can treat <em>x</em> as a radius and <em>y</em> as an angle to produce a radial rather than Cartesian layout.</p>
+
+<p><a name="links" href="#links">#</a> cluster.<b>links</b>(<i>nodes</i>)</p>
+
+<p>Given the specified array of <em>nodes</em>, such as those returned by <a href="Cluster-Layout#nodes">nodes</a>, returns an array of objects representing the links from parent to child for each node. Leaf nodes will not have any links. Each link is an object with two attributes:</p>
+
+<ul>
+  <li>source - the parent node (as described above).</li>
+  <li>target - the child node.</li>
+</ul>
+
+<p>This method is useful for retrieving a set of link descriptions suitable for display, often in conjunction with the <a href="SVG-Shapes#diagonal">diagonal</a> shape generator. For example:</p>
+
+<p><code>javascript
+svg.selectAll("path")
+    .data(cluster.links(nodes))
+  .enter().append("path")
+    .attr("d", d3.svg.diagonal());
+</code></p>
+
+<p><a name="children" href="#children">#</a> cluster.<b>children</b>([<i>children</i>])</p>
+
+<p>If <em>children</em> is specified, sets the specified children accessor function. If <em>children</em> is not specified, returns the current children accessor function, which by default assumes that the input data is an object with a children array:</p>
+
+<p><code>javascript
+function children(d) {
+  return d.children;
+}
+</code></p>
+
+<p>Often, it is convenient to load the node hierarchy using <a href="Requests#d3_json">d3.json</a>, and represent the input hierarchy as a nested <a href="http://json.org">JSON</a> object. For example:</p>
+
+<p><code>javascript
+{
+ "name": "flare",
+ "children": [
+  {
+   "name": "analytics",
+   "children": [
+    {
+     "name": "cluster",
+     "children": [
+      {"name": "AgglomerativeCluster", "size": 3938},
+      {"name": "CommunityStructure", "size": 3812},
+      {"name": "MergeEdge", "size": 743}
+     ]
+    },
+    {
+     "name": "graph",
+     "children": [
+      {"name": "BetweennessCentrality", "size": 3534},
+      {"name": "LinkDistance", "size": 5731}
+     ]
+    }
+   ]
+  }
+ ]
+}
+</code></p>
+
+<p>The children accessor is first invoked for root node in the hierarchy. If the accessor returns null, then the node is assumed to be a leaf node at the layout traversal terminates. Otherwise, the accessor should return an array of data elements representing the child nodes.</p>
+
+<p><a name="sort" href="#sort">#</a> cluster.<b>sort</b>([<i>comparator</i>])</p>
+
+<p>If <em>comparator</em> is specified, sets the sort order of sibling nodes for the layout using the specified comparator function.  If <em>comparator</em> is not specified, returns the current group sort order, which defaults to null for no sorting. The comparator function is invoked for pairs of nodes, being passed the input data for each node. The default comparator is null, which disables sorting and uses tree traversal order. For example, to sort sibling nodes in descending order by the associated input data’s string name attribute, say:</p>
+
+<p><code>javascript
+function comparator(a, b) {
+  return d3.ascending(a.name, b.name);
+}
+</code></p>
+
+<p>See <a href="Arrays#d3_ascending">d3.ascending</a> or <a href="Arrays#d3_descending">d3.descending</a> for details.</p>
+
+<p><a name="separation" href="#separation">#</a> cluster.<b>separation</b>([<i>separation</i>])</p>
+
+<p>If <em>separation</em> is specified, uses the specified function to compute separation between neighboring nodes. If <em>separation</em> is not specified, returns the current separation function, which defaults to:</p>
+
+<p><code>javascript
+function separation(a, b) {
+  return a.parent == b.parent ? 1 : 2;
+}
+</code></p>
+
+<p>A variation that is more appropriate for radial layouts reduces the separation gap proportionally to the radius:</p>
+
+<p><code>javascript
+function separation(a, b) {
+  return (a.parent == b.parent ? 1 : 2) / a.depth;
+}
+</code></p>
+
+<p>The separation function is passed two neighboring nodes <em>a</em> and <em>b</em>, and must return the desired separation between nodes. The nodes are typically siblings, though the nodes may also be cousins (or even more distant relations) if the layout decides to place such nodes adjacent.</p>
+
+<p><a name="size" href="#size">#</a> cluster.<b>size</b>([<i>size</i>])</p>
+
+<p>If <em>size</em> is specified, sets the available layout size to the specified two-element array of numbers representing <em>x</em> and <em>y</em>. If <em>size</em> is not specified, returns the current size, which defaults to 1×1, or null if a <a href="#nodeSize">nodeSize</a> is in use. Although the layout has a size in <em>x</em> and <em>y</em>, this represents an arbitrary coordinate system. For example, to produce a radial layout where the tree breadth (<em>x</em>) in measured in degrees, and the tree depth (<em>y</em>) is a radius <em>r</em> in pixels, say [360, <em>r</em>].</p>
+
+<p><a name="nodeSize" href="#nodeSize">#</a> cluster.<b>nodeSize</b>([<i>nodeSize</i>])</p>
+
+<p>If <em>nodeSize</em> is specified, sets a fixed size for each node as a two-element array of numbers representing <em>x</em> and <em>y</em>. If <em>nodeSize</em> is not specified, returns the current node size, which defaults to null, meaning that the layout has an overall fixed size, which can be retrieved using <a href="#size">size</a>.</p>
+
+<p><a name="value" href="#value">#</a> cluster.<b>value</b>([<i>value</i>])</p>
+
+<p>If <em>value</em> is specified, sets the value accessor to the specified function. If <em>value</em> is not specified, returns the current value accessor which defaults to null, meaning that the value attribute is not computed. If specified, the value accessor is invoked for each input data element, and must return a number representing the numeric value of the node. This value has no effect on the cluster layout, but is generic functionality provided by hierarchy layouts.</p>
+
+    </div>
+  </body>
+</html>
