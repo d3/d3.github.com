@@ -1,4 +1,4 @@
-// https://d3js.org/d3-contour/ Version 1.1.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-contour/ Version 1.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -106,7 +106,7 @@ var contours = function() {
 
       holes.forEach(function(hole) {
         for (var i = 0, n = polygons.length, polygon; i < n; ++i) {
-          if (contains((polygon = polygons[i])[0], hole)) {
+          if (contains((polygon = polygons[i])[0], hole) !== -1) {
             polygon.push(hole);
             return;
           }
