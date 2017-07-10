@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.1.2. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.2.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -2014,29 +2014,7 @@ function interpolateSphere(lobes) {
 }
 
 var interrupt = function(project, lobes) {
-  var sphere = interpolateSphere(lobes);
-
-  lobes = lobes.map(function(lobe) {
-    return lobe.map(function(l) {
-      return [
-        [l[0][0] * radians, l[0][1] * radians],
-        [l[1][0] * radians, l[1][1] * radians],
-        [l[2][0] * radians, l[2][1] * radians]
-      ];
-    });
-  });
-
-  var bounds = lobes.map(function(lobe) {
-    return lobe.map(function(l) {
-      var x0 = project(l[0][0], l[0][1])[0],
-          x1 = project(l[2][0], l[2][1])[0],
-          y0 = project(l[1][0], l[0][1])[1],
-          y1 = project(l[1][0], l[1][1])[1],
-          t;
-      if (y0 > y1) t = y0, y0 = y1, y1 = t;
-      return [[x0, y0], [x1, y1]];
-    });
-  });
+  var sphere, bounds;
 
   function forward(lambda, phi) {
     var sign$$1 = phi < 0 ? -1 : +1, lobe = lobes[+(phi < 0)];
@@ -2070,6 +2048,46 @@ var interrupt = function(project, lobes) {
     rotateStream.sphere = function() { d3Geo.geoStream(sphere, sphereStream); };
     return rotateStream;
   };
+  
+  p.lobes = function(_) {
+    if (!arguments.length) return lobes.map(function(lobe) {
+      return lobe.map(function(l) {
+        return [
+          [l[0][0] * degrees, l[0][1] * degrees],
+          [l[1][0] * degrees, l[1][1] * degrees],
+          [l[2][0] * degrees, l[2][1] * degrees]
+        ];
+      });
+    });
+
+    sphere = interpolateSphere(_);
+
+    lobes = _.map(function(lobe) {
+      return lobe.map(function(l) {
+        return [
+          [l[0][0] * radians, l[0][1] * radians],
+          [l[1][0] * radians, l[1][1] * radians],
+          [l[2][0] * radians, l[2][1] * radians]
+        ];
+      });
+    });
+
+    bounds = lobes.map(function(lobe) {
+      return lobe.map(function(l) {
+        var x0 = project(l[0][0], l[0][1])[0],
+            x1 = project(l[2][0], l[2][1])[0],
+            y0 = project(l[1][0], l[0][1])[1],
+            y1 = project(l[1][0], l[1][1])[1],
+            t;
+        if (y0 > y1) t = y0, y0 = y1, y1 = t;
+        return [[x0, y0], [x1, y1]];
+      });
+    });
+
+    return p;
+  };
+
+  if (lobes != null) p.lobes(lobes);
 
   return p;
 };
