@@ -1,4 +1,4 @@
-// https://github.com/topojson/topojson Version 3.0.0. Copyright 2017 Mike Bostock.
+// https://github.com/topojson/topojson Version 3.0.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -666,12 +666,9 @@ var equalPoint = function(pointA, pointB) {
 // TODO if quantized, use simpler Int32 hashing?
 
 var buffer = new ArrayBuffer(16);
-var floats = new Float64Array(buffer);
 var uints = new Uint32Array(buffer);
 
 var hashPoint = function(point) {
-  floats[0] = point[0];
-  floats[1] = point[1];
   var hash = uints[0] ^ uints[1];
   hash = hash << 5 ^ hash >> 7 ^ uints[2] ^ uints[3];
   return hash & 0x7fffffff;
@@ -1317,19 +1314,45 @@ var prune = function(topology) {
   var oldObjects = topology.objects,
       newObjects = {},
       oldArcs = topology.arcs,
-      newArcs = [],
-      newArcIndex = -1,
-      newIndexByOldIndex = new Array(oldArcs.length),
+      oldArcsLength = oldArcs.length,
+      oldIndex = -1,
+      newIndexByOldIndex = new Array(oldArcsLength),
+      newArcsLength = 0,
+      newArcs,
+      newIndex = -1,
       key;
 
-  function pruneGeometry(input) {
+  function scanGeometry(input) {
+    switch (input.type) {
+      case "GeometryCollection": input.geometries.forEach(scanGeometry); break;
+      case "LineString": scanArcs(input.arcs); break;
+      case "MultiLineString": input.arcs.forEach(scanArcs); break;
+      case "Polygon": input.arcs.forEach(scanArcs); break;
+      case "MultiPolygon": input.arcs.forEach(scanMultiArcs); break;
+    }
+  }
+
+  function scanArc(index) {
+    if (index < 0) index = ~index;
+    if (!newIndexByOldIndex[index]) newIndexByOldIndex[index] = 1, ++newArcsLength;
+  }
+
+  function scanArcs(arcs) {
+    arcs.forEach(scanArc);
+  }
+
+  function scanMultiArcs(arcs) {
+    arcs.forEach(scanArcs);
+  }
+
+  function reindexGeometry(input) {
     var output;
     switch (input.type) {
-      case "GeometryCollection": output = {type: "GeometryCollection", geometries: input.geometries.map(pruneGeometry)}; break;
-      case "LineString": output = {type: "LineString", arcs: pruneArcs(input.arcs)}; break;
-      case "MultiLineString": output = {type: "MultiLineString", arcs: input.arcs.map(pruneArcs)}; break;
-      case "Polygon": output = {type: "Polygon", arcs: input.arcs.map(pruneArcs)}; break;
-      case "MultiPolygon": output = {type: "MultiPolygon", arcs: input.arcs.map(pruneMultiArcs)}; break;
+      case "GeometryCollection": output = {type: "GeometryCollection", geometries: input.geometries.map(reindexGeometry)}; break;
+      case "LineString": output = {type: "LineString", arcs: reindexArcs(input.arcs)}; break;
+      case "MultiLineString": output = {type: "MultiLineString", arcs: input.arcs.map(reindexArcs)}; break;
+      case "Polygon": output = {type: "Polygon", arcs: input.arcs.map(reindexArcs)}; break;
+      case "MultiPolygon": output = {type: "MultiPolygon", arcs: input.arcs.map(reindexMultiArcs)}; break;
       default: return input;
     }
     if (input.id != null) output.id = input.id;
@@ -1338,28 +1361,33 @@ var prune = function(topology) {
     return output;
   }
 
-  function pruneArc(oldIndex) {
-    var oldReverse = oldIndex < 0 && (oldIndex = ~oldIndex, true), newIndex;
-
-    // If this is the first instance of this arc, record it under its new index.
-    if ((newIndex = newIndexByOldIndex[oldIndex]) == null) {
-      newIndexByOldIndex[oldIndex] = newIndex = ++newArcIndex;
-      newArcs[newIndex] = oldArcs[oldIndex];
-    }
-
-    return oldReverse ? ~newIndex : newIndex;
+  function reindexArc(oldIndex) {
+    return oldIndex < 0 ? ~newIndexByOldIndex[~oldIndex] : newIndexByOldIndex[oldIndex];
   }
 
-  function pruneArcs(arcs) {
-    return arcs.map(pruneArc);
+  function reindexArcs(arcs) {
+    return arcs.map(reindexArc);
   }
 
-  function pruneMultiArcs(arcs) {
-    return arcs.map(pruneArcs);
+  function reindexMultiArcs(arcs) {
+    return arcs.map(reindexArcs);
   }
 
   for (key in oldObjects) {
-    newObjects[key] = pruneGeometry(oldObjects[key]);
+    scanGeometry(oldObjects[key]);
+  }
+
+  newArcs = new Array(newArcsLength);
+
+  while (++oldIndex < oldArcsLength) {
+    if (newIndexByOldIndex[oldIndex]) {
+      newIndexByOldIndex[oldIndex] = ++newIndex;
+      newArcs[newIndex] = oldArcs[oldIndex];
+    }
+  }
+
+  for (key in oldObjects) {
+    newObjects[key] = reindexGeometry(oldObjects[key]);
   }
 
   return {
@@ -1444,9 +1472,9 @@ function filterNotNull(geometry) {
 }
 
 var filterAttached = function(topology) {
-  var uniqueRingByArc = {}, // arc index -> index of unique associated ring, or -1 if used by multiple rings
-      ringIndex = 0,
-      name;
+  var ownerByArc = new Array(topology.arcs.length), // arc index -> index of unique associated ring, or -1 if used by multiple rings
+      ownerIndex = 0,
+      key;
 
   function testGeometry(o) {
     switch (o.type) {
@@ -1457,24 +1485,24 @@ var filterAttached = function(topology) {
   }
 
   function testArcs(arcs) {
-    for (var i = 0, n = arcs.length; i < n; ++i, ++ringIndex) {
+    for (var i = 0, n = arcs.length; i < n; ++i, ++ownerIndex) {
       for (var ring = arcs[i], j = 0, m = ring.length; j < m; ++j) {
         var arc = ring[j];
         if (arc < 0) arc = ~arc;
-        var uniqueRing = uniqueRingByArc[arc];
-        if (uniqueRing >= 0 && uniqueRing !== ringIndex) uniqueRingByArc[arc] = -1;
-        else uniqueRingByArc[arc] = ringIndex;
+        var owner = ownerByArc[arc];
+        if (owner == null) ownerByArc[arc] = ownerIndex;
+        else if (owner !== ownerIndex) ownerByArc[arc] = -1;
       }
     }
   }
 
-  for (name in topology.objects) {
-    testGeometry(topology.objects[name]);
+  for (key in topology.objects) {
+    testGeometry(topology.objects[key]);
   }
 
   return function(ring) {
     for (var j = 0, m = ring.length, arc; j < m; ++j) {
-      if (arc = ring[j], uniqueRingByArc[arc < 0 ? ~arc : arc] < 0) {
+      if (ownerByArc[(arc = ring[j]) < 0 ? ~arc : arc] === -1) {
         return true;
       }
     }
@@ -1706,6 +1734,7 @@ var pi = Math.PI;
 var tau = 2 * pi;
 var quarterPi = pi / 4;
 var radians = pi / 180;
+var abs = Math.abs;
 var atan2 = Math.atan2;
 var cos = Math.cos;
 var sin = Math.sin;
@@ -1750,8 +1779,7 @@ function sphericalRingArea(ring, interior) {
 }
 
 function sphericalTriangleArea(t) {
-  var sum = halfArea(t, false);
-  return (sum < 0 ? tau + sum : sum) * 2;
+  return abs(halfArea(t, false)) * 2;
 }
 
 exports.bbox = bbox;
