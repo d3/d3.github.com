@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ Version 1.7.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo/ Version 1.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -2971,7 +2971,7 @@ exports.geoProjectionMutator = projectionMutator;
 exports.geoMercator = mercator;
 exports.geoMercatorRaw = mercatorRaw;
 exports.geoNaturalEarth1 = naturalEarth1;
-exports.geogeoNaturalEarth1Raw = naturalEarth1Raw;
+exports.geoNaturalEarth1Raw = naturalEarth1Raw;
 exports.geoOrthographic = orthographic;
 exports.geoOrthographicRaw = orthographicRaw;
 exports.geoStereographic = stereographic;
