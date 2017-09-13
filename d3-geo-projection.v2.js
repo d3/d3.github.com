@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.3.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.3.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -4391,7 +4391,7 @@ exports.geoMtFlatPolarQuarticRaw = mtFlatPolarQuarticRaw;
 exports.geoMtFlatPolarSinusoidal = mtFlatPolarSinusoidal;
 exports.geoMtFlatPolarSinusoidalRaw = mtFlatPolarSinusoidalRaw;
 exports.geoNaturalEarth = d3Geo.geoNaturalEarth1;
-exports.geoNaturalEarthRaw = d3Geo.geoNaturalEarthRaw1;
+exports.geoNaturalEarthRaw = d3Geo.geoNaturalEarth1Raw;
 exports.geoNaturalEarth2 = naturalEarth2;
 exports.geoNaturalEarth2Raw = naturalEarth2Raw;
 exports.geoNellHammer = nellHammer;
