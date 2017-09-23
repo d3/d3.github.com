@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ Version 1.2.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-array/ Version 1.2.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -193,14 +193,15 @@ var e5 = Math.sqrt(10);
 var e2 = Math.sqrt(2);
 
 var ticks = function(start, stop, count) {
-  var reverse = stop < start,
+  var reverse,
       i = -1,
       n,
       ticks,
       step;
 
-  if (reverse) n = start, start = stop, stop = n;
-
+  stop = +stop, start = +start, count = +count;
+  if (start === stop && count > 0) return [start];
+  if (reverse = stop < start) n = start, start = stop, stop = n;
   if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
 
   if (step > 0) {
