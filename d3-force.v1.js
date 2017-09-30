@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ Version 1.0.6. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-force/ Version 1.0.7. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
@@ -423,17 +423,17 @@ var manyBody = function() {
   }
 
   function accumulate(quad) {
-    var strength = 0, q, c, x$$1, y$$1, i;
+    var strength = 0, q, c, weight = 0, x, y, i;
 
     // For internal nodes, accumulate forces from child quadrants.
     if (quad.length) {
-      for (x$$1 = y$$1 = i = 0; i < 4; ++i) {
-        if ((q = quad[i]) && (c = q.value)) {
-          strength += c, x$$1 += c * q.x, y$$1 += c * q.y;
+      for (x = y = i = 0; i < 4; ++i) {
+        if ((q = quad[i]) && (c = Math.abs(q.value))) {
+          strength += q.value, weight += c, x += c * q.x, y += c * q.y;
         }
       }
-      quad.x = x$$1 / strength;
-      quad.y = y$$1 / strength;
+      quad.x = x / weight;
+      quad.y = y / weight;
     }
 
     // For leaf nodes, accumulate forces from coincident quadrants.
@@ -451,20 +451,20 @@ var manyBody = function() {
   function apply(quad, x1, _, x2) {
     if (!quad.value) return true;
 
-    var x$$1 = quad.x - node.x,
-        y$$1 = quad.y - node.y,
+    var x = quad.x - node.x,
+        y = quad.y - node.y,
         w = x2 - x1,
-        l = x$$1 * x$$1 + y$$1 * y$$1;
+        l = x * x + y * y;
 
     // Apply the Barnes-Hut approximation if possible.
     // Limit forces for very close nodes; randomize direction if coincident.
     if (w * w / theta2 < l) {
       if (l < distanceMax2) {
-        if (x$$1 === 0) x$$1 = jiggle(), l += x$$1 * x$$1;
-        if (y$$1 === 0) y$$1 = jiggle(), l += y$$1 * y$$1;
+        if (x === 0) x = jiggle(), l += x * x;
+        if (y === 0) y = jiggle(), l += y * y;
         if (l < distanceMin2) l = Math.sqrt(distanceMin2 * l);
-        node.vx += x$$1 * quad.value * alpha / l;
-        node.vy += y$$1 * quad.value * alpha / l;
+        node.vx += x * quad.value * alpha / l;
+        node.vy += y * quad.value * alpha / l;
       }
       return true;
     }
@@ -474,15 +474,15 @@ var manyBody = function() {
 
     // Limit forces for very close nodes; randomize direction if coincident.
     if (quad.data !== node || quad.next) {
-      if (x$$1 === 0) x$$1 = jiggle(), l += x$$1 * x$$1;
-      if (y$$1 === 0) y$$1 = jiggle(), l += y$$1 * y$$1;
+      if (x === 0) x = jiggle(), l += x * x;
+      if (y === 0) y = jiggle(), l += y * y;
       if (l < distanceMin2) l = Math.sqrt(distanceMin2 * l);
     }
 
     do if (quad.data !== node) {
       w = strengths[quad.data.index] * alpha / l;
-      node.vx += x$$1 * w;
-      node.vy += y$$1 * w;
+      node.vx += x * w;
+      node.vy += y * w;
     } while (quad = quad.next);
   }
 
@@ -505,6 +505,62 @@ var manyBody = function() {
 
   force.theta = function(_) {
     return arguments.length ? (theta2 = _ * _, force) : Math.sqrt(theta2);
+  };
+
+  return force;
+};
+
+var radial = function(radius, x, y) {
+  var nodes,
+      strength = constant(0.1),
+      strengths,
+      radiuses;
+
+  if (typeof radius !== "function") radius = constant(+radius);
+  if (x == null) x = 0;
+  if (y == null) y = 0;
+
+  function force(alpha) {
+    for (var i = 0, n = nodes.length; i < n; ++i) {
+      var node = nodes[i],
+          dx = node.x - x || 1e-6,
+          dy = node.y - y || 1e-6,
+          r = Math.sqrt(dx * dx + dy * dy),
+          k = (radiuses[i] - r) * strengths[i] * alpha / r;
+      node.vx += dx * k;
+      node.vy += dy * k;
+    }
+  }
+
+  function initialize() {
+    if (!nodes) return;
+    var i, n = nodes.length;
+    strengths = new Array(n);
+    radiuses = new Array(n);
+    for (i = 0; i < n; ++i) {
+      radiuses[i] = +radius(nodes[i], i, nodes);
+      strengths[i] = isNaN(radiuses[i]) ? 0 : +strength(nodes[i], i, nodes);
+    }
+  }
+
+  force.initialize = function(_) {
+    nodes = _, initialize();
+  };
+
+  force.strength = function(_) {
+    return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initialize(), force) : strength;
+  };
+
+  force.radius = function(_) {
+    return arguments.length ? (radius = typeof _ === "function" ? _ : constant(+_), initialize(), force) : radius;
+  };
+
+  force.x = function(_) {
+    return arguments.length ? (x = +_, force) : x;
+  };
+
+  force.y = function(_) {
+    return arguments.length ? (y = +_, force) : y;
   };
 
   return force;
@@ -594,6 +650,7 @@ exports.forceCenter = center;
 exports.forceCollide = collide;
 exports.forceLink = link;
 exports.forceManyBody = manyBody;
+exports.forceRadial = radial;
 exports.forceSimulation = simulation;
 exports.forceX = x$2;
 exports.forceY = y$2;
