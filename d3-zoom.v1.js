@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ Version 1.5.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-zoom/ Version 1.6.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -103,7 +103,7 @@ function defaultWheelDelta() {
   return -d3Selection.event.deltaY * (d3Selection.event.deltaMode ? 120 : 1) / 500;
 }
 
-function touchable() {
+function defaultTouchable() {
   return "ontouchstart" in this;
 }
 
@@ -111,6 +111,7 @@ var zoom = function() {
   var filter = defaultFilter,
       extent = defaultExtent,
       wheelDelta = defaultWheelDelta,
+      touchable = defaultTouchable,
       k0 = 0,
       k1 = Infinity,
       x0 = -k1,
@@ -453,6 +454,10 @@ var zoom = function() {
 
   zoom.filter = function(_) {
     return arguments.length ? (filter = typeof _ === "function" ? _ : constant(!!_), zoom) : filter;
+  };
+
+  zoom.touchable = function(_) {
+    return arguments.length ? (touchable = typeof _ === "function" ? _ : constant(!!_), zoom) : touchable;
   };
 
   zoom.extent = function(_) {
