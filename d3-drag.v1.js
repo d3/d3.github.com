@@ -1,4 +1,4 @@
-// https://d3js.org/d3-drag/ Version 1.2.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-drag/ Version 1.2.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-selection'], factory) :
@@ -210,7 +210,7 @@ var drag = function() {
   };
 
   drag.touchable = function(_) {
-    return arguments.length ? (touchable = typeof _ === "function" ? _ : constant(_), drag) : touchable;
+    return arguments.length ? (touchable = typeof _ === "function" ? _ : constant(!!_), drag) : touchable;
   };
 
   drag.on = function() {
