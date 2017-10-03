@@ -1,4 +1,4 @@
-// https://d3js.org/d3-drag/ Version 1.1.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-drag/ Version 1.2.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-selection'], factory) :
@@ -77,7 +77,7 @@ function defaultSubject(d) {
   return d == null ? {x: d3Selection.event.x, y: d3Selection.event.y} : d;
 }
 
-function touchable() {
+function defaultTouchable() {
   return "ontouchstart" in this;
 }
 
@@ -85,6 +85,7 @@ var drag = function() {
   var filter = defaultFilter,
       container = defaultContainer,
       subject = defaultSubject,
+      touchable = defaultTouchable,
       gestures = {},
       listeners = d3Dispatch.dispatch("start", "drag", "end"),
       active = 0,
@@ -206,6 +207,10 @@ var drag = function() {
 
   drag.subject = function(_) {
     return arguments.length ? (subject = typeof _ === "function" ? _ : constant(_), drag) : subject;
+  };
+
+  drag.touchable = function(_) {
+    return arguments.length ? (touchable = typeof _ === "function" ? _ : constant(_), drag) : touchable;
   };
 
   drag.on = function() {
