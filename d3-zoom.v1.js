@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ Version 1.6.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-zoom/ Version 1.7.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -107,17 +107,25 @@ function defaultTouchable() {
   return "ontouchstart" in this;
 }
 
+function defaultConstrain(transform$$1, extent, translateExtent) {
+  var dx0 = transform$$1.invertX(extent[0][0]) - translateExtent[0][0],
+      dx1 = transform$$1.invertX(extent[1][0]) - translateExtent[1][0],
+      dy0 = transform$$1.invertY(extent[0][1]) - translateExtent[0][1],
+      dy1 = transform$$1.invertY(extent[1][1]) - translateExtent[1][1];
+  return transform$$1.translate(
+    dx1 > dx0 ? (dx0 + dx1) / 2 : Math.min(0, dx0) || Math.max(0, dx1),
+    dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
+  );
+}
+
 var zoom = function() {
   var filter = defaultFilter,
       extent = defaultExtent,
+      constrain = defaultConstrain,
       wheelDelta = defaultWheelDelta,
       touchable = defaultTouchable,
-      k0 = 0,
-      k1 = Infinity,
-      x0 = -k1,
-      x1 = k1,
-      y0 = x0,
-      y1 = x1,
+      scaleExtent = [0, Infinity],
+      translateExtent = [[-Infinity, -Infinity], [Infinity, Infinity]],
       duration = 250,
       interpolate = d3Interpolate.interpolateZoom,
       gestures = [],
@@ -172,7 +180,7 @@ var zoom = function() {
           p0 = centroid(e),
           p1 = t0.invert(p0),
           k1 = typeof k === "function" ? k.apply(this, arguments) : k;
-      return constrain(translate(scale(t0, k1), p0, p1), e);
+      return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent);
     });
   };
 
@@ -181,7 +189,7 @@ var zoom = function() {
       return constrain(this.__zoom.translate(
         typeof x === "function" ? x.apply(this, arguments) : x,
         typeof y === "function" ? y.apply(this, arguments) : y
-      ), extent.apply(this, arguments));
+      ), extent.apply(this, arguments), translateExtent);
     });
   };
 
@@ -193,29 +201,18 @@ var zoom = function() {
       return constrain(identity.translate(p[0], p[1]).scale(t.k).translate(
         typeof x === "function" ? -x.apply(this, arguments) : -x,
         typeof y === "function" ? -y.apply(this, arguments) : -y
-      ), e);
+      ), e, translateExtent);
     });
   };
 
   function scale(transform$$1, k) {
-    k = Math.max(k0, Math.min(k1, k));
+    k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], k));
     return k === transform$$1.k ? transform$$1 : new Transform(k, transform$$1.x, transform$$1.y);
   }
 
   function translate(transform$$1, p0, p1) {
     var x = p0[0] - p1[0] * transform$$1.k, y = p0[1] - p1[1] * transform$$1.k;
     return x === transform$$1.x && y === transform$$1.y ? transform$$1 : new Transform(transform$$1.k, x, y);
-  }
-
-  function constrain(transform$$1, extent) {
-    var dx0 = transform$$1.invertX(extent[0][0]) - x0,
-        dx1 = transform$$1.invertX(extent[1][0]) - x1,
-        dy0 = transform$$1.invertY(extent[0][1]) - y0,
-        dy1 = transform$$1.invertY(extent[1][1]) - y1;
-    return transform$$1.translate(
-      dx1 > dx0 ? (dx0 + dx1) / 2 : Math.min(0, dx0) || Math.max(0, dx1),
-      dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
-    );
   }
 
   function centroid(extent) {
@@ -294,7 +291,7 @@ var zoom = function() {
     if (!filter.apply(this, arguments)) return;
     var g = gesture(this, arguments),
         t = this.__zoom,
-        k = Math.max(k0, Math.min(k1, t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
+        k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
         p = d3Selection.mouse(this);
 
     // If the mouse is in the same location as before, reuse it.
@@ -318,7 +315,7 @@ var zoom = function() {
 
     noevent();
     g.wheel = setTimeout(wheelidled, wheelDelay);
-    g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent));
+    g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent, translateExtent));
 
     function wheelidled() {
       g.wheel = null;
@@ -346,7 +343,7 @@ var zoom = function() {
         var dx = d3Selection.event.clientX - x0, dy = d3Selection.event.clientY - y0;
         g.moved = dx * dx + dy * dy > clickDistance2;
       }
-      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent));
+      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent, translateExtent));
     }
 
     function mouseupped() {
@@ -363,7 +360,7 @@ var zoom = function() {
         p0 = d3Selection.mouse(this),
         p1 = t0.invert(p0),
         k1 = t0.k * (d3Selection.event.shiftKey ? 0.5 : 2),
-        t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, arguments));
+        t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, arguments), translateExtent);
 
     noevent();
     if (duration > 0) d3Selection.select(this).transition().duration(duration).call(schedule, t1, p0);
@@ -427,7 +424,7 @@ var zoom = function() {
     }
     else if (g.touch0) p = g.touch0[0], l = g.touch0[1];
     else return;
-    g.zoom("touch", constrain(translate(t, p, l), g.extent));
+    g.zoom("touch", constrain(translate(t, p, l), g.extent), translateExtent);
   }
 
   function touchended() {
@@ -465,11 +462,15 @@ var zoom = function() {
   };
 
   zoom.scaleExtent = function(_) {
-    return arguments.length ? (k0 = +_[0], k1 = +_[1], zoom) : [k0, k1];
+    return arguments.length ? (scaleExtent[0] = +_[0], scaleExtent[1] = +_[1], zoom) : [scaleExtent[0], scaleExtent[1]];
   };
 
   zoom.translateExtent = function(_) {
-    return arguments.length ? (x0 = +_[0][0], x1 = +_[1][0], y0 = +_[0][1], y1 = +_[1][1], zoom) : [[x0, y0], [x1, y1]];
+    return arguments.length ? (translateExtent[0][0] = +_[0][0], translateExtent[1][0] = +_[1][0], translateExtent[0][1] = +_[0][1], translateExtent[1][1] = +_[1][1], zoom) : [[translateExtent[0][0], translateExtent[0][1]], [translateExtent[1][0], translateExtent[1][1]]];
+  };
+
+  zoom.constrain = function(_) {
+    return arguments.length ? (constrain = _, zoom) : constrain;
   };
 
   zoom.duration = function(_) {
