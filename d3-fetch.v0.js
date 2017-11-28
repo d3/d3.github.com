@@ -1,9 +1,25 @@
-// https://d3js.org/d3-fetch/ Version 0.0.2. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-fetch/ Version 0.1.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-dsv'], factory) :
-  (factory((global.d3 = global.d3 || {}),global.d3));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3-dsv'], factory) :
+	(factory((global.d3 = global.d3 || {}),global.d3));
 }(this, (function (exports,d3Dsv) { 'use strict';
+
+function responseBlob(response) {
+  return response.blob();
+}
+
+var blob = function(url) {
+  return fetch(url).then(responseBlob);
+};
+
+function responseArrayBuffer(response) {
+  return response.arrayBuffer();
+}
+
+var buffer = function(url) {
+  return fetch(url).then(responseArrayBuffer);
+};
 
 function responseText(response) {
   return response.text();
@@ -29,10 +45,12 @@ var image = function(url, anonymous) {
   });
 };
 
+function responseJson(response) {
+  return response.json();
+}
+
 var json = function(url) {
-  return text(url).then(function(response) {
-    return JSON.parse(response);
-  });
+  return fetch(url).then(responseJson);
 };
 
 var tsv = function(url, row) {
@@ -41,6 +59,8 @@ var tsv = function(url, row) {
   });
 };
 
+exports.blob = blob;
+exports.buffer = buffer;
 exports.csv = csv;
 exports.image = image;
 exports.json = json;
