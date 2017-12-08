@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ Version 2.3.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-geo-projection/ Version 2.3.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -424,6 +424,8 @@ var hammer = function() {
     .scale(169.529);
 };
 
+// Bertin 1953 as a modified Briesemeister
+// https://bl.ocks.org/Fil/5b9ee9636dfb6ffa53443c9006beb642
 function bertin1953Raw() {
   var hammer$$1 = hammerRaw(1.68, 2),
       fu = 1.4, k = 12;
@@ -2369,8 +2371,9 @@ littrowRaw.invert = function(x, y) {
   var x2 = x * x,
       y2 = y * y,
       y2_1 = y2 + 1,
+      x2_y2_1 = x2 + y2_1,
       cosPhi = x
-          ? sqrt1_2 * sqrt((y2_1 - sqrt(x2 * x2 + 2 * x2 * (y2 - 1) + y2_1 * y2_1)) / x2 + 1)
+          ? sqrt1_2 * sqrt((x2_y2_1 - sqrt(x2_y2_1 * x2_y2_1 - 4 * x2)) / x2)
           : 1 / sqrt(y2_1);
   return [
     asin(x * cosPhi),
