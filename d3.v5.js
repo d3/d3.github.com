@@ -1,11 +1,11 @@
-// https://d3js.org Version 5.0.0-rc.1. Copyright 2018 Mike Bostock.
+// https://d3js.org Version 5.0.0-rc.2. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.0.0-rc.1";
+var version = "5.0.0-rc.2";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -5783,6 +5783,7 @@ var tsvFormat = tsv.format;
 var tsvFormatRows = tsv.formatRows;
 
 function responseBlob(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.blob();
 }
 
@@ -5791,6 +5792,7 @@ function blob(input, init) {
 }
 
 function responseArrayBuffer(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.arrayBuffer();
 }
 
@@ -5799,6 +5801,7 @@ function buffer(input, init) {
 }
 
 function responseText(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.text();
 }
 
@@ -5837,6 +5840,7 @@ function image(input, init) {
 }
 
 function responseJson(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.json();
 }
 
