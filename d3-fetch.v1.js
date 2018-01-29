@@ -1,4 +1,4 @@
-// https://d3js.org/d3-fetch/ Version 1.0.0. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-fetch/ Version 1.0.1. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dsv'], factory) :
@@ -6,6 +6,7 @@
 }(this, (function (exports,d3Dsv) { 'use strict';
 
 function responseBlob(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.blob();
 }
 
@@ -14,6 +15,7 @@ function blob(input, init) {
 }
 
 function responseArrayBuffer(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.arrayBuffer();
 }
 
@@ -22,6 +24,7 @@ function buffer(input, init) {
 }
 
 function responseText(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.text();
 }
 
@@ -60,6 +63,7 @@ function image(input, init) {
 }
 
 function responseJson(response) {
+  if (!response.ok) throw new Error(response.status + " " + response.statusText);
   return response.json();
 }
 
