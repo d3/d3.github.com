@@ -1,4 +1,4 @@
-// https://d3js.org/d3-fetch/ Version 1.0.1. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-fetch/ Version 1.1.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dsv'], factory) :
@@ -71,6 +71,20 @@ function json(input, init) {
   return fetch(input, init).then(responseJson);
 }
 
+function parser(type) {
+  return function(input, init)  {
+    return text(input, init).then(function(text$$1) {
+      return (new DOMParser).parseFromString(text$$1, type);
+    });
+  };
+}
+
+var xml = parser("application/xml");
+
+var html = parser("text/html");
+
+var svg = parser("image/svg+xml");
+
 exports.blob = blob;
 exports.buffer = buffer;
 exports.dsv = dsv;
@@ -79,6 +93,9 @@ exports.tsv = tsv;
 exports.image = image;
 exports.json = json;
 exports.text = text;
+exports.xml = xml;
+exports.html = html;
+exports.svg = svg;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
