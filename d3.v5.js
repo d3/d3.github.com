@@ -1,11 +1,11 @@
-// https://d3js.org Version 5.0.0-rc.3. Copyright 2018 Mike Bostock.
+// https://d3js.org Version 5.0.0-rc.4. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.0.0-rc.3";
+var version = "5.0.0-rc.4";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -5321,37 +5321,37 @@ function contours() {
       tz = tz.slice().sort(ascending$2);
     }
 
-    // Accumulate, smooth contour rings, assign holes to exterior rings.
-    // Based on https://github.com/mbostock/shapefile/blob/v0.6.2/shp/polygon.js
-    var layers = tz.map(function(value) {
-      var polygons = [],
-          holes = [];
+    return tz.map(function(value) {
+      return contour(values, value);
+    });
+  }
 
-      isorings(values, value, function(ring) {
-        smooth(ring, values, value);
-        if (area(ring) > 0) polygons.push([ring]);
-        else holes.push(ring);
-      });
+  // Accumulate, smooth contour rings, assign holes to exterior rings.
+  // Based on https://github.com/mbostock/shapefile/blob/v0.6.2/shp/polygon.js
+  function contour(values, value) {
+    var polygons = [],
+        holes = [];
 
-      holes.forEach(function(hole) {
-        for (var i = 0, n = polygons.length, polygon; i < n; ++i) {
-          if (contains((polygon = polygons[i])[0], hole) !== -1) {
-            polygon.push(hole);
-            return;
-          }
+    isorings(values, value, function(ring) {
+      smooth(ring, values, value);
+      if (area(ring) > 0) polygons.push([ring]);
+      else holes.push(ring);
+    });
+
+    holes.forEach(function(hole) {
+      for (var i = 0, n = polygons.length, polygon; i < n; ++i) {
+        if (contains((polygon = polygons[i])[0], hole) !== -1) {
+          polygon.push(hole);
+          return;
         }
-      });
-
-      return polygons;
+      }
     });
 
-    return layers.map(function(polygons, i) {
-      return {
-        type: "MultiPolygon",
-        value: tz[i],
-        coordinates: polygons
-      };
-    });
+    return {
+      type: "MultiPolygon",
+      value: value,
+      coordinates: polygons
+    };
   }
 
   // Marching squares with isolines stitched into rings.
@@ -5459,6 +5459,8 @@ function contours() {
       }
     });
   }
+
+  contours.contour = contour;
 
   contours.size = function(_) {
     if (!arguments.length) return [dx, dy];
@@ -5847,6 +5849,20 @@ function responseJson(response) {
 function json(input, init) {
   return fetch(input, init).then(responseJson);
 }
+
+function parser(type) {
+  return function(input, init)  {
+    return text(input, init).then(function(text$$1) {
+      return (new DOMParser).parseFromString(text$$1, type);
+    });
+  };
+}
+
+var xml = parser("application/xml");
+
+var html = parser("text/html");
+
+var svg = parser("image/svg+xml");
 
 function center$1(x, y) {
   var nodes;
@@ -17398,6 +17414,9 @@ exports.tsv = tsv$1;
 exports.image = image;
 exports.json = json;
 exports.text = text;
+exports.xml = xml;
+exports.html = html;
+exports.svg = svg;
 exports.forceCenter = center$1;
 exports.forceCollide = collide;
 exports.forceLink = link;
