@@ -265,7 +265,7 @@ pre {
 </a>
 
 
-<script src="d3.v4.min.js" charset="utf-8"></script>
+<script src="d3.v5.min.js" charset="utf-8"></script>
 <script>
 
 /* https://github.com/d3/d3-plugins/tree/master/hexbin Copyright 2013 Michael Bostock. */
@@ -509,11 +509,10 @@ function mousemoved() {
 }
 
 function moved() {
-  if (idle) d3.timer(function() {
-    if (idle = Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus;
+  var t = d3.timer(function() {
+    if (Math.abs(desiredFocus[0] - currentFocus[0]) < .5 && Math.abs(desiredFocus[1] - currentFocus[1]) < .5) currentFocus = desiredFocus, t.stop();
     else currentFocus[0] += (desiredFocus[0] - currentFocus[0]) * .14, currentFocus[1] += (desiredFocus[1] - currentFocus[1]) * .14;
     deep.style(transform, "translate(" + (innerWidth / 2 - currentFocus[0]) / depth + "px," + (height / 2 - currentFocus[1]) / depth + "px)");
-    return idle;
   });
 }
 
@@ -540,7 +539,7 @@ d3.select("#version").text(" (" + d3.version + ")");
 
 <p>To link directly to the latest release, copy this snippet:
 
-<pre><code class="html">&lt;script src="https://d3js.org/d3.v4.min.js">&lt;/script></code></pre>
+<pre><code class="html">&lt;script src="https://d3js.org/d3.v5.min.js">&lt;/script></code></pre>
 
 <p>The <a href="https://github.com/d3/d3">full source and tests</a> are also available <a href="https://github.com/d3/d3/zipball/master">for download</a> on GitHub.
 
