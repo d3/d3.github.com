@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ Version 1.1.5. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ Version 1.1.6. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -429,30 +429,33 @@ function encloseBasis3(a, b, c) {
   };
 }
 
-function place(a, b, c) {
-  var ax = a.x,
-      ay = a.y,
-      da = b.r + c.r,
-      db = a.r + c.r,
-      dx = b.x - ax,
-      dy = b.y - ay,
-      dc = dx * dx + dy * dy;
-  if (dc) {
-    var x = 0.5 + ((db *= db) - (da *= da)) / (2 * dc),
-        y = Math.sqrt(Math.max(0, 2 * da * (db + dc) - (db -= dc) * db - da * da)) / (2 * dc);
-    c.x = ax + x * dx + y * dy;
-    c.y = ay + x * dy - y * dx;
+function place(b, a, c) {
+  var dx = b.x - a.x, x, a2,
+      dy = b.y - a.y, y, b2,
+      d2 = dx * dx + dy * dy;
+  if (d2) {
+    a2 = a.r + c.r, a2 *= a2;
+    b2 = b.r + c.r, b2 *= b2;
+    if (a2 > b2) {
+      x = (d2 + b2 - a2) / (2 * d2);
+      y = Math.sqrt(Math.max(0, b2 / d2 - x * x));
+      c.x = b.x - x * dx - y * dy;
+      c.y = b.y - x * dy + y * dx;
+    } else {
+      x = (d2 + a2 - b2) / (2 * d2);
+      y = Math.sqrt(Math.max(0, a2 / d2 - x * x));
+      c.x = a.x + x * dx - y * dy;
+      c.y = a.y + x * dy + y * dx;
+    }
   } else {
-    c.x = ax + db;
-    c.y = ay;
+    c.x = a.x + c.r;
+    c.y = a.y;
   }
 }
 
 function intersects(a, b) {
-  var dx = b.x - a.x,
-      dy = b.y - a.y,
-      dr = a.r + b.r;
-  return dr * dr - 1e-6 > dx * dx + dy * dy;
+  var dr = a.r + b.r - 1e-6, dx = b.x - a.x, dy = b.y - a.y;
+  return dr > 0 && dr * dr > dx * dx + dy * dy;
 }
 
 function score(node) {
