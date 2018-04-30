@@ -90,6 +90,7 @@ body {
 .example-anchor path {
   fill: none;
   pointer-events: all;
+  cursor: pointer;
 }
 
 .example-anchor path:hover {
@@ -275,13 +276,13 @@ pre {
 (function(a,b,c,d,e,f){function k(a){var b,c=a.length,e=this,f=0,g=e.i=e.j=0,h=e.S=[];for(c||(a=[c++]);d>f;)h[f]=f++;for(f=0;d>f;f++)h[f]=h[g=j&g+a[f%c]+(b=h[f])],h[g]=b;(e.g=function(a){for(var b,c=0,f=e.i,g=e.j,h=e.S;a--;)b=h[f=j&f+1],c=c*d+h[j&(h[f]=h[g=j&g+b])+(h[g]=b)];return e.i=f,e.j=g,c})(d)}function l(a,b){var e,c=[],d=(typeof a)[0];if(b&&"o"==d)for(e in a)try{c.push(l(a[e],b-1))}catch(f){}return c.length?c:"s"==d?a:a+"\0"}function m(a,b){for(var d,c=a+"",e=0;c.length>e;)b[j&e]=j&(d^=19*b[j&e])+c.charCodeAt(e++);return o(b)}function n(c){try{return a.crypto.getRandomValues(c=new Uint8Array(d)),o(c)}catch(e){return[+new Date,a,a.navigator.plugins,a.screen,o(b)]}}function o(a){return String.fromCharCode.apply(0,a)}var g=c.pow(d,e),h=c.pow(2,f),i=2*h,j=d-1;c.seedrandom=function(a,f){var j=[],p=m(l(f?[a,o(b)]:0 in arguments?a:n(),3),j),q=new k(j);return m(o(q.S),b),c.random=function(){for(var a=q.g(e),b=g,c=0;h>a;)a=(a+c)*d,b*=d,c=q.g(1);for(;a>=i;)a/=2,b/=2,c>>>=1;return(a+c)/b},p},m(c.random(),b)})(this,[],Math,256,6,52);
 
 var data = [
-{title: "Reingold–Tilford Tree (Radial)", url: "http://bl.ocks.org/mbostock/4063550"},
+{title: "Radial Tidy Tree", url: "https://beta.observablehq.com/@mbostock/d3-radial-tidy-tree"},
 {title: "Factorisation Diagrams", url: "http://www.jasondavies.com/factorisation-diagrams/"},
 {title: "Phylogenetic Tree of Life", url: "http://www.jasondavies.com/tree-of-life/"},
 {title: "Geographic Clipping", url: "http://www.jasondavies.com/maps/clip/"},
 {title: "Les Misérables Co-occurrence Matrix", url: "http://bost.ocks.org/mike/miserables/"},
 {title: "L*a*b* and HCL color spaces", url: "http://bl.ocks.org/mbostock/3014589"},
-{title: "Treemap", url: "http://bl.ocks.org/mbostock/4063582"},
+{title: "Treemap", url: "https://beta.observablehq.com/@mbostock/d3-treemap"},
 {title: "Map Projection Transitions", url: "http://www.jasondavies.com/maps/transition/"},
 {title: "Across U.S. Companies, Tax Rates Vary Greatly", url: "http://www.nytimes.com/interactive/2013/05/25/sunday-review/corporate-taxes.html"},
 {title: "Rotating Voronoi", url: "http://bl.ocks.org/mbostock/4636377"},
@@ -299,21 +300,21 @@ var data = [
 {title: "Hive Plots", url: "http://bost.ocks.org/mike/hive/"},
 {title: "Donut Transitions", url: "http://bl.ocks.org/mbostock/4341417"},
 {title: "Non-Contiguous Cartogram", url: "http://bl.ocks.org/mbostock/4055908"},
-{title: "Spermatozoa", url: "http://bl.ocks.org/mbostock/1136236"},
+{title: "Tadpoles", url: "https://beta.observablehq.com/@mbostock/tadpoles"},
 {title: "Zoomable Circle Packing", url: "http://bl.ocks.org/mbostock/7607535"},
 {title: "Transform Transitions", url: "http://bl.ocks.org/mbostock/1345853"},
 {title: "Scatterplot Matrix", url: "http://bl.ocks.org/mbostock/3213173"},
 {title: "Janet L. Yellen, on the Economy’s Twists and Turns", url: "http://www.nytimes.com/interactive/2013/10/09/us/yellen-fed-chart.html"},
 {title: "Front Row to Fashion Week", url: "http://www.nytimes.com/newsgraphics/2013/09/13/fashion-week-editors-picks/"},
-{title: "Interrupted Sinu-Mollweide", url: "http://bl.ocks.org/mbostock/4481520"},
+{title: "Interrupted Sinu-Mollweide", url: "https://beta.observablehq.com/@mbostock/interrupted-sinu-mollweide"},
 {title: "Streamgraph", url: "http://bl.ocks.org/mbostock/4060954"},
-{title: "Force-Directed Graph", url: "http://bl.ocks.org/mbostock/4062045"},
+{title: "Force-Directed Graph", url: "https://beta.observablehq.com/@mbostock/d3-force-directed-graph"},
 {title: "Zoomable Icicle", url: "http://bl.ocks.org/mbostock/1005873"},
 {title: "Collision Detection", url: "http://bl.ocks.org/mbostock/3231298"},
 {title: "Waterman Butterfly", url: "http://bl.ocks.org/mbostock/4458497"},
 {title: "Airocean World", url: "http://www.jasondavies.com/maps/airocean/"},
 {title: "Countries by Area", url: "http://www.jasondavies.com/maps/countries-by-area/"},
-{title: "Bilevel Partition", url: "http://bl.ocks.org/mbostock/5944371"},
+{title: "Zoomable Sunburst", url: "https://beta.observablehq.com/@mbostock/d3-zoomable-sunburst"},
 {title: "Map Zooming", url: "http://bl.ocks.org/mbostock/6242308"},
 {title: "Fisher–Yates Shuffle", url: "http://bost.ocks.org/mike/shuffle/"},
 {title: "Sphere Spirals", url: "http://www.jasondavies.com/maps/sphere-spirals/"},
@@ -324,7 +325,7 @@ var data = [
 {title: "Voronoi Labels", url: "http://bl.ocks.org/mbostock/6909318"},
 {title: "Bivariate Hexbin Map", url: "http://bl.ocks.org/mbostock/4330486"},
 {title: "OMG Particles!", url: "http://bl.ocks.org/mbostock/1062544"},
-{title: "Calendar View", url: "http://bl.ocks.org/mbostock/4063318"},
+{title: "Calendar View", url: "https://beta.observablehq.com/@mbostock/d3-calendar-view"},
 {title: "The Wealth & Health of Nations", url: "http://bost.ocks.org/mike/nations/"},
 {title: "Collapsible Tree", url: "http://bl.ocks.org/mbostock/4339083"},
 {title: "Hexagonal Binning", url: "http://bl.ocks.org/mbostock/4248145"},
@@ -332,7 +333,7 @@ var data = [
 {title: "China Still Dominates, but Some Manufacturers Look Elsewhere", url: "http://www.nytimes.com/interactive/2013/04/08/business/global/asia-map.html"},
 {title: "Strikeouts on the Rise", url: "http://www.nytimes.com/interactive/2013/03/29/sports/baseball/Strikeouts-Are-Still-Soaring.html?ref=baseball"},
 {title: "Epicyclic Gearing", url: "http://bl.ocks.org/mbostock/1353700"},
-{title: "Voronoi Tessellation", url: "http://bl.ocks.org/mbostock/4060366"},
+{title: "Voronoi Particles", url: "https://beta.observablehq.com/@mbostock/voronoi-particles"},
 {title: "The state of our union is … dumber", url: "http://www.guardian.co.uk/world/interactive/2013/feb/12/state-of-the-union-reading-level"},
 {title: "Chord Diagram", url: "http://bl.ocks.org/mbostock/1046712"},
 {title: "Floating Landmasses", url: "http://bl.ocks.org/mbostock/6738360"},
@@ -342,7 +343,7 @@ var data = [
 {title: "Constellations of Directors and Their Stars", url: "http://www.nytimes.com/newsgraphics/2013/09/07/director-star-chart/"},
 {title: "Drought and Deluge in the Lower 48", url: "http://www.nytimes.com/interactive/2012/08/11/sunday-review/drought-history.html"},
 {title: "Animated Bézier Curves", url: "http://www.jasondavies.com/animated-bezier/"},
-{title: "Histogram", url: "http://bl.ocks.org/mbostock/3048450"},
+{title: "Histogram", url: "https://beta.observablehq.com/@mbostock/d3-histogram"},
 {title: "Stacked-to-Grouped Bars", url: "http://bl.ocks.org/mbostock/3943967"},
 {title: "Force-Directed States of America", url: "http://bl.ocks.org/mbostock/1073373"},
 {title: "Faux-3D Arcs", url: "http://bl.ocks.org/dwtkns/4973620"},
@@ -353,9 +354,9 @@ var data = [
 {title: "Rainbow Worm", url: "http://bl.ocks.org/mbostock/4165404"},
 {title: "Four Ways to Slice Obama’s 2013 Budget Proposal", url: "http://www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html"},
 {title: "Quadtree", url: "http://bl.ocks.org/mbostock/4343214"},
-{title: "Bubble Chart", url: "http://bl.ocks.org/mbostock/4063269"},
+{title: "Bubble Chart", url: "https://beta.observablehq.com/@mbostock/d3-bubble-chart"},
 {title: "Women as Academic Authors, 1665-2010", url: "http://chronicle.com/article/Woman-as-Academic-Authors/135192/"},
-{title: "Choropleth", url: "http://bl.ocks.org/mbostock/4060606"},
+{title: "Choropleth", url: "https://beta.observablehq.com/@mbostock/d3-choropleth"},
 {title: "Gilbert’s Two-World Perspective", url: "http://www.jasondavies.com/maps/gilbert/"},
 {title: "For Eli Manning, 150 Games and Counting", url: "http://www.nytimes.com/newsgraphics/2013/09/28/eli-manning-milestone/"},
 {title: "Word Tree", url: "http://www.jasondavies.com/wordtree/"},
