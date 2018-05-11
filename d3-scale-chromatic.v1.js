@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale-chromatic/ Version 1.2.0. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-scale-chromatic/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-interpolate', 'd3-color'], factory) :
@@ -381,15 +381,28 @@ var warm = d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(-100, 0.75, 
 
 var cool = d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(260, 0.75, 0.35), d3Color.cubehelix(80, 1.50, 0.8));
 
-var rainbow = d3Color.cubehelix();
+var c = d3Color.cubehelix();
 
-function rainbow$1(t) {
+function rainbow(t) {
   if (t < 0 || t > 1) t -= Math.floor(t);
   var ts = Math.abs(t - 0.5);
-  rainbow.h = 360 * t - 100;
-  rainbow.s = 1.5 - 1.5 * ts;
-  rainbow.l = 0.8 - 0.9 * ts;
-  return rainbow + "";
+  c.h = 360 * t - 100;
+  c.s = 1.5 - 1.5 * ts;
+  c.l = 0.8 - 0.9 * ts;
+  return c + "";
+}
+
+var c$1 = d3Color.rgb();
+var pi_1_3 = Math.PI / 3;
+var pi_2_3 = Math.PI * 2 / 3;
+
+function sinebow(t) {
+  var x;
+  t = (0.5 - t) * Math.PI;
+  c$1.r = 255 * (x = Math.sin(t)) * x;
+  c$1.g = 255 * (x = Math.sin(t + pi_1_3)) * x;
+  c$1.b = 255 * (x = Math.sin(t + pi_2_3)) * x;
+  return c$1 + "";
 }
 
 function ramp$1(range) {
@@ -471,9 +484,10 @@ exports.schemeReds = scheme$25;
 exports.interpolateOranges = Oranges;
 exports.schemeOranges = scheme$26;
 exports.interpolateCubehelixDefault = cubehelix$1;
-exports.interpolateRainbow = rainbow$1;
+exports.interpolateRainbow = rainbow;
 exports.interpolateWarm = warm;
 exports.interpolateCool = cool;
+exports.interpolateSinebow = sinebow;
 exports.interpolateViridis = viridis;
 exports.interpolateMagma = magma;
 exports.interpolateInferno = inferno;
