@@ -1,4 +1,4 @@
-// https://d3js.org/d3-contour/ Version 1.2.0. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-contour/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -303,9 +303,14 @@ function defaultY(d) {
   return d[1];
 }
 
+function defaultWeight() {
+  return 1;
+}
+
 var density = function() {
   var x = defaultX,
       y = defaultY,
+      weight = defaultWeight,
       dx = 960,
       dy = 500,
       r = 20, // blur radius
@@ -320,10 +325,11 @@ var density = function() {
         values1 = new Float32Array(n * m);
 
     data.forEach(function(d, i, data) {
-      var xi = (x(d, i, data) + o) >> k,
-          yi = (y(d, i, data) + o) >> k;
+      var xi = (+x(d, i, data) + o) >> k,
+          yi = (+y(d, i, data) + o) >> k,
+          wi = +weight(d, i, data);
       if (xi >= 0 && xi < n && yi >= 0 && yi < m) {
-        ++values0[xi + yi * n];
+        values0[xi + yi * n] += wi;
       }
     });
 
@@ -385,6 +391,10 @@ var density = function() {
 
   density.y = function(_) {
     return arguments.length ? (y = typeof _ === "function" ? _ : constant(+_), density) : y;
+  };
+
+  density.weight = function(_) {
+    return arguments.length ? (weight = typeof _ === "function" ? _ : constant(+_), density) : weight;
   };
 
   density.size = function(_) {
