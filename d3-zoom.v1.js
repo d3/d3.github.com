@@ -1,15 +1,15 @@
-// https://d3js.org/d3-zoom/ Version 1.7.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-zoom/ v1.7.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-transition')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-transition'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3));
+}(this, (function (exports,d3Selection,d3Dispatch,d3Drag,d3Interpolate,d3Transition) { 'use strict';
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
 function ZoomEvent(target, type, transform) {
   this.target = target;
@@ -72,10 +72,10 @@ function nopropagation() {
   d3Selection.event.stopImmediatePropagation();
 }
 
-var noevent = function() {
+function noevent() {
   d3Selection.event.preventDefault();
   d3Selection.event.stopImmediatePropagation();
-};
+}
 
 // Ignore right-click, since that should open the context menu.
 function defaultFilter() {
@@ -118,7 +118,7 @@ function defaultConstrain(transform$$1, extent, translateExtent) {
   );
 }
 
-var zoom = function() {
+function zoom() {
   var filter = defaultFilter,
       extent = defaultExtent,
       constrain = defaultConstrain,
@@ -491,7 +491,7 @@ var zoom = function() {
   };
 
   return zoom;
-};
+}
 
 exports.zoom = zoom;
 exports.zoomTransform = transform;
