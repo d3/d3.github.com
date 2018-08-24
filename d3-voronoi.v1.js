@@ -1,4 +1,4 @@
-// https://d3js.org/d3-voronoi/ v1.1.3 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-voronoi/ v1.1.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
