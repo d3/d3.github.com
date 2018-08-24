@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ v1.1.7 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-hierarchy/ v1.1.8 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
