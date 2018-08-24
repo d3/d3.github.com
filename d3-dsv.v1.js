@@ -1,15 +1,15 @@
-// https://d3js.org/d3-dsv/ Version 1.0.8. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-dsv/ v1.0.9 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.d3 = global.d3 || {})));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var EOL = {};
-var EOF = {};
-var QUOTE = 34;
-var NEWLINE = 10;
-var RETURN = 13;
+var EOL = {},
+    EOF = {},
+    QUOTE = 34,
+    NEWLINE = 10,
+    RETURN = 13;
 
 function objectConverter(columns) {
   return new Function("d", "return {" + columns.map(function(name, i) {
@@ -40,7 +40,7 @@ function inferColumns(rows) {
   return columns;
 }
 
-var dsv = function(delimiter) {
+function dsv(delimiter) {
   var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
       DELIMITER = delimiter.charCodeAt(0);
 
@@ -131,7 +131,7 @@ var dsv = function(delimiter) {
     format: format,
     formatRows: formatRows
   };
-};
+}
 
 var csv = dsv(",");
 
