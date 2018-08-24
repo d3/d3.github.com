@@ -1,20 +1,20 @@
-// https://d3js.org/d3-drag/ Version 1.2.1. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-drag/ v1.2.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-selection'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
-}(this, (function (exports,d3Dispatch,d3Selection) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
+}(this, (function (exports,d3Selection,d3Dispatch) { 'use strict';
 
 function nopropagation() {
   d3Selection.event.stopImmediatePropagation();
 }
 
-var noevent = function() {
+function noevent() {
   d3Selection.event.preventDefault();
   d3Selection.event.stopImmediatePropagation();
-};
+}
 
-var nodrag = function(view) {
+function nodrag(view) {
   var root = view.document.documentElement,
       selection = d3Selection.select(view).on("dragstart.drag", noevent, true);
   if ("onselectstart" in root) {
@@ -23,7 +23,7 @@ var nodrag = function(view) {
     root.__noselect = root.style.MozUserSelect;
     root.style.MozUserSelect = "none";
   }
-};
+}
 
 function yesdrag(view, noclick) {
   var root = view.document.documentElement,
@@ -40,13 +40,13 @@ function yesdrag(view, noclick) {
   }
 }
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
-function DragEvent(target, type, subject, id, active, x, y, dx, dy, dispatch$$1) {
+function DragEvent(target, type, subject, id, active, x, y, dx, dy, dispatch) {
   this.target = target;
   this.type = type;
   this.subject = subject;
@@ -56,7 +56,7 @@ function DragEvent(target, type, subject, id, active, x, y, dx, dy, dispatch$$1)
   this.y = y;
   this.dx = dx;
   this.dy = dy;
-  this._ = dispatch$$1;
+  this._ = dispatch;
 }
 
 DragEvent.prototype.on = function() {
@@ -81,7 +81,7 @@ function defaultTouchable() {
   return "ontouchstart" in this;
 }
 
-var drag = function() {
+function drag() {
   var filter = defaultFilter,
       container = defaultContainer,
       subject = defaultSubject,
@@ -223,7 +223,7 @@ var drag = function() {
   };
 
   return drag;
-};
+}
 
 exports.drag = drag;
 exports.dragDisable = nodrag;
