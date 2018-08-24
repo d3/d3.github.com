@@ -1,35 +1,35 @@
-// https://d3js.org/d3-brush/ Version 1.0.4. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-brush/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Dispatch,d3Drag,d3Interpolate,d3Selection,d3Transition) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-transition')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-transition'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3));
+}(this, (function (exports,d3Selection,d3Dispatch,d3Drag,d3Interpolate,d3Transition) { 'use strict';
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
-var BrushEvent = function(target, type, selection) {
+function BrushEvent(target, type, selection) {
   this.target = target;
   this.type = type;
   this.selection = selection;
-};
+}
 
 function nopropagation() {
   d3Selection.event.stopImmediatePropagation();
 }
 
-var noevent = function() {
+function noevent() {
   d3Selection.event.preventDefault();
   d3Selection.event.stopImmediatePropagation();
-};
+}
 
-var MODE_DRAG = {name: "drag"};
-var MODE_SPACE = {name: "space"};
-var MODE_HANDLE = {name: "handle"};
-var MODE_CENTER = {name: "center"};
+var MODE_DRAG = {name: "drag"},
+    MODE_SPACE = {name: "space"},
+    MODE_HANDLE = {name: "handle"},
+    MODE_CENTER = {name: "center"};
 
 var X = {
   name: "x",
@@ -147,9 +147,9 @@ function brushY() {
   return brush$1(Y);
 }
 
-var brush = function() {
+function brush() {
   return brush$1(XY);
-};
+}
 
 function brush$1(dim) {
   var extent = defaultExtent,
