@@ -1,8 +1,8 @@
-// https://d3js.org/d3-chord/ Version 1.0.4. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-chord/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-path'], factory) :
-  (factory((global.d3 = global.d3 || {}),global.d3,global.d3));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-path'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
 }(this, (function (exports,d3Array,d3Path) { 'use strict';
 
 var cos = Math.cos;
@@ -21,7 +21,7 @@ function compareValue(compare) {
   };
 }
 
-var chord = function() {
+function chord() {
   var padAngle = 0,
       sortGroups = null,
       sortSubgroups = null,
@@ -129,15 +129,15 @@ var chord = function() {
   };
 
   return chord;
-};
+}
 
 var slice = Array.prototype.slice;
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
 function defaultSource(d) {
   return d.source;
@@ -159,7 +159,7 @@ function defaultEndAngle(d) {
   return d.endAngle;
 }
 
-var ribbon = function() {
+function ribbon() {
   var source = defaultSource,
       target = defaultTarget,
       radius = defaultRadius,
@@ -220,7 +220,7 @@ var ribbon = function() {
   };
 
   return ribbon;
-};
+}
 
 exports.chord = chord;
 exports.ribbon = ribbon;
