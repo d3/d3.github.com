@@ -1,11 +1,11 @@
-// https://d3js.org/d3-polygon/ Version 1.0.3. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-polygon/ v1.0.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.d3 = global.d3 || {})));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var area = function(polygon) {
+function area(polygon) {
   var i = -1,
       n = polygon.length,
       a,
@@ -19,9 +19,9 @@ var area = function(polygon) {
   }
 
   return area / 2;
-};
+}
 
-var centroid = function(polygon) {
+function centroid(polygon) {
   var i = -1,
       n = polygon.length,
       x = 0,
@@ -40,15 +40,15 @@ var centroid = function(polygon) {
   }
 
   return k *= 3, [x / k, y / k];
-};
+}
 
 // Returns the 2D cross product of AB and AC vectors, i.e., the z-component of
 // the 3D cross product in a quadrant I Cartesian coordinate system (+x is
 // right, +y is up). Returns a positive value if ABC is counter-clockwise,
 // negative if clockwise, and zero if the points are collinear.
-var cross = function(a, b, c) {
+function cross(a, b, c) {
   return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-};
+}
 
 function lexicographicOrder(a, b) {
   return a[0] - b[0] || a[1] - b[1];
@@ -70,7 +70,7 @@ function computeUpperHullIndexes(points) {
   return indexes.slice(0, size); // remove popped points
 }
 
-var hull = function(points) {
+function hull(points) {
   if ((n = points.length) < 3) return null;
 
   var i,
@@ -96,9 +96,9 @@ var hull = function(points) {
   for (i = +skipLeft; i < lowerIndexes.length - skipRight; ++i) hull.push(points[sortedPoints[lowerIndexes[i]][2]]);
 
   return hull;
-};
+}
 
-var contains = function(polygon, point) {
+function contains(polygon, point) {
   var n = polygon.length,
       p = polygon[n - 1],
       x = point[0], y = point[1],
@@ -113,9 +113,9 @@ var contains = function(polygon, point) {
   }
 
   return inside;
-};
+}
 
-var length = function(polygon) {
+function length(polygon) {
   var i = -1,
       n = polygon.length,
       b = polygon[n - 1],
@@ -137,7 +137,7 @@ var length = function(polygon) {
   }
 
   return perimeter;
-};
+}
 
 exports.polygonArea = area;
 exports.polygonCentroid = centroid;
