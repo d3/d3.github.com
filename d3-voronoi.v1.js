@@ -1,15 +1,15 @@
-// https://d3js.org/d3-voronoi/ Version 1.1.2. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-voronoi/ v1.1.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.d3 = global.d3 || {})));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
 function x(d) {
   return d[0];
@@ -947,7 +947,7 @@ Diagram.prototype = {
   }
 };
 
-var voronoi = function() {
+function voronoi() {
   var x$$1 = x,
       y$$1 = y,
       extent = null;
@@ -990,7 +990,7 @@ var voronoi = function() {
   };
 
   return voronoi;
-};
+}
 
 exports.voronoi = voronoi;
 
