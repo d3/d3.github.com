@@ -1,4 +1,4 @@
-// https://d3js.org/d3-chord/ v1.0.5 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-chord/ v1.0.6 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-path'], factory) :
