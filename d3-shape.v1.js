@@ -1,4 +1,4 @@
-// https://d3js.org/d3-shape/ v1.2.1 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-shape/ v1.2.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
