@@ -1,23 +1,23 @@
-// https://d3js.org/d3-scale/ Version 2.1.0. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-scale/ v2.1.1 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-collection', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Array,d3Collection,d3Interpolate,d3Format,d3Time,d3TimeFormat) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3,global.d3));
+}(this, (function (exports,d3Collection,d3Array,d3Interpolate,d3Format,d3Time,d3TimeFormat) { 'use strict';
 
 var array = Array.prototype;
 
-var map$1 = array.map;
+var map = array.map;
 var slice = array.slice;
 
 var implicit = {name: "implicit"};
 
-function ordinal(range$$1) {
+function ordinal(range) {
   var index = d3Collection.map(),
       domain = [],
       unknown = implicit;
 
-  range$$1 = range$$1 == null ? [] : slice.call(range$$1);
+  range = range == null ? [] : slice.call(range);
 
   function scale(d) {
     var key = d + "", i = index.get(key);
@@ -25,7 +25,7 @@ function ordinal(range$$1) {
       if (unknown !== implicit) return unknown;
       index.set(key, i = domain.push(d));
     }
-    return range$$1[(i - 1) % range$$1.length];
+    return range[(i - 1) % range.length];
   }
 
   scale.domain = function(_) {
@@ -37,7 +37,7 @@ function ordinal(range$$1) {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = slice.call(_), scale) : range$$1.slice();
+    return arguments.length ? (range = slice.call(_), scale) : range.slice();
   };
 
   scale.unknown = function(_) {
@@ -47,7 +47,7 @@ function ordinal(range$$1) {
   scale.copy = function() {
     return ordinal()
         .domain(domain)
-        .range(range$$1)
+        .range(range)
         .unknown(unknown);
   };
 
@@ -58,7 +58,7 @@ function band() {
   var scale = ordinal().unknown(undefined),
       domain = scale.domain,
       ordinalRange = scale.range,
-      range$$1 = [0, 1],
+      range = [0, 1],
       step,
       bandwidth,
       round = false,
@@ -70,9 +70,9 @@ function band() {
 
   function rescale() {
     var n = domain().length,
-        reverse = range$$1[1] < range$$1[0],
-        start = range$$1[reverse - 0],
-        stop = range$$1[1 - reverse];
+        reverse = range[1] < range[0],
+        start = range[reverse - 0],
+        stop = range[1 - reverse];
     step = (stop - start) / Math.max(1, n - paddingInner + paddingOuter * 2);
     if (round) step = Math.floor(step);
     start += (stop - start - step * (n - paddingInner)) * align;
@@ -87,11 +87,11 @@ function band() {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = [+_[0], +_[1]], rescale()) : range$$1.slice();
+    return arguments.length ? (range = [+_[0], +_[1]], rescale()) : range.slice();
   };
 
   scale.rangeRound = function(_) {
-    return range$$1 = [+_[0], +_[1]], round = true, rescale();
+    return range = [+_[0], +_[1]], round = true, rescale();
   };
 
   scale.bandwidth = function() {
@@ -125,7 +125,7 @@ function band() {
   scale.copy = function() {
     return band()
         .domain(domain())
-        .range(range$$1)
+        .range(range)
         .round(round)
         .paddingInner(paddingInner)
         .paddingOuter(paddingOuter)
@@ -185,15 +185,15 @@ function reinterpolateClamp(reinterpolate) {
   };
 }
 
-function bimap(domain, range$$1, deinterpolate, reinterpolate) {
-  var d0 = domain[0], d1 = domain[1], r0 = range$$1[0], r1 = range$$1[1];
+function bimap(domain, range, deinterpolate, reinterpolate) {
+  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
   if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);
   else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
   return function(x) { return r0(d0(x)); };
 }
 
-function polymap(domain, range$$1, deinterpolate, reinterpolate) {
-  var j = Math.min(domain.length, range$$1.length) - 1,
+function polymap(domain, range, deinterpolate, reinterpolate) {
+  var j = Math.min(domain.length, range.length) - 1,
       d = new Array(j),
       r = new Array(j),
       i = -1;
@@ -201,12 +201,12 @@ function polymap(domain, range$$1, deinterpolate, reinterpolate) {
   // Reverse descending domains.
   if (domain[j] < domain[0]) {
     domain = domain.slice().reverse();
-    range$$1 = range$$1.slice().reverse();
+    range = range.slice().reverse();
   }
 
   while (++i < j) {
     d[i] = deinterpolate(domain[i], domain[i + 1]);
-    r[i] = reinterpolate(range$$1[i], range$$1[i + 1]);
+    r[i] = reinterpolate(range[i], range[i + 1]);
   }
 
   return function(x) {
@@ -227,37 +227,37 @@ function copy(source, target) {
 // reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
 function continuous(deinterpolate, reinterpolate) {
   var domain = unit,
-      range$$1 = unit,
-      interpolate$$1 = d3Interpolate.interpolate,
+      range = unit,
+      interpolate = d3Interpolate.interpolate,
       clamp = false,
       piecewise,
       output,
       input;
 
   function rescale() {
-    piecewise = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+    piecewise = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
     output = input = null;
     return scale;
   }
 
   function scale(x) {
-    return (output || (output = piecewise(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+    return (output || (output = piecewise(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate)))(+x);
   }
 
   scale.invert = function(y) {
-    return (input || (input = piecewise(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+    return (input || (input = piecewise(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
   };
 
   scale.domain = function(_) {
-    return arguments.length ? (domain = map$1.call(_, number), rescale()) : domain.slice();
+    return arguments.length ? (domain = map.call(_, number), rescale()) : domain.slice();
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = slice.call(_), rescale()) : range$$1.slice();
+    return arguments.length ? (range = slice.call(_), rescale()) : range.slice();
   };
 
   scale.rangeRound = function(_) {
-    return range$$1 = slice.call(_), interpolate$$1 = d3Interpolate.interpolateRound, rescale();
+    return range = slice.call(_), interpolate = d3Interpolate.interpolateRound, rescale();
   };
 
   scale.clamp = function(_) {
@@ -265,7 +265,7 @@ function continuous(deinterpolate, reinterpolate) {
   };
 
   scale.interpolate = function(_) {
-    return arguments.length ? (interpolate$$1 = _, rescale()) : interpolate$$1;
+    return arguments.length ? (interpolate = _, rescale()) : interpolate;
   };
 
   return rescale();
@@ -375,7 +375,7 @@ function identity() {
   scale.invert = scale;
 
   scale.domain = scale.range = function(_) {
-    return arguments.length ? (domain = map$1.call(_, number), scale) : domain.slice();
+    return arguments.length ? (domain = map.call(_, number), scale) : domain.slice();
   };
 
   scale.copy = function() {
@@ -562,24 +562,24 @@ function sqrt() {
   return pow().exponent(0.5);
 }
 
-function quantile$1() {
+function quantile() {
   var domain = [],
-      range$$1 = [],
+      range = [],
       thresholds = [];
 
   function rescale() {
-    var i = 0, n = Math.max(1, range$$1.length);
+    var i = 0, n = Math.max(1, range.length);
     thresholds = new Array(n - 1);
     while (++i < n) thresholds[i - 1] = d3Array.quantile(domain, i / n);
     return scale;
   }
 
   function scale(x) {
-    if (!isNaN(x = +x)) return range$$1[d3Array.bisect(thresholds, x)];
+    if (!isNaN(x = +x)) return range[d3Array.bisect(thresholds, x)];
   }
 
   scale.invertExtent = function(y) {
-    var i = range$$1.indexOf(y);
+    var i = range.indexOf(y);
     return i < 0 ? [NaN, NaN] : [
       i > 0 ? thresholds[i - 1] : domain[0],
       i < thresholds.length ? thresholds[i] : domain[domain.length - 1]
@@ -595,7 +595,7 @@ function quantile$1() {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = slice.call(_), rescale()) : range$$1.slice();
+    return arguments.length ? (range = slice.call(_), rescale()) : range.slice();
   };
 
   scale.quantiles = function() {
@@ -603,9 +603,9 @@ function quantile$1() {
   };
 
   scale.copy = function() {
-    return quantile$1()
+    return quantile()
         .domain(domain)
-        .range(range$$1);
+        .range(range);
   };
 
   return scale;
@@ -616,10 +616,10 @@ function quantize() {
       x1 = 1,
       n = 1,
       domain = [0.5],
-      range$$1 = [0, 1];
+      range = [0, 1];
 
   function scale(x) {
-    if (x <= x) return range$$1[d3Array.bisect(domain, x, 0, n)];
+    if (x <= x) return range[d3Array.bisect(domain, x, 0, n)];
   }
 
   function rescale() {
@@ -634,11 +634,11 @@ function quantize() {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (n = (range$$1 = slice.call(_)).length - 1, rescale()) : range$$1.slice();
+    return arguments.length ? (n = (range = slice.call(_)).length - 1, rescale()) : range.slice();
   };
 
   scale.invertExtent = function(y) {
-    var i = range$$1.indexOf(y);
+    var i = range.indexOf(y);
     return i < 0 ? [NaN, NaN]
         : i < 1 ? [x0, domain[0]]
         : i >= n ? [domain[n - 1], x1]
@@ -648,7 +648,7 @@ function quantize() {
   scale.copy = function() {
     return quantize()
         .domain([x0, x1])
-        .range(range$$1);
+        .range(range);
   };
 
   return linearish(scale);
@@ -656,42 +656,42 @@ function quantize() {
 
 function threshold() {
   var domain = [0.5],
-      range$$1 = [0, 1],
+      range = [0, 1],
       n = 1;
 
   function scale(x) {
-    if (x <= x) return range$$1[d3Array.bisect(domain, x, 0, n)];
+    if (x <= x) return range[d3Array.bisect(domain, x, 0, n)];
   }
 
   scale.domain = function(_) {
-    return arguments.length ? (domain = slice.call(_), n = Math.min(domain.length, range$$1.length - 1), scale) : domain.slice();
+    return arguments.length ? (domain = slice.call(_), n = Math.min(domain.length, range.length - 1), scale) : domain.slice();
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = slice.call(_), n = Math.min(domain.length, range$$1.length - 1), scale) : range$$1.slice();
+    return arguments.length ? (range = slice.call(_), n = Math.min(domain.length, range.length - 1), scale) : range.slice();
   };
 
   scale.invertExtent = function(y) {
-    var i = range$$1.indexOf(y);
+    var i = range.indexOf(y);
     return [domain[i - 1], domain[i]];
   };
 
   scale.copy = function() {
     return threshold()
         .domain(domain)
-        .range(range$$1);
+        .range(range);
   };
 
   return scale;
 }
 
-var durationSecond = 1000;
-var durationMinute = durationSecond * 60;
-var durationHour = durationMinute * 60;
-var durationDay = durationHour * 24;
-var durationWeek = durationDay * 7;
-var durationMonth = durationDay * 30;
-var durationYear = durationDay * 365;
+var durationSecond = 1000,
+    durationMinute = durationSecond * 60,
+    durationHour = durationMinute * 60,
+    durationDay = durationHour * 24,
+    durationWeek = durationDay * 7,
+    durationMonth = durationDay * 30,
+    durationYear = durationDay * 365;
 
 function date(t) {
   return new Date(t);
@@ -701,19 +701,19 @@ function number$1(t) {
   return t instanceof Date ? +t : +new Date(+t);
 }
 
-function calendar(year, month, week, day, hour, minute, second, millisecond, format$$1) {
+function calendar(year, month, week, day, hour, minute, second, millisecond, format) {
   var scale = continuous(deinterpolateLinear, d3Interpolate.interpolateNumber),
       invert = scale.invert,
       domain = scale.domain;
 
-  var formatMillisecond = format$$1(".%L"),
-      formatSecond = format$$1(":%S"),
-      formatMinute = format$$1("%I:%M"),
-      formatHour = format$$1("%I %p"),
-      formatDay = format$$1("%a %d"),
-      formatWeek = format$$1("%b %d"),
-      formatMonth = format$$1("%B"),
-      formatYear = format$$1("%Y");
+  var formatMillisecond = format(".%L"),
+      formatSecond = format(":%S"),
+      formatMinute = format("%I:%M"),
+      formatHour = format("%I %p"),
+      formatDay = format("%a %d"),
+      formatWeek = format("%b %d"),
+      formatMonth = format("%B"),
+      formatYear = format("%Y");
 
   var tickIntervals = [
     [second,  1,      durationSecond],
@@ -776,7 +776,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.domain = function(_) {
-    return arguments.length ? domain(map$1.call(_, number$1)) : domain().map(date);
+    return arguments.length ? domain(map.call(_, number$1)) : domain().map(date);
   };
 
   scale.ticks = function(interval, step) {
@@ -792,7 +792,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.tickFormat = function(count, specifier) {
-    return specifier == null ? tickFormat : format$$1(specifier);
+    return specifier == null ? tickFormat : format(specifier);
   };
 
   scale.nice = function(interval, step) {
@@ -803,7 +803,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.copy = function() {
-    return copy(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format$$1));
+    return copy(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format));
   };
 
   return scale;
@@ -888,7 +888,7 @@ exports.scaleOrdinal = ordinal;
 exports.scaleImplicit = implicit;
 exports.scalePow = pow;
 exports.scaleSqrt = sqrt;
-exports.scaleQuantile = quantile$1;
+exports.scaleQuantile = quantile;
 exports.scaleQuantize = quantize;
 exports.scaleThreshold = threshold;
 exports.scaleTime = time;
