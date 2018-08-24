@@ -1,8 +1,8 @@
-// https://d3js.org/d3-hierarchy/ Version 1.1.6. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-hierarchy/ v1.1.7 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.d3 = global.d3 || {})));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 function defaultSeparation(a, b) {
@@ -37,7 +37,7 @@ function leafRight(node) {
   return node;
 }
 
-var cluster = function() {
+function cluster() {
   var separation = defaultSeparation,
       dx = 1,
       dy = 1,
@@ -88,7 +88,7 @@ var cluster = function() {
   };
 
   return cluster;
-};
+}
 
 function count(node) {
   var sum = 0,
@@ -99,11 +99,11 @@ function count(node) {
   node.value = sum;
 }
 
-var node_count = function() {
+function node_count() {
   return this.eachAfter(count);
-};
+}
 
-var node_each = function(callback) {
+function node_each(callback) {
   var node = this, current, next = [node], children, i, n;
   do {
     current = next.reverse(), next = [];
@@ -115,9 +115,9 @@ var node_each = function(callback) {
     }
   } while (next.length);
   return this;
-};
+}
 
-var node_eachBefore = function(callback) {
+function node_eachBefore(callback) {
   var node = this, nodes = [node], children, i;
   while (node = nodes.pop()) {
     callback(node), children = node.children;
@@ -126,9 +126,9 @@ var node_eachBefore = function(callback) {
     }
   }
   return this;
-};
+}
 
-var node_eachAfter = function(callback) {
+function node_eachAfter(callback) {
   var node = this, nodes = [node], next = [], children, i, n;
   while (node = nodes.pop()) {
     next.push(node), children = node.children;
@@ -140,9 +140,9 @@ var node_eachAfter = function(callback) {
     callback(node);
   }
   return this;
-};
+}
 
-var node_sum = function(value) {
+function node_sum(value) {
   return this.eachAfter(function(node) {
     var sum = +value(node.data) || 0,
         children = node.children,
@@ -150,17 +150,17 @@ var node_sum = function(value) {
     while (--i >= 0) sum += children[i].value;
     node.value = sum;
   });
-};
+}
 
-var node_sort = function(compare) {
+function node_sort(compare) {
   return this.eachBefore(function(node) {
     if (node.children) {
       node.children.sort(compare);
     }
   });
-};
+}
 
-var node_path = function(end) {
+function node_path(end) {
   var start = this,
       ancestor = leastCommonAncestor(start, end),
       nodes = [start];
@@ -174,7 +174,7 @@ var node_path = function(end) {
     end = end.parent;
   }
   return nodes;
-};
+}
 
 function leastCommonAncestor(a, b) {
   if (a === b) return a;
@@ -191,23 +191,23 @@ function leastCommonAncestor(a, b) {
   return c;
 }
 
-var node_ancestors = function() {
+function node_ancestors() {
   var node = this, nodes = [node];
   while (node = node.parent) {
     nodes.push(node);
   }
   return nodes;
-};
+}
 
-var node_descendants = function() {
+function node_descendants() {
   var nodes = [];
   this.each(function(node) {
     nodes.push(node);
   });
   return nodes;
-};
+}
 
-var node_leaves = function() {
+function node_leaves() {
   var leaves = [];
   this.eachBefore(function(node) {
     if (!node.children) {
@@ -215,9 +215,9 @@ var node_leaves = function() {
     }
   });
   return leaves;
-};
+}
 
-var node_links = function() {
+function node_links() {
   var root = this, links = [];
   root.each(function(node) {
     if (node !== root) { // Don’t include the root’s parent, if any.
@@ -225,7 +225,7 @@ var node_links = function() {
     }
   });
   return links;
-};
+}
 
 function hierarchy(data, children) {
   var root = new Node(data),
@@ -312,7 +312,7 @@ function shuffle(array) {
   return array;
 }
 
-var enclose = function(circles) {
+function enclose(circles) {
   var i = 0, n = (circles = shuffle(slice.call(circles))).length, B = [], p, e;
 
   while (i < n) {
@@ -322,7 +322,7 @@ var enclose = function(circles) {
   }
 
   return e;
-};
+}
 
 function extendBasis(B, p) {
   var i, j;
@@ -541,10 +541,10 @@ function packEnclose(circles) {
   return c.r;
 }
 
-var siblings = function(circles) {
+function siblings(circles) {
   packEnclose(circles);
   return circles;
-};
+}
 
 function optional(f) {
   return f == null ? null : required(f);
@@ -559,17 +559,17 @@ function constantZero() {
   return 0;
 }
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
 function defaultRadius(d) {
   return Math.sqrt(d.value);
 }
 
-var index = function() {
+function index() {
   var radius = null,
       dx = 1,
       dy = 1,
@@ -603,7 +603,7 @@ var index = function() {
   };
 
   return pack;
-};
+}
 
 function radiusLeaf(radius) {
   return function(node) {
@@ -641,14 +641,14 @@ function translateChild(k) {
   };
 }
 
-var roundNode = function(node) {
+function roundNode(node) {
   node.x0 = Math.round(node.x0);
   node.y0 = Math.round(node.y0);
   node.x1 = Math.round(node.x1);
   node.y1 = Math.round(node.y1);
-};
+}
 
-var treemapDice = function(parent, x0, y0, x1, y1) {
+function treemapDice(parent, x0, y0, x1, y1) {
   var nodes = parent.children,
       node,
       i = -1,
@@ -659,9 +659,9 @@ var treemapDice = function(parent, x0, y0, x1, y1) {
     node = nodes[i], node.y0 = y0, node.y1 = y1;
     node.x0 = x0, node.x1 = x0 += node.value * k;
   }
-};
+}
 
-var partition = function() {
+function partition() {
   var dx = 1,
       dy = 1,
       padding = 0,
@@ -709,11 +709,11 @@ var partition = function() {
   };
 
   return partition;
-};
+}
 
-var keyPrefix = "$";
-var preroot = {depth: -1};
-var ambiguous = {};
+var keyPrefix = "$", // Protect against keys like “__proto__”.
+    preroot = {depth: -1},
+    ambiguous = {};
 
 function defaultId(d) {
   return d.id;
@@ -723,7 +723,7 @@ function defaultParentId(d) {
   return d.parentId;
 }
 
-var stratify = function() {
+function stratify() {
   var id = defaultId,
       parentId = defaultParentId;
 
@@ -780,7 +780,7 @@ var stratify = function() {
   };
 
   return stratify;
-};
+}
 
 function defaultSeparation$1(a, b) {
   return a.parent === b.parent ? 1 : 2;
@@ -879,7 +879,7 @@ function treeRoot(root) {
 }
 
 // Node-link tree diagram using the Reingold-Tilford "tidy" algorithm
-var tree = function() {
+function tree() {
   var separation = defaultSeparation$1,
       dx = 1,
       dy = 1,
@@ -1016,9 +1016,9 @@ var tree = function() {
   };
 
   return tree;
-};
+}
 
-var treemapSlice = function(parent, x0, y0, x1, y1) {
+function treemapSlice(parent, x0, y0, x1, y1) {
   var nodes = parent.children,
       node,
       i = -1,
@@ -1029,7 +1029,7 @@ var treemapSlice = function(parent, x0, y0, x1, y1) {
     node = nodes[i], node.x0 = x0, node.x1 = x1;
     node.y0 = y0, node.y1 = y0 += node.value * k;
   }
-};
+}
 
 var phi = (1 + Math.sqrt(5)) / 2;
 
@@ -1082,7 +1082,7 @@ function squarifyRatio(ratio, parent, x0, y0, x1, y1) {
   return rows;
 }
 
-var squarify = ((function custom(ratio) {
+var squarify = (function custom(ratio) {
 
   function squarify(parent, x0, y0, x1, y1) {
     squarifyRatio(ratio, parent, x0, y0, x1, y1);
@@ -1093,9 +1093,9 @@ var squarify = ((function custom(ratio) {
   };
 
   return squarify;
-}))(phi);
+})(phi);
 
-var index$1 = function() {
+function index$1() {
   var tile = squarify,
       round = false,
       dx = 1,
@@ -1183,9 +1183,9 @@ var index$1 = function() {
   };
 
   return treemap;
-};
+}
 
-var binary = function(parent, x0, y0, x1, y1) {
+function binary(parent, x0, y0, x1, y1) {
   var nodes = parent.children,
       i, n = nodes.length,
       sum, sums = new Array(n + 1);
@@ -1230,13 +1230,13 @@ var binary = function(parent, x0, y0, x1, y1) {
       partition(k, j, valueRight, x0, yk, x1, y1);
     }
   }
-};
+}
 
-var sliceDice = function(parent, x0, y0, x1, y1) {
+function sliceDice(parent, x0, y0, x1, y1) {
   (parent.depth & 1 ? treemapSlice : treemapDice)(parent, x0, y0, x1, y1);
-};
+}
 
-var resquarify = ((function custom(ratio) {
+var resquarify = (function custom(ratio) {
 
   function resquarify(parent, x0, y0, x1, y1) {
     if ((rows = parent._squarify) && (rows.ratio === ratio)) {
@@ -1267,7 +1267,7 @@ var resquarify = ((function custom(ratio) {
   };
 
   return resquarify;
-}))(phi);
+})(phi);
 
 exports.cluster = cluster;
 exports.hierarchy = hierarchy;
