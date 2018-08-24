@@ -1,12 +1,12 @@
-// https://d3js.org/d3-time/ Version 1.0.8. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-time/ v1.0.9 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.d3 = global.d3 || {})));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+typeof define === 'function' && define.amd ? define(['exports'], factory) :
+(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var t0 = new Date;
-var t1 = new Date;
+var t0 = new Date,
+    t1 = new Date;
 
 function newInterval(floori, offseti, count, field) {
 
@@ -95,7 +95,6 @@ millisecond.every = function(k) {
     return (end - start) / k;
   });
 };
-
 var milliseconds = millisecond.range;
 
 var durationSecond = 1e3;
@@ -113,7 +112,6 @@ var second = newInterval(function(date) {
 }, function(date) {
   return date.getUTCSeconds();
 });
-
 var seconds = second.range;
 
 var minute = newInterval(function(date) {
@@ -125,7 +123,6 @@ var minute = newInterval(function(date) {
 }, function(date) {
   return date.getMinutes();
 });
-
 var minutes = minute.range;
 
 var hour = newInterval(function(date) {
@@ -139,7 +136,6 @@ var hour = newInterval(function(date) {
 }, function(date) {
   return date.getHours();
 });
-
 var hours = hour.range;
 
 var day = newInterval(function(date) {
@@ -151,7 +147,6 @@ var day = newInterval(function(date) {
 }, function(date) {
   return date.getDate() - 1;
 });
-
 var days = day.range;
 
 function weekday(i) {
@@ -191,7 +186,6 @@ var month = newInterval(function(date) {
 }, function(date) {
   return date.getMonth();
 });
-
 var months = month.range;
 
 var year = newInterval(function(date) {
@@ -215,7 +209,6 @@ year.every = function(k) {
     date.setFullYear(date.getFullYear() + step * k);
   });
 };
-
 var years = year.range;
 
 var utcMinute = newInterval(function(date) {
@@ -227,7 +220,6 @@ var utcMinute = newInterval(function(date) {
 }, function(date) {
   return date.getUTCMinutes();
 });
-
 var utcMinutes = utcMinute.range;
 
 var utcHour = newInterval(function(date) {
@@ -239,7 +231,6 @@ var utcHour = newInterval(function(date) {
 }, function(date) {
   return date.getUTCHours();
 });
-
 var utcHours = utcHour.range;
 
 var utcDay = newInterval(function(date) {
@@ -251,7 +242,6 @@ var utcDay = newInterval(function(date) {
 }, function(date) {
   return date.getUTCDate() - 1;
 });
-
 var utcDays = utcDay.range;
 
 function utcWeekday(i) {
@@ -291,7 +281,6 @@ var utcMonth = newInterval(function(date) {
 }, function(date) {
   return date.getUTCMonth();
 });
-
 var utcMonths = utcMonth.range;
 
 var utcYear = newInterval(function(date) {
@@ -315,7 +304,6 @@ utcYear.every = function(k) {
     date.setUTCFullYear(date.getUTCFullYear() + step * k);
   });
 };
-
 var utcYears = utcYear.range;
 
 exports.timeInterval = newInterval;
