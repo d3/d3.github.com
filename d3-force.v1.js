@@ -1,11 +1,11 @@
-// https://d3js.org/d3-force/ Version 1.1.0. Copyright 2017 Mike Bostock.
+// https://d3js.org/d3-force/ v1.1.1 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3));
 }(this, (function (exports,d3Quadtree,d3Collection,d3Dispatch,d3Timer) { 'use strict';
 
-var center = function(x, y) {
+function center(x, y) {
   var nodes;
 
   if (x == null) x = 0;
@@ -40,17 +40,17 @@ var center = function(x, y) {
   };
 
   return force;
-};
+}
 
-var constant = function(x) {
+function constant(x) {
   return function() {
     return x;
   };
-};
+}
 
-var jiggle = function() {
+function jiggle() {
   return (Math.random() - 0.5) * 1e-6;
-};
+}
 
 function x(d) {
   return d.x + d.vx;
@@ -60,7 +60,7 @@ function y(d) {
   return d.y + d.vy;
 }
 
-var collide = function(radius) {
+function collide(radius) {
   var nodes,
       radii,
       strength = 1,
@@ -145,7 +145,7 @@ var collide = function(radius) {
   };
 
   return force;
-};
+}
 
 function index(d) {
   return d.index;
@@ -157,7 +157,7 @@ function find(nodeById, nodeId) {
   return node;
 }
 
-var link = function(links) {
+function link(links) {
   var id = index,
       strength = defaultStrength,
       strengths,
@@ -258,7 +258,7 @@ var link = function(links) {
   };
 
   return force;
-};
+}
 
 function x$1(d) {
   return d.x;
@@ -268,10 +268,10 @@ function y$1(d) {
   return d.y;
 }
 
-var initialRadius = 10;
-var initialAngle = Math.PI * (3 - Math.sqrt(5));
+var initialRadius = 10,
+    initialAngle = Math.PI * (3 - Math.sqrt(5));
 
-var simulation = function(nodes) {
+function simulation(nodes) {
   var simulation,
       alpha = 1,
       alphaMin = 0.001,
@@ -398,9 +398,9 @@ var simulation = function(nodes) {
       return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name);
     }
   };
-};
+}
 
-var manyBody = function() {
+function manyBody() {
   var nodes,
       node,
       alpha,
@@ -508,9 +508,9 @@ var manyBody = function() {
   };
 
   return force;
-};
+}
 
-var radial = function(radius, x, y) {
+function radial(radius, x, y) {
   var nodes,
       strength = constant(0.1),
       strengths,
@@ -564,9 +564,9 @@ var radial = function(radius, x, y) {
   };
 
   return force;
-};
+}
 
-var x$2 = function(x) {
+function x$2(x) {
   var strength = constant(0.1),
       nodes,
       strengths,
@@ -604,9 +604,9 @@ var x$2 = function(x) {
   };
 
   return force;
-};
+}
 
-var y$2 = function(y) {
+function y$2(y) {
   var strength = constant(0.1),
       nodes,
       strengths,
@@ -644,7 +644,7 @@ var y$2 = function(y) {
   };
 
   return force;
-};
+}
 
 exports.forceCenter = center;
 exports.forceCollide = collide;
