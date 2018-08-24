@@ -1,8 +1,8 @@
-// https://d3js.org/d3-scale-chromatic/ Version 1.3.0. Copyright 2018 Mike Bostock.
+// https://d3js.org/d3-scale-chromatic/ v1.3.1 Copyright 2018 Mike Bostock
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3-interpolate', 'd3-color'], factory) :
-	(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-interpolate', 'd3-color'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
 }(this, (function (exports,d3Interpolate,d3Color) { 'use strict';
 
 function colors(specifier) {
@@ -171,7 +171,7 @@ var scheme$9 = new Array(3).concat(
 
 var BuGn = ramp(scheme$9);
 
-var scheme$10 = new Array(3).concat(
+var scheme$a = new Array(3).concat(
   "e0ecf49ebcda8856a7",
   "edf8fbb3cde38c96c688419d",
   "edf8fbb3cde38c96c68856a7810f7c",
@@ -181,9 +181,9 @@ var scheme$10 = new Array(3).concat(
   "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d810f7c4d004b"
 ).map(colors);
 
-var BuPu = ramp(scheme$10);
+var BuPu = ramp(scheme$a);
 
-var scheme$11 = new Array(3).concat(
+var scheme$b = new Array(3).concat(
   "e0f3dba8ddb543a2ca",
   "f0f9e8bae4bc7bccc42b8cbe",
   "f0f9e8bae4bc7bccc443a2ca0868ac",
@@ -193,9 +193,9 @@ var scheme$11 = new Array(3).concat(
   "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe0868ac084081"
 ).map(colors);
 
-var GnBu = ramp(scheme$11);
+var GnBu = ramp(scheme$b);
 
-var scheme$12 = new Array(3).concat(
+var scheme$c = new Array(3).concat(
   "fee8c8fdbb84e34a33",
   "fef0d9fdcc8afc8d59d7301f",
   "fef0d9fdcc8afc8d59e34a33b30000",
@@ -205,9 +205,9 @@ var scheme$12 = new Array(3).concat(
   "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301fb300007f0000"
 ).map(colors);
 
-var OrRd = ramp(scheme$12);
+var OrRd = ramp(scheme$c);
 
-var scheme$13 = new Array(3).concat(
+var scheme$d = new Array(3).concat(
   "ece2f0a6bddb1c9099",
   "f6eff7bdc9e167a9cf02818a",
   "f6eff7bdc9e167a9cf1c9099016c59",
@@ -217,9 +217,9 @@ var scheme$13 = new Array(3).concat(
   "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016c59014636"
 ).map(colors);
 
-var PuBuGn = ramp(scheme$13);
+var PuBuGn = ramp(scheme$d);
 
-var scheme$14 = new Array(3).concat(
+var scheme$e = new Array(3).concat(
   "ece7f2a6bddb2b8cbe",
   "f1eef6bdc9e174a9cf0570b0",
   "f1eef6bdc9e174a9cf2b8cbe045a8d",
@@ -229,9 +229,9 @@ var scheme$14 = new Array(3).concat(
   "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0045a8d023858"
 ).map(colors);
 
-var PuBu = ramp(scheme$14);
+var PuBu = ramp(scheme$e);
 
-var scheme$15 = new Array(3).concat(
+var scheme$f = new Array(3).concat(
   "e7e1efc994c7dd1c77",
   "f1eef6d7b5d8df65b0ce1256",
   "f1eef6d7b5d8df65b0dd1c77980043",
@@ -241,9 +241,9 @@ var scheme$15 = new Array(3).concat(
   "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125698004367001f"
 ).map(colors);
 
-var PuRd = ramp(scheme$15);
+var PuRd = ramp(scheme$f);
 
-var scheme$16 = new Array(3).concat(
+var scheme$g = new Array(3).concat(
   "fde0ddfa9fb5c51b8a",
   "feebe2fbb4b9f768a1ae017e",
   "feebe2fbb4b9f768a1c51b8a7a0177",
@@ -253,9 +253,9 @@ var scheme$16 = new Array(3).concat(
   "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a017749006a"
 ).map(colors);
 
-var RdPu = ramp(scheme$16);
+var RdPu = ramp(scheme$g);
 
-var scheme$17 = new Array(3).concat(
+var scheme$h = new Array(3).concat(
   "edf8b17fcdbb2c7fb8",
   "ffffcca1dab441b6c4225ea8",
   "ffffcca1dab441b6c42c7fb8253494",
@@ -265,9 +265,9 @@ var scheme$17 = new Array(3).concat(
   "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea8253494081d58"
 ).map(colors);
 
-var YlGnBu = ramp(scheme$17);
+var YlGnBu = ramp(scheme$h);
 
-var scheme$18 = new Array(3).concat(
+var scheme$i = new Array(3).concat(
   "f7fcb9addd8e31a354",
   "ffffccc2e69978c679238443",
   "ffffccc2e69978c67931a354006837",
@@ -277,9 +277,9 @@ var scheme$18 = new Array(3).concat(
   "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529"
 ).map(colors);
 
-var YlGn = ramp(scheme$18);
+var YlGn = ramp(scheme$i);
 
-var scheme$19 = new Array(3).concat(
+var scheme$j = new Array(3).concat(
   "fff7bcfec44fd95f0e",
   "ffffd4fed98efe9929cc4c02",
   "ffffd4fed98efe9929d95f0e993404",
@@ -289,9 +289,9 @@ var scheme$19 = new Array(3).concat(
   "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c02993404662506"
 ).map(colors);
 
-var YlOrBr = ramp(scheme$19);
+var YlOrBr = ramp(scheme$j);
 
-var scheme$20 = new Array(3).concat(
+var scheme$k = new Array(3).concat(
   "ffeda0feb24cf03b20",
   "ffffb2fecc5cfd8d3ce31a1c",
   "ffffb2fecc5cfd8d3cf03b20bd0026",
@@ -301,9 +301,9 @@ var scheme$20 = new Array(3).concat(
   "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026"
 ).map(colors);
 
-var YlOrRd = ramp(scheme$20);
+var YlOrRd = ramp(scheme$k);
 
-var scheme$21 = new Array(3).concat(
+var scheme$l = new Array(3).concat(
   "deebf79ecae13182bd",
   "eff3ffbdd7e76baed62171b5",
   "eff3ffbdd7e76baed63182bd08519c",
@@ -313,9 +313,9 @@ var scheme$21 = new Array(3).concat(
   "f7fbffdeebf7c6dbef9ecae16baed64292c62171b508519c08306b"
 ).map(colors);
 
-var Blues = ramp(scheme$21);
+var Blues = ramp(scheme$l);
 
-var scheme$22 = new Array(3).concat(
+var scheme$m = new Array(3).concat(
   "e5f5e0a1d99b31a354",
   "edf8e9bae4b374c476238b45",
   "edf8e9bae4b374c47631a354006d2c",
@@ -325,9 +325,9 @@ var scheme$22 = new Array(3).concat(
   "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45006d2c00441b"
 ).map(colors);
 
-var Greens = ramp(scheme$22);
+var Greens = ramp(scheme$m);
 
-var scheme$23 = new Array(3).concat(
+var scheme$n = new Array(3).concat(
   "f0f0f0bdbdbd636363",
   "f7f7f7cccccc969696525252",
   "f7f7f7cccccc969696636363252525",
@@ -337,9 +337,9 @@ var scheme$23 = new Array(3).concat(
   "fffffff0f0f0d9d9d9bdbdbd969696737373525252252525000000"
 ).map(colors);
 
-var Greys = ramp(scheme$23);
+var Greys = ramp(scheme$n);
 
-var scheme$24 = new Array(3).concat(
+var scheme$o = new Array(3).concat(
   "efedf5bcbddc756bb1",
   "f2f0f7cbc9e29e9ac86a51a3",
   "f2f0f7cbc9e29e9ac8756bb154278f",
@@ -349,9 +349,9 @@ var scheme$24 = new Array(3).concat(
   "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a354278f3f007d"
 ).map(colors);
 
-var Purples = ramp(scheme$24);
+var Purples = ramp(scheme$o);
 
-var scheme$25 = new Array(3).concat(
+var scheme$p = new Array(3).concat(
   "fee0d2fc9272de2d26",
   "fee5d9fcae91fb6a4acb181d",
   "fee5d9fcae91fb6a4ade2d26a50f15",
@@ -361,9 +361,9 @@ var scheme$25 = new Array(3).concat(
   "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181da50f1567000d"
 ).map(colors);
 
-var Reds = ramp(scheme$25);
+var Reds = ramp(scheme$p);
 
-var scheme$26 = new Array(3).concat(
+var scheme$q = new Array(3).concat(
   "fee6cefdae6be6550d",
   "feeddefdbe85fd8d3cd94701",
   "feeddefdbe85fd8d3ce6550da63603",
@@ -373,9 +373,9 @@ var scheme$26 = new Array(3).concat(
   "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d94801a636037f2704"
 ).map(colors);
 
-var Oranges = ramp(scheme$26);
+var Oranges = ramp(scheme$q);
 
-var cubehelix$1 = d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(300, 0.5, 0.0), d3Color.cubehelix(-240, 0.5, 1.0));
+var cubehelix = d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(300, 0.5, 0.0), d3Color.cubehelix(-240, 0.5, 1.0));
 
 var warm = d3Interpolate.interpolateCubehelixLong(d3Color.cubehelix(-100, 0.75, 0.35), d3Color.cubehelix(80, 1.50, 0.8));
 
@@ -392,9 +392,9 @@ function rainbow(t) {
   return c + "";
 }
 
-var c$1 = d3Color.rgb();
-var pi_1_3 = Math.PI / 3;
-var pi_2_3 = Math.PI * 2 / 3;
+var c$1 = d3Color.rgb(),
+    pi_1_3 = Math.PI / 3,
+    pi_2_3 = Math.PI * 2 / 3;
 
 function sinebow(t) {
   var x;
@@ -450,40 +450,40 @@ exports.schemeSpectral = scheme$8;
 exports.interpolateBuGn = BuGn;
 exports.schemeBuGn = scheme$9;
 exports.interpolateBuPu = BuPu;
-exports.schemeBuPu = scheme$10;
+exports.schemeBuPu = scheme$a;
 exports.interpolateGnBu = GnBu;
-exports.schemeGnBu = scheme$11;
+exports.schemeGnBu = scheme$b;
 exports.interpolateOrRd = OrRd;
-exports.schemeOrRd = scheme$12;
+exports.schemeOrRd = scheme$c;
 exports.interpolatePuBuGn = PuBuGn;
-exports.schemePuBuGn = scheme$13;
+exports.schemePuBuGn = scheme$d;
 exports.interpolatePuBu = PuBu;
-exports.schemePuBu = scheme$14;
+exports.schemePuBu = scheme$e;
 exports.interpolatePuRd = PuRd;
-exports.schemePuRd = scheme$15;
+exports.schemePuRd = scheme$f;
 exports.interpolateRdPu = RdPu;
-exports.schemeRdPu = scheme$16;
+exports.schemeRdPu = scheme$g;
 exports.interpolateYlGnBu = YlGnBu;
-exports.schemeYlGnBu = scheme$17;
+exports.schemeYlGnBu = scheme$h;
 exports.interpolateYlGn = YlGn;
-exports.schemeYlGn = scheme$18;
+exports.schemeYlGn = scheme$i;
 exports.interpolateYlOrBr = YlOrBr;
-exports.schemeYlOrBr = scheme$19;
+exports.schemeYlOrBr = scheme$j;
 exports.interpolateYlOrRd = YlOrRd;
-exports.schemeYlOrRd = scheme$20;
+exports.schemeYlOrRd = scheme$k;
 exports.interpolateBlues = Blues;
-exports.schemeBlues = scheme$21;
+exports.schemeBlues = scheme$l;
 exports.interpolateGreens = Greens;
-exports.schemeGreens = scheme$22;
+exports.schemeGreens = scheme$m;
 exports.interpolateGreys = Greys;
-exports.schemeGreys = scheme$23;
+exports.schemeGreys = scheme$n;
 exports.interpolatePurples = Purples;
-exports.schemePurples = scheme$24;
+exports.schemePurples = scheme$o;
 exports.interpolateReds = Reds;
-exports.schemeReds = scheme$25;
+exports.schemeReds = scheme$p;
 exports.interpolateOranges = Oranges;
-exports.schemeOranges = scheme$26;
-exports.interpolateCubehelixDefault = cubehelix$1;
+exports.schemeOranges = scheme$q;
+exports.interpolateCubehelixDefault = cubehelix;
 exports.interpolateRainbow = rainbow;
 exports.interpolateWarm = warm;
 exports.interpolateCool = cool;
