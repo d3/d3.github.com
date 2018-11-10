@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v1.2.4 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-array/ v1.3.0 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -159,6 +159,34 @@ function extent(values, valueof) {
   return [min, max];
 }
 
+function identity(x) {
+  return x;
+}
+
+function dogroup(values, keyof) {
+  const map = new Map();
+  let index = -1;
+  for (const value of values) {
+    const key = keyof(value, ++index, values);
+    const group = map.get(key);
+    if (group) group.push(value);
+    else map.set(key, [value]);
+  }
+  return map;
+}
+
+function rollup(values, reduce, ...keys) {
+  return (function regroup(values, i) {
+    if (i >= keys.length) return reduce(values);
+    const map = dogroup(values, keys[i]);
+    return new Map(Array.from(map, ([k, v]) => [k, regroup(v, i + 1)]));
+  })(values, 0);
+}
+
+function group(values, ...keys) {
+  return rollup(values, identity, ...keys);
+}
+
 var array = Array.prototype;
 
 var slice = array.slice;
@@ -168,10 +196,6 @@ function constant(x) {
   return function() {
     return x;
   };
-}
-
-function identity(x) {
-  return x;
 }
 
 function range(start, stop, step) {
@@ -562,6 +586,7 @@ exports.cross = cross;
 exports.descending = descending;
 exports.deviation = deviation;
 exports.extent = extent;
+exports.group = group;
 exports.histogram = histogram;
 exports.thresholdFreedmanDiaconis = freedmanDiaconis;
 exports.thresholdScott = scott;
@@ -575,6 +600,7 @@ exports.pairs = pairs;
 exports.permute = permute;
 exports.quantile = quantile;
 exports.range = range;
+exports.rollup = rollup;
 exports.scan = scan;
 exports.shuffle = shuffle;
 exports.sum = sum;
