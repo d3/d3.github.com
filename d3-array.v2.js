@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.0.1 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-array/ v2.0.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -46,7 +46,11 @@ var bisectRight = ascendingBisect.right;
 var bisectLeft = ascendingBisect.left;
 
 function length(array) {
-  return array.length;
+  return array.length | 0;
+}
+
+function empty(length) {
+  return !(length > 0);
 }
 
 function arrayify(values) {
@@ -64,6 +68,7 @@ function cross(...values) {
   const j = values.length - 1;
   const index = new Array(j + 1).fill(0);
   const product = [];
+  if (j < 0 || lengths.some(empty)) return product;
   while (true) {
     product.push(index.map((j, i) => values[i][j]));
     let i = j;
