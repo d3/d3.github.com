@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.0.0 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-array/ v2.0.1 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -45,18 +45,12 @@ var ascendingBisect = bisector(ascending);
 var bisectRight = ascendingBisect.right;
 var bisectLeft = ascendingBisect.left;
 
-function* product(head, ...tail) {
-  if (tail.length) {
-    for (const h of head) {
-      for (const t of product(...tail)) {
-        yield [h, ...t];
-      }
-    }
-  } else {
-    for (const h of head) {
-      yield [h];
-    }
-  }
+function length(array) {
+  return array.length;
+}
+
+function arrayify(values) {
+  return typeof values !== "object" || "length" in values ? values : Array.from(values);
 }
 
 function reducer(reduce) {
@@ -64,8 +58,20 @@ function reducer(reduce) {
 }
 
 function cross(...values) {
-  const reduce = typeof values[values.length - 1] === "function" ? reducer(values.pop()) : undefined;
-  return Array.from(product(...values), reduce);
+  const reduce = typeof values[values.length - 1] === "function" && reducer(values.pop());
+  values = values.map(arrayify);
+  const lengths = values.map(length);
+  const j = values.length - 1;
+  const index = new Array(j + 1).fill(0);
+  const product = [];
+  while (true) {
+    product.push(index.map((j, i) => values[i][j]));
+    let i = j;
+    while (++index[i] === lengths[i]) {
+      if (i === 0) return reduce ? product.map(reduce) : product;
+      index[i--] = 0;
+    }
+  }
 }
 
 function descending(a, b) {
@@ -549,7 +555,7 @@ function sum(values, valueof) {
 
 function transpose(matrix) {
   if (!(n = matrix.length)) return [];
-  for (var i = -1, m = min(matrix, length), transpose = new Array(m); ++i < m;) {
+  for (var i = -1, m = min(matrix, length$1), transpose = new Array(m); ++i < m;) {
     for (var j = -1, n, row = transpose[i] = new Array(n); ++j < n;) {
       row[j] = matrix[j][i];
     }
@@ -557,7 +563,7 @@ function transpose(matrix) {
   return transpose;
 }
 
-function length(d) {
+function length$1(d) {
   return d.length;
 }
 
