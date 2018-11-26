@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ v1.11.1 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-geo/ v1.11.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -583,7 +583,7 @@ function compose(a, b) {
 }
 
 function rotationIdentity(lambda, phi) {
-  return [lambda > pi ? lambda - tau : lambda < -pi ? lambda + tau : lambda, phi];
+  return [abs(lambda) > pi ? lambda + Math.round(-lambda / tau) * tau : lambda, phi];
 }
 
 rotationIdentity.invert = rotationIdentity;
