@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.4.1 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.5.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -1051,6 +1051,67 @@ function foucaut() {
       .scale(135.264);
 }
 
+// Newton-Raphson
+// Solve f(x) = y, start from x
+function solve(f, y, x) {
+  var steps = 100, delta, f0, f1;
+  x = x === undefined ? 0 : +x;
+  y = +y;
+  do {
+    f0 = f(x);
+    f1 = f(x + epsilon);
+    if (f0 === f1) f1 = f0 + epsilon;
+    x -= delta = (-1 * epsilon * (f0 - y)) / (f0 - f1);
+  } while (steps-- > 0 && abs(delta) > epsilon);
+  return steps < 0 ? NaN : x;
+}
+
+function foucautSinusoidalRaw(alpha) {
+  var beta = 1 - alpha,
+      equatorial = raw(pi, 0)[0] - raw(-pi, 0)[0],
+      polar = raw(0, halfPi)[1] - raw(0, -halfPi)[1],
+      ratio = sqrt(2 * polar / equatorial);
+
+  function raw(lambda, phi) {
+    var cosphi = cos(phi),
+        sinphi = sin(phi);
+    return [
+      cosphi / (beta + alpha * cosphi) * lambda,
+      beta * phi + alpha * sinphi
+    ];
+  }
+
+  function forward(lambda, phi) {
+    var p = raw(lambda, phi);
+    return [p[0] * ratio, p[1] / ratio];
+  }
+
+  function forwardMeridian(phi) {
+    return forward(0, phi)[1];
+  }
+
+  forward.invert = function(x, y) {
+    var phi = solve(forwardMeridian, y),
+        lambda = x / ratio * (alpha + beta / cos(phi));
+    return [lambda, phi];
+  };
+
+  return forward;
+}
+
+function foucautSinusoidal() {
+  var alpha = 0.5,
+      m = d3Geo.geoProjectionMutator(foucautSinusoidalRaw),
+      p = m(alpha);
+
+  p.alpha = function(_) {
+    return arguments.length ? m(alpha = +_) : alpha;
+  };
+
+  return p
+      .scale(168.725);
+}
+
 function gilbertForward(point) {
   return [point[0] / 2, asin(tan(point[1] / 2 * radians)) * degrees];
 }
@@ -1854,13 +1915,26 @@ function healpixRaw(H) {
   return forward;
 }
 
+function sphereTop(x, i) {
+  return [x, i & 1 ? 90 - epsilon : healpixParallel];
+}
+
+function sphereBottom(x, i) {
+  return [x, i & 1 ? -90 + epsilon : -healpixParallel];
+}
+
+function sphereNudge(d) {
+  return [d[0] * (1 - epsilon), d[1]];
+}
+
 function sphere(step) {
+  var c = [].concat(
+    d3Array.range(-180, 180 + step / 2, step).map(sphereTop),
+    d3Array.range(180, -180 - step / 2, -step).map(sphereBottom)
+  );
   return {
     type: "Polygon",
-    coordinates: [
-      d3Array.range(-180, 180 + step / 2, step).map(function(x, i) { return [x, i & 1 ? 90 - 1e-6 : healpixParallel]; })
-      .concat(d3Array.range(180, -180 - step / 2, -step).map(function(x, i) { return [x, i & 1 ? -90 + 1e-6 : -healpixParallel]; }))
-    ]
+    coordinates: [step === 180 ? c.map(sphereNudge) : c]
   };
 }
 
@@ -1989,6 +2063,94 @@ homolosineRaw.invert = function(x, y) {
 function homolosine() {
   return d3Geo.geoProjection(homolosineRaw)
       .scale(152.63);
+}
+
+function hufnagelRaw(a, b, psiMax, ratio) {
+  var k = sqrt(
+      (4 * pi) /
+        (2 * psiMax +
+          (1 + a - b / 2) * sin(2 * psiMax) +
+          ((a + b) / 2) * sin(4 * psiMax) +
+          (b / 2) * sin(6 * psiMax))
+    ),
+    c = sqrt(
+      ratio *
+        sin(psiMax) *
+        sqrt((1 + a * cos(2 * psiMax) + b * cos(4 * psiMax)) / (1 + a + b))
+    ),
+    M = psiMax * mapping(1);
+
+  function radius(psi) {
+    return sqrt(1 + a * cos(2 * psi) + b * cos(4 * psi));
+  }
+
+  function mapping(t) {
+    var psi = t * psiMax;
+    return (
+      (2 * psi +
+        (1 + a - b / 2) * sin(2 * psi) +
+        ((a + b) / 2) * sin(4 * psi) +
+        (b / 2) * sin(6 * psi)) /
+      psiMax
+    );
+  }
+
+  function inversemapping(psi) {
+    return radius(psi) * sin(psi);
+  }
+
+  var forward = function(lambda, phi) {
+    var psi = psiMax * solve(mapping, (M * sin(phi)) / psiMax, phi / pi);
+    if (isNaN(psi)) psi = psiMax * sign(phi);
+    var kr = k * radius(psi);
+    return [((kr * c * lambda) / pi) * cos(psi), (kr / c) * sin(psi)];
+  };
+
+  forward.invert = function(x, y) {
+    var psi = solve(inversemapping, (y * c) / k);
+    return [
+      (x * pi) / (cos(psi) * k * c * radius(psi)),
+      asin((psiMax * mapping(psi / psiMax)) / M)
+    ];
+  };
+
+  if (psiMax === 0) {
+    k = sqrt(ratio / pi);
+    forward = function(lambda, phi) {
+      return [lambda * k, sin(phi) / k];
+    };
+    forward.invert = function(x, y) {
+      return [x / k, asin(y * k)];
+    };
+  }
+
+  return forward;
+}
+
+function hufnagel() {
+  var a = 1,
+    b = 0,
+    psiMax = 45 * radians,
+    ratio = 2,
+    mutate = d3Geo.geoProjectionMutator(hufnagelRaw),
+    projection = mutate(a, b, psiMax, ratio);
+
+  projection.a = function(_) {
+    return arguments.length ? mutate((a = +_), b, psiMax, ratio) : a;
+  };
+  projection.b = function(_) {
+    return arguments.length ? mutate(a, (b = +_), psiMax, ratio) : b;
+  };
+  projection.psiMax = function(_) {
+    return arguments.length
+      ? mutate(a, b, (psiMax = +_ * radians), ratio)
+      : psiMax * degrees;
+  };
+  projection.ratio = function(_) {
+    return arguments.length ? mutate(a, b, psiMax, (ratio = +_)) : ratio;
+  };
+
+  return projection.scale(180.739);
 }
 
 // https://github.com/scijs/integrate-adaptive-simpson
@@ -4309,6 +4471,93 @@ function vanDerGrinten4() {
       .scale(127.16);
 }
 
+function wagnerFormula(cx, cy, m1, m2, n) {
+  function forward(lambda, phi) {
+    var s = m1 * sin(m2 * phi),
+        c0 = sqrt(1 - s * s),
+        c1 = sqrt(2 / (1 + c0 * cos(lambda *= n)));
+    return [
+      cx * c0 * c1 * sin(lambda),
+      cy * s * c1
+    ];
+  }
+
+  forward.invert = function(x, y) {
+    var t1 = x / cx,
+        t2 = y / cy,
+        p = sqrt(t1 * t1 + t2 * t2),
+        c = 2 * asin(p / 2);
+    return [
+      atan2(x * tan(c), cx * p) / n,
+      p && asin(y * sin(c) / (cy * m1 * p)) / m2
+    ];
+  };
+
+  return forward;
+}
+
+function wagnerRaw(poleline, parallels, inflation, ratio) {
+  // 60 is always used as reference parallel
+  var phi1 = pi / 3;
+
+  // sanitizing the input values
+  // poleline and parallels may approximate but never equal 0
+  poleline = max(poleline, epsilon);
+  parallels = max(parallels, epsilon);
+  // poleline must be <= 90; parallels may approximate but never equal 180
+  poleline = min(poleline, halfPi);
+  parallels = min(parallels, pi - epsilon);
+  // 0 <= inflation <= 99.999
+  inflation = max(inflation, 0);
+  inflation = min(inflation, 100 - epsilon);
+  // ratio > 0.
+  // sensible values, i.e. something that renders a map which still can be
+  // recognized as world map, are e.g. 20 <= ratio <= 1000.
+  ratio = max(ratio, epsilon);
+
+  // convert values from boehm notation
+  // areal inflation e.g. from 0 to 1 or 20 to 1.2:
+  var vinflation = inflation/100 + 1;
+  // axial ratio e.g. from 200 to 2:
+  var vratio  = ratio / 100;
+  // the other ones are a bit more complicated...
+  var m2 = acos(vinflation * cos(phi1)) / phi1,
+      m1 = sin(poleline) / sin(m2 * halfPi),
+      n = parallels / pi,
+      k = sqrt(vratio * sin(poleline / 2) / sin(parallels / 2)),
+      cx = k / sqrt(n * m1 * m2),
+      cy = 1 / (k * sqrt(n * m1 * m2));
+
+  return wagnerFormula(cx, cy, m1, m2, n);
+}
+
+function wagner() {
+  // default values generate wagner8
+  var poleline = 65 * radians,
+      parallels = 60 * radians,
+      inflation = 20,
+      ratio = 200,
+      mutate = d3Geo.geoProjectionMutator(wagnerRaw),
+      projection = mutate(poleline, parallels, inflation, ratio);
+
+  projection.poleline = function(_) {
+    return arguments.length ? mutate(poleline = +_ * radians, parallels, inflation, ratio) : poleline * degrees;
+  };
+
+  projection.parallels = function(_) {
+    return arguments.length ? mutate(poleline, parallels = +_ * radians, inflation, ratio) : parallels * degrees;
+  };
+  projection.inflation = function(_) {
+    return arguments.length ? mutate(poleline, parallels, inflation = +_, ratio) : inflation;
+  };
+  projection.ratio = function(_) {
+    return arguments.length ? mutate(poleline, parallels, inflation, ratio = +_) : ratio;
+  };
+
+  return projection
+    .scale(163.775);
+}
+
 var A = 4 * pi + 3 * sqrt(3),
     B = 2 * sqrt(2 * pi * sqrt(3) / A);
 
@@ -4487,6 +4736,8 @@ exports.geoFahey = fahey;
 exports.geoFaheyRaw = faheyRaw;
 exports.geoFoucaut = foucaut;
 exports.geoFoucautRaw = foucautRaw;
+exports.geoFoucautSinusoidal = foucautSinusoidal;
+exports.geoFoucautSinusoidalRaw = foucautSinusoidalRaw;
 exports.geoGilbert = gilbert;
 exports.geoGingery = gingery;
 exports.geoGingeryRaw = gingeryRaw;
@@ -4514,6 +4765,8 @@ exports.geoHill = hill;
 exports.geoHillRaw = hillRaw;
 exports.geoHomolosine = homolosine;
 exports.geoHomolosineRaw = homolosineRaw;
+exports.geoHufnagel = hufnagel;
+exports.geoHufnagelRaw = hufnagelRaw;
 exports.geoHyperelliptical = hyperelliptical;
 exports.geoHyperellipticalRaw = hyperellipticalRaw;
 exports.geoInterrupt = interrupt;
@@ -4597,6 +4850,8 @@ exports.geoVanDerGrinten3 = vanDerGrinten3;
 exports.geoVanDerGrinten3Raw = vanDerGrinten3Raw;
 exports.geoVanDerGrinten4 = vanDerGrinten4;
 exports.geoVanDerGrinten4Raw = vanDerGrinten4Raw;
+exports.geoWagner = wagner;
+exports.geoWagnerRaw = wagnerRaw;
 exports.geoWagner4 = wagner4;
 exports.geoWagner4Raw = wagner4Raw;
 exports.geoWagner6 = wagner6;
