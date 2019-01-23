@@ -1,4 +1,4 @@
-// https://d3js.org/d3-shape/ v1.2.3 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-shape/ v1.3.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
@@ -1837,6 +1837,17 @@ function wiggle(series, order) {
   none(series, order);
 }
 
+function appearance(series) {
+  var starts = series.map(start);
+  return none$1(series).sort(function(a, b) { return starts[a] - starts[b]; });
+}
+
+function start(series) {
+  var i = -1, n = series.length;
+  while (++i < n && !+series[i][1]);
+  return i;
+}
+
 function ascending(series) {
   var sums = series.map(sum);
   return none$1(series).sort(function(a, b) { return sums[a] - sums[b]; });
@@ -1926,6 +1937,7 @@ exports.stackOffsetDiverging = diverging;
 exports.stackOffsetNone = none;
 exports.stackOffsetSilhouette = silhouette;
 exports.stackOffsetWiggle = wiggle;
+exports.stackOrderAppearance = appearance;
 exports.stackOrderAscending = ascending;
 exports.stackOrderDescending = descending$1;
 exports.stackOrderInsideOut = insideOut;
