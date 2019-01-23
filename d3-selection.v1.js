@@ -1,4 +1,4 @@
-// https://d3js.org/d3-selection/ v1.3.2 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-selection/ v1.4.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -92,31 +92,14 @@ function selection_selectAll(select) {
   return new Selection(subgroups, parents);
 }
 
-var matcher = function(selector) {
+function matcher(selector) {
   return function() {
     return this.matches(selector);
   };
-};
-
-if (typeof document !== "undefined") {
-  var element = document.documentElement;
-  if (!element.matches) {
-    var vendorMatches = element.webkitMatchesSelector
-        || element.msMatchesSelector
-        || element.mozMatchesSelector
-        || element.oMatchesSelector;
-    matcher = function(selector) {
-      return function() {
-        return vendorMatches.call(this, selector);
-      };
-    };
-  }
 }
 
-var matcher$1 = matcher;
-
 function selection_filter(match) {
-  if (typeof match !== "function") match = matcher$1(match);
+  if (typeof match !== "function") match = matcher(match);
 
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
@@ -278,6 +261,14 @@ function selection_exit() {
   return new Selection(this._exit || this._groups.map(sparse), this._parents);
 }
 
+function selection_join(onenter, onupdate, onexit) {
+  var enter = this.enter(), update = this, exit = this.exit();
+  enter = typeof onenter === "function" ? onenter(enter) : enter.append(onenter + "");
+  if (onupdate != null) update = onupdate(update);
+  if (onexit == null) exit.remove(); else onexit(exit);
+  return enter && update ? enter.merge(update).order() : update;
+}
+
 function selection_merge(selection$$1) {
 
   for (var groups0 = this._groups, groups1 = selection$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
@@ -300,7 +291,7 @@ function selection_order() {
   for (var groups = this._groups, j = -1, m = groups.length; ++j < m;) {
     for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
       if (node = group[i]) {
-        if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
+        if (next && node.compareDocumentPosition(next) ^ 4) next.parentNode.insertBefore(node, next);
         next = node;
       }
     }
@@ -698,8 +689,8 @@ var filterEvents = {};
 exports.event = null;
 
 if (typeof document !== "undefined") {
-  var element$1 = document.documentElement;
-  if (!("onmouseenter" in element$1)) {
+  var element = document.documentElement;
+  if (!("onmouseenter" in element)) {
     filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
   }
 }
@@ -853,6 +844,7 @@ Selection.prototype = selection.prototype = {
   data: selection_data,
   enter: selection_enter,
   exit: selection_exit,
+  join: selection_join,
   merge: selection_merge,
   order: selection_order,
   sort: selection_sort,
@@ -974,7 +966,7 @@ function touches(node, touches) {
 exports.create = create;
 exports.creator = creator;
 exports.local = local;
-exports.matcher = matcher$1;
+exports.matcher = matcher;
 exports.mouse = mouse;
 exports.namespace = namespace;
 exports.namespaces = namespaces;
