@@ -1,9 +1,9 @@
-// https://d3js.org/d3-scale/ v2.2.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-scale/ v2.2.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
-typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
-(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Array,d3Interpolate,d3Format,d3Time,d3TimeFormat) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
+(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3,global.d3));
+}(this, (function (exports,d3Collection,d3Array,d3Interpolate,d3Format,d3Time,d3TimeFormat) { 'use strict';
 
 function initRange(domain, range) {
   switch (arguments.length) {
@@ -31,7 +31,7 @@ var slice = array.slice;
 var implicit = {name: "implicit"};
 
 function ordinal() {
-  var index = new Map,
+  var index = d3Collection.map(),
       domain = [],
       range = [],
       unknown = implicit;
@@ -47,7 +47,7 @@ function ordinal() {
 
   scale.domain = function(_) {
     if (!arguments.length) return domain.slice();
-    domain = [], index = new Map();
+    domain = [], index = d3Collection.map();
     var i = -1, n = _.length, d, key;
     while (++i < n) if (!index.has(key = (d = _[i]) + "")) index.set(key, domain.push(d));
     return scale;
