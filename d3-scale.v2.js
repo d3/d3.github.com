@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale/ v2.2.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-scale/ v2.2.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-collection', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
@@ -1108,6 +1108,16 @@ function divergingLog() {
   return initInterpolator.apply(scale, arguments);
 }
 
+function divergingSymlog() {
+  var scale = symlogish(transformer$2());
+
+  scale.copy = function() {
+    return copy$1(scale, divergingSymlog()).constant(scale.constant());
+  };
+
+  return initInterpolator.apply(scale, arguments);
+}
+
 function divergingPow() {
   var scale = powish(transformer$2());
 
@@ -1147,6 +1157,7 @@ exports.scaleDiverging = diverging;
 exports.scaleDivergingLog = divergingLog;
 exports.scaleDivergingPow = divergingPow;
 exports.scaleDivergingSqrt = divergingSqrt;
+exports.scaleDivergingSymlog = divergingSymlog;
 exports.tickFormat = tickFormat;
 
 Object.defineProperty(exports, '__esModule', { value: true });
