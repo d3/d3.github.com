@@ -1,11 +1,11 @@
-// https://d3js.org v5.8.0 Copyright 2019 Mike Bostock
+// https://d3js.org v5.8.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.8.0";
+var version = "5.8.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -14584,7 +14584,7 @@ function arc() {
             oc;
 
         // Restrict the corner radius according to the sector angle.
-        if (da <= tau$4 - epsilon$3 && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
+        if (da < pi$4 && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
           var ax = x01 - oc[0],
               ay = y01 - oc[1],
               bx = x11 - oc[0],
