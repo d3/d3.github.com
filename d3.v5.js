@@ -1,11 +1,11 @@
-// https://d3js.org v5.8.2 Copyright 2019 Mike Bostock
+// https://d3js.org v5.9.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.8.2";
+var version = "5.9.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -5856,13 +5856,22 @@ function dsvFormat(delimiter) {
     return rows;
   }
 
-  function format(rows, columns) {
-    if (columns == null) columns = inferColumns(rows);
-    return [columns.map(formatValue).join(delimiter)].concat(rows.map(function(row) {
+  function preformatBody(rows, columns) {
+    return rows.map(function(row) {
       return columns.map(function(column) {
         return formatValue(row[column]);
       }).join(delimiter);
-    })).join("\n");
+    });
+  }
+
+  function format(rows, columns) {
+    if (columns == null) columns = inferColumns(rows);
+    return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n");
+  }
+
+  function formatBody(rows, columns) {
+    if (columns == null) columns = inferColumns(rows);
+    return preformatBody(rows, columns).join("\n");
   }
 
   function formatRows(rows) {
@@ -5873,16 +5882,18 @@ function dsvFormat(delimiter) {
     return row.map(formatValue).join(delimiter);
   }
 
-  function formatValue(text) {
-    return text == null ? ""
-        : reFormat.test(text += "") ? "\"" + text.replace(/"/g, "\"\"") + "\""
-        : text;
+  function formatValue(value) {
+    return value == null ? ""
+        : value instanceof Date ? value.toISOString()
+        : reFormat.test(value += "") ? "\"" + value.replace(/"/g, "\"\"") + "\""
+        : value;
   }
 
   return {
     parse: parse,
     parseRows: parseRows,
     format: format,
+    formatBody: formatBody,
     formatRows: formatRows
   };
 }
@@ -5892,6 +5903,7 @@ var csv = dsvFormat(",");
 var csvParse = csv.parse;
 var csvParseRows = csv.parseRows;
 var csvFormat = csv.format;
+var csvFormatBody = csv.formatBody;
 var csvFormatRows = csv.formatRows;
 
 var tsv = dsvFormat("\t");
@@ -5899,7 +5911,23 @@ var tsv = dsvFormat("\t");
 var tsvParse = tsv.parse;
 var tsvParseRows = tsv.parseRows;
 var tsvFormat = tsv.format;
+var tsvFormatBody = tsv.formatBody;
 var tsvFormatRows = tsv.formatRows;
+
+function autoType(object) {
+  for (var key in object) {
+    var value = object[key].trim(), number;
+    if (!value) value = null;
+    else if (value === "true") value = true;
+    else if (value === "false") value = false;
+    else if (value === "NaN") value = NaN;
+    else if (!isNaN(number = +value)) value = number;
+    else if (/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/.test(value)) value = new Date(value);
+    else continue;
+    object[key] = value;
+  }
+  return object;
+}
 
 function responseBlob(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -17833,11 +17861,14 @@ exports.dsvFormat = dsvFormat;
 exports.csvParse = csvParse;
 exports.csvParseRows = csvParseRows;
 exports.csvFormat = csvFormat;
+exports.csvFormatBody = csvFormatBody;
 exports.csvFormatRows = csvFormatRows;
 exports.tsvParse = tsvParse;
 exports.tsvParseRows = tsvParseRows;
 exports.tsvFormat = tsvFormat;
+exports.tsvFormatBody = tsvFormatBody;
 exports.tsvFormatRows = tsvFormatRows;
+exports.autoType = autoType;
 exports.easeLinear = linear$1;
 exports.easeQuad = quadInOut;
 exports.easeQuadIn = quadIn;
