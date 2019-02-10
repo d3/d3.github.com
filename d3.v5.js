@@ -1,11 +1,11 @@
-// https://d3js.org v5.9.0 Copyright 2019 Mike Bostock
+// https://d3js.org v5.9.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.9.0";
+var version = "5.9.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -5794,6 +5794,30 @@ function inferColumns(rows) {
   return columns;
 }
 
+function pad(value, width) {
+  var s = value + "", length = s.length;
+  return length < width ? new Array(width - length + 1).join(0) + s : s;
+}
+
+function formatYear(year) {
+  return year < 0 ? "-" + pad(-year, 6)
+    : year > 9999 ? "+" + pad(year, 6)
+    : pad(year, 4);
+}
+
+function formatDate(date) {
+  var hours = date.getUTCHours(),
+      minutes = date.getUTCMinutes(),
+      seconds = date.getUTCSeconds(),
+      milliseconds = date.getUTCMilliseconds();
+  return isNaN(date) ? "Invalid Date"
+      : formatYear(date.getUTCFullYear(), 4) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
+      + (milliseconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
+      : seconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
+      : minutes || hours ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
+      : "");
+}
+
 function dsvFormat(delimiter) {
   var reFormat = new RegExp("[\"" + delimiter + "\n\r]"),
       DELIMITER = delimiter.charCodeAt(0);
@@ -5884,7 +5908,7 @@ function dsvFormat(delimiter) {
 
   function formatValue(value) {
     return value == null ? ""
-        : value instanceof Date ? value.toISOString()
+        : value instanceof Date ? formatDate(value)
         : reFormat.test(value += "") ? "\"" + value.replace(/"/g, "\"\"") + "\""
         : value;
   }
@@ -6127,9 +6151,8 @@ function addAll(data) {
     if (y > y1) y1 = y;
   }
 
-  // If there were no (valid) points, inherit the existing extent.
-  if (x1 < x0) x0 = this._x0, x1 = this._x1;
-  if (y1 < y0) y0 = this._y0, y1 = this._y1;
+  // If there were no (valid) points, abort.
+  if (x0 > x1 || y0 > y1) return this;
 
   // Expand the tree to cover the new points.
   this.cover(x0, y0).cover(x1, y1);
@@ -6159,40 +6182,25 @@ function tree_cover(x, y) {
   }
 
   // Otherwise, double repeatedly to cover.
-  else if (x0 > x || x > x1 || y0 > y || y > y1) {
+  else {
     var z = x1 - x0,
         node = this._root,
         parent,
         i;
 
-    switch (i = (y < (y0 + y1) / 2) << 1 | (x < (x0 + x1) / 2)) {
-      case 0: {
-        do parent = new Array(4), parent[i] = node, node = parent;
-        while (z *= 2, x1 = x0 + z, y1 = y0 + z, x > x1 || y > y1);
-        break;
-      }
-      case 1: {
-        do parent = new Array(4), parent[i] = node, node = parent;
-        while (z *= 2, x0 = x1 - z, y1 = y0 + z, x0 > x || y > y1);
-        break;
-      }
-      case 2: {
-        do parent = new Array(4), parent[i] = node, node = parent;
-        while (z *= 2, x1 = x0 + z, y0 = y1 - z, x > x1 || y0 > y);
-        break;
-      }
-      case 3: {
-        do parent = new Array(4), parent[i] = node, node = parent;
-        while (z *= 2, x0 = x1 - z, y0 = y1 - z, x0 > x || y0 > y);
-        break;
+    while (x0 > x || x >= x1 || y0 > y || y >= y1) {
+      i = (y < y0) << 1 | (x < x0);
+      parent = new Array(4), parent[i] = node, node = parent, z *= 2;
+      switch (i) {
+        case 0: x1 = x0 + z, y1 = y0 + z; break;
+        case 1: x0 = x1 - z, y1 = y0 + z; break;
+        case 2: x1 = x0 + z, y0 = y1 - z; break;
+        case 3: x0 = x1 - z, y0 = y1 - z; break;
       }
     }
 
     if (this._root && this._root.length) this._root = node;
   }
-
-  // If the quadtree covers the point already, just return.
-  else return this;
 
   this._x0 = x0;
   this._y0 = y0;
@@ -13086,7 +13094,7 @@ function formatLocale$1(locale) {
     "W": formatWeekNumberMonday,
     "x": null,
     "X": null,
-    "y": formatYear,
+    "y": formatYear$1,
     "Y": formatFullYear,
     "Z": formatZone,
     "%": formatLiteralPercent
@@ -13372,7 +13380,7 @@ var pads = {"-": "", "_": " ", "0": "0"},
     percentRe = /^%/,
     requoteRe = /[\\^$*+?|[\]().{}]/g;
 
-function pad(value, fill, width) {
+function pad$1(value, fill, width) {
   var sign = value < 0 ? "-" : "",
       string = (sign ? -value : value) + "",
       length = string.length;
@@ -13489,23 +13497,23 @@ function parseUnixTimestampSeconds(d, string, i) {
 }
 
 function formatDayOfMonth(d, p) {
-  return pad(d.getDate(), p, 2);
+  return pad$1(d.getDate(), p, 2);
 }
 
 function formatHour24(d, p) {
-  return pad(d.getHours(), p, 2);
+  return pad$1(d.getHours(), p, 2);
 }
 
 function formatHour12(d, p) {
-  return pad(d.getHours() % 12 || 12, p, 2);
+  return pad$1(d.getHours() % 12 || 12, p, 2);
 }
 
 function formatDayOfYear(d, p) {
-  return pad(1 + day.count(year(d), d), p, 3);
+  return pad$1(1 + day.count(year(d), d), p, 3);
 }
 
 function formatMilliseconds(d, p) {
-  return pad(d.getMilliseconds(), p, 3);
+  return pad$1(d.getMilliseconds(), p, 3);
 }
 
 function formatMicroseconds(d, p) {
@@ -13513,15 +13521,15 @@ function formatMicroseconds(d, p) {
 }
 
 function formatMonthNumber(d, p) {
-  return pad(d.getMonth() + 1, p, 2);
+  return pad$1(d.getMonth() + 1, p, 2);
 }
 
 function formatMinutes(d, p) {
-  return pad(d.getMinutes(), p, 2);
+  return pad$1(d.getMinutes(), p, 2);
 }
 
 function formatSeconds(d, p) {
-  return pad(d.getSeconds(), p, 2);
+  return pad$1(d.getSeconds(), p, 2);
 }
 
 function formatWeekdayNumberMonday(d) {
@@ -13530,13 +13538,13 @@ function formatWeekdayNumberMonday(d) {
 }
 
 function formatWeekNumberSunday(d, p) {
-  return pad(sunday.count(year(d), d), p, 2);
+  return pad$1(sunday.count(year(d), d), p, 2);
 }
 
 function formatWeekNumberISO(d, p) {
   var day$$1 = d.getDay();
   d = (day$$1 >= 4 || day$$1 === 0) ? thursday(d) : thursday.ceil(d);
-  return pad(thursday.count(year(d), d) + (year(d).getDay() === 4), p, 2);
+  return pad$1(thursday.count(year(d), d) + (year(d).getDay() === 4), p, 2);
 }
 
 function formatWeekdayNumberSunday(d) {
@@ -13544,42 +13552,42 @@ function formatWeekdayNumberSunday(d) {
 }
 
 function formatWeekNumberMonday(d, p) {
-  return pad(monday.count(year(d), d), p, 2);
+  return pad$1(monday.count(year(d), d), p, 2);
 }
 
-function formatYear(d, p) {
-  return pad(d.getFullYear() % 100, p, 2);
+function formatYear$1(d, p) {
+  return pad$1(d.getFullYear() % 100, p, 2);
 }
 
 function formatFullYear(d, p) {
-  return pad(d.getFullYear() % 10000, p, 4);
+  return pad$1(d.getFullYear() % 10000, p, 4);
 }
 
 function formatZone(d) {
   var z = d.getTimezoneOffset();
   return (z > 0 ? "-" : (z *= -1, "+"))
-      + pad(z / 60 | 0, "0", 2)
-      + pad(z % 60, "0", 2);
+      + pad$1(z / 60 | 0, "0", 2)
+      + pad$1(z % 60, "0", 2);
 }
 
 function formatUTCDayOfMonth(d, p) {
-  return pad(d.getUTCDate(), p, 2);
+  return pad$1(d.getUTCDate(), p, 2);
 }
 
 function formatUTCHour24(d, p) {
-  return pad(d.getUTCHours(), p, 2);
+  return pad$1(d.getUTCHours(), p, 2);
 }
 
 function formatUTCHour12(d, p) {
-  return pad(d.getUTCHours() % 12 || 12, p, 2);
+  return pad$1(d.getUTCHours() % 12 || 12, p, 2);
 }
 
 function formatUTCDayOfYear(d, p) {
-  return pad(1 + utcDay.count(utcYear(d), d), p, 3);
+  return pad$1(1 + utcDay.count(utcYear(d), d), p, 3);
 }
 
 function formatUTCMilliseconds(d, p) {
-  return pad(d.getUTCMilliseconds(), p, 3);
+  return pad$1(d.getUTCMilliseconds(), p, 3);
 }
 
 function formatUTCMicroseconds(d, p) {
@@ -13587,15 +13595,15 @@ function formatUTCMicroseconds(d, p) {
 }
 
 function formatUTCMonthNumber(d, p) {
-  return pad(d.getUTCMonth() + 1, p, 2);
+  return pad$1(d.getUTCMonth() + 1, p, 2);
 }
 
 function formatUTCMinutes(d, p) {
-  return pad(d.getUTCMinutes(), p, 2);
+  return pad$1(d.getUTCMinutes(), p, 2);
 }
 
 function formatUTCSeconds(d, p) {
-  return pad(d.getUTCSeconds(), p, 2);
+  return pad$1(d.getUTCSeconds(), p, 2);
 }
 
 function formatUTCWeekdayNumberMonday(d) {
@@ -13604,13 +13612,13 @@ function formatUTCWeekdayNumberMonday(d) {
 }
 
 function formatUTCWeekNumberSunday(d, p) {
-  return pad(utcSunday.count(utcYear(d), d), p, 2);
+  return pad$1(utcSunday.count(utcYear(d), d), p, 2);
 }
 
 function formatUTCWeekNumberISO(d, p) {
   var day$$1 = d.getUTCDay();
   d = (day$$1 >= 4 || day$$1 === 0) ? utcThursday(d) : utcThursday.ceil(d);
-  return pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
+  return pad$1(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
 }
 
 function formatUTCWeekdayNumberSunday(d) {
@@ -13618,15 +13626,15 @@ function formatUTCWeekdayNumberSunday(d) {
 }
 
 function formatUTCWeekNumberMonday(d, p) {
-  return pad(utcMonday.count(utcYear(d), d), p, 2);
+  return pad$1(utcMonday.count(utcYear(d), d), p, 2);
 }
 
 function formatUTCYear(d, p) {
-  return pad(d.getUTCFullYear() % 100, p, 2);
+  return pad$1(d.getUTCFullYear() % 100, p, 2);
 }
 
 function formatUTCFullYear(d, p) {
-  return pad(d.getUTCFullYear() % 10000, p, 4);
+  return pad$1(d.getUTCFullYear() % 10000, p, 4);
 }
 
 function formatUTCZone() {
