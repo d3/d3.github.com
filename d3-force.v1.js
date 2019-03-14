@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ v1.2.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-force/ v1.2.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-collection', 'd3-dispatch', 'd3-timer'], factory) :
@@ -320,8 +320,8 @@ function simulation(nodes) {
   function initializeNodes() {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       node = nodes[i], node.index = i;
-      if (!isNaN(node.fx)) node.x = node.fx;
-      if (!isNaN(node.fy)) node.y = node.fy;
+      if (node.fx != null) node.x = node.fx;
+      if (node.fy != null) node.y = node.fy;
       if (isNaN(node.x) || isNaN(node.y)) {
         var radius = initialRadius * Math.sqrt(i), angle = i * initialAngle;
         node.x = radius * Math.cos(angle);
