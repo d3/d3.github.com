@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.0.3 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-array/ v2.1.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -44,6 +44,25 @@ function ascendingComparator(f) {
 var ascendingBisect = bisector(ascending);
 var bisectRight = ascendingBisect.right;
 var bisectLeft = ascendingBisect.left;
+
+function count(values, valueof) {
+  let count = 0;
+  if (valueof === undefined) {
+    for (const value of values) {
+      if (value != null && value >= value) {
+        ++count;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && value >= value) {
+        ++count;
+      }
+    }
+  }
+  return count;
+}
 
 function length(array) {
   return array.length | 0;
@@ -118,10 +137,10 @@ function extent(values, valueof) {
   let min;
   let max;
   if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && value >= value) {
+    for (const value of values) {
+      if (value != null) {
         if (min === undefined) {
-          min = max = value;
+          if (value >= value) min = max = value;
         } else {
           if (min > value) min = value;
           if (max < value) max = value;
@@ -131,9 +150,9 @@ function extent(values, valueof) {
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && value >= value) {
+      if ((value = valueof(value, ++index, values)) != null) {
         if (min === undefined) {
-          min = max = value;
+          if (value >= value) min = max = value;
         } else {
           if (min > value) min = value;
           if (max < value) max = value;
@@ -253,7 +272,7 @@ function sturges(values) {
   return Math.ceil(Math.log(values.length) / Math.LN2) + 1;
 }
 
-function histogram() {
+function bin() {
   var value = identity,
       domain = extent,
       threshold = sturges;
@@ -350,10 +369,9 @@ function scott(values, min, max) {
 function max(values, valueof) {
   let max;
   if (valueof === undefined) {
-    for (let value of values) {
+    for (const value of values) {
       if (value != null
-          && value >= value
-          && (max === undefined || max < value)) {
+          && (max < value || (max === undefined && value >= value))) {
         max = value;
       }
     }
@@ -361,13 +379,35 @@ function max(values, valueof) {
     let index = -1;
     for (let value of values) {
       if ((value = valueof(value, ++index, values)) != null
-          && value >= value
-          && (max === undefined || max < value)) {
+          && (max < value || (max === undefined && value >= value))) {
         max = value;
       }
     }
   }
   return max;
+}
+
+function maxIndex(values, valueof) {
+  let max;
+  let maxIndex = -1;
+  let index = -1;
+  if (valueof === undefined) {
+    for (const value of values) {
+      ++index;
+      if (value != null
+          && (max < value || (max === undefined && value >= value))) {
+        max = value, maxIndex = index;
+      }
+    }
+  } else {
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null
+          && (max < value || (max === undefined && value >= value))) {
+        max = value, maxIndex = index;
+      }
+    }
+  }
+  return maxIndex;
 }
 
 function mean(values, valueof) {
@@ -473,10 +513,9 @@ function merge(arrays) {
 function min(values, valueof) {
   let min;
   if (valueof === undefined) {
-    for (let value of values) {
+    for (const value of values) {
       if (value != null
-          && value >= value
-          && (min === undefined || min > value)) {
+          && (min > value || (min === undefined && value >= value))) {
         min = value;
       }
     }
@@ -484,13 +523,35 @@ function min(values, valueof) {
     let index = -1;
     for (let value of values) {
       if ((value = valueof(value, ++index, values)) != null
-          && value >= value
-          && (min === undefined || min > value)) {
+          && (min > value || (min === undefined && value >= value))) {
         min = value;
       }
     }
   }
   return min;
+}
+
+function minIndex(values, valueof) {
+  let min;
+  let minIndex = -1;
+  let index = -1;
+  if (valueof === undefined) {
+    for (const value of values) {
+      ++index;
+      if (value != null
+          && (min > value || (min === undefined && value >= value))) {
+        min = value, minIndex = index;
+      }
+    }
+  } else {
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null
+          && (min > value || (min === undefined && value >= value))) {
+        min = value, minIndex = index;
+      }
+    }
+  }
+  return minIndex;
 }
 
 function pairs(values, pairof = pair) {
@@ -509,19 +570,31 @@ function pair(a, b) {
   return [a, b];
 }
 
-function permute(array, indexes) {
-  var i = indexes.length, permutes = new Array(i);
-  while (i--) permutes[i] = array[indexes[i]];
-  return permutes;
+function permute(source, keys) {
+  return Array.from(keys, key => source[key]);
 }
 
-function scan(values, compare = ascending) {
+function least(values, compare = ascending) {
   let min;
-  let minIndex;
+  let defined = false;
+  for (const value of values) {
+    if (defined
+        ? compare(value, min) < 0
+        : compare(value, value) === 0) {
+      min = value;
+      defined = true;
+    }
+  }
+  return min;
+}
+
+function leastIndex(values, compare = ascending) {
+  let min;
+  let minIndex = -1;
   let index = -1;
   for (const value of values) {
     ++index;
-    if (minIndex === undefined
+    if (minIndex < 0
         ? compare(value, value) === 0
         : compare(value, min) < 0) {
       min = value;
@@ -529,6 +602,11 @@ function scan(values, compare = ascending) {
     }
   }
   return minIndex;
+}
+
+function scan(values, compare) {
+  const index = leastIndex(values, compare);
+  return index < 0 ? undefined : index;
 }
 
 function shuffle(array, i0 = 0, i1 = array.length) {
@@ -588,26 +666,32 @@ exports.bisectRight = bisectRight;
 exports.bisectLeft = bisectLeft;
 exports.ascending = ascending;
 exports.bisector = bisector;
+exports.count = count;
 exports.cross = cross;
 exports.descending = descending;
 exports.deviation = deviation;
 exports.extent = extent;
 exports.group = group;
-exports.histogram = histogram;
+exports.bin = bin;
+exports.histogram = bin;
 exports.thresholdFreedmanDiaconis = freedmanDiaconis;
 exports.thresholdScott = scott;
 exports.thresholdSturges = sturges;
 exports.max = max;
+exports.maxIndex = maxIndex;
 exports.mean = mean;
 exports.median = median;
 exports.merge = merge;
 exports.min = min;
+exports.minIndex = minIndex;
 exports.pairs = pairs;
 exports.permute = permute;
 exports.quantile = quantile;
 exports.quickselect = quickselect;
 exports.range = range;
 exports.rollup = rollup;
+exports.least = least;
+exports.leastIndex = leastIndex;
 exports.scan = scan;
 exports.shuffle = shuffle;
 exports.sum = sum;
