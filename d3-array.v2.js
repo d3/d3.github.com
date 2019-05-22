@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.1.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-array/ v2.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -167,28 +167,39 @@ function identity(x) {
   return x;
 }
 
-function dogroup(values, keyof) {
-  const map = new Map();
-  let index = -1;
-  for (const value of values) {
-    const key = keyof(value, ++index, values);
-    const group = map.get(key);
-    if (group) group.push(value);
-    else map.set(key, [value]);
-  }
-  return map;
+function group(values, ...keys) {
+  return nest(values, identity, identity, keys);
+}
+
+function groups(values, ...keys) {
+  return nest(values, Array.from, identity, keys);
 }
 
 function rollup(values, reduce, ...keys) {
-  return (function regroup(values, i) {
-    if (i >= keys.length) return reduce(values);
-    const map = dogroup(values, keys[i]);
-    return new Map(Array.from(map, ([k, v]) => [k, regroup(v, i + 1)]));
-  })(values, 0);
+  return nest(values, identity, reduce, keys);
 }
 
-function group(values, ...keys) {
-  return rollup(values, identity, ...keys);
+function rollups(values, reduce, ...keys) {
+  return nest(values, Array.from, reduce, keys);
+}
+
+function nest(values, map, reduce, keys) {
+  return (function regroup(values, i) {
+    if (i >= keys.length) return reduce(values);
+    const groups = new Map();
+    const keyof = keys[i++];
+    let index = -1;
+    for (const value of values) {
+      const key = keyof(value, ++index, values);
+      const group = groups.get(key);
+      if (group) group.push(value);
+      else groups.set(key, [value]);
+    }
+    for (const [key, values] of groups) {
+      groups.set(key, regroup(values, i));
+    }
+    return map(groups);
+  })(values, 0);
 }
 
 var array = Array.prototype;
@@ -577,12 +588,26 @@ function permute(source, keys) {
 function least(values, compare = ascending) {
   let min;
   let defined = false;
-  for (const value of values) {
-    if (defined
-        ? compare(value, min) < 0
-        : compare(value, value) === 0) {
-      min = value;
-      defined = true;
+  if (compare.length === 1) {
+    let minValue;
+    for (const element of values) {
+      const value = compare(element);
+      if (defined
+          ? ascending(value, minValue) < 0
+          : ascending(value, value) === 0) {
+        min = element;
+        minValue = value;
+        defined = true;
+      }
+    }
+  } else {
+    for (const value of values) {
+      if (defined
+          ? compare(value, min) < 0
+          : compare(value, value) === 0) {
+        min = value;
+        defined = true;
+      }
     }
   }
   return min;
@@ -592,13 +617,26 @@ function leastIndex(values, compare = ascending) {
   let min;
   let minIndex = -1;
   let index = -1;
-  for (const value of values) {
-    ++index;
-    if (minIndex < 0
-        ? compare(value, value) === 0
-        : compare(value, min) < 0) {
-      min = value;
-      minIndex = index;
+  if (compare.length === 1) {
+    for (const element of values) {
+      ++index;
+      const value = compare(element);
+      if (minIndex < 0
+          ? ascending(value, value) === 0
+          : ascending(value, min) < 0) {
+        min = value;
+        minIndex = index;
+      }
+    }
+  } else {
+    for (const value of values) {
+      ++index;
+      if (minIndex < 0
+          ? compare(value, value) === 0
+          : compare(value, min) < 0) {
+        min = value;
+        minIndex = index;
+      }
     }
   }
   return minIndex;
@@ -672,6 +710,9 @@ exports.descending = descending;
 exports.deviation = deviation;
 exports.extent = extent;
 exports.group = group;
+exports.groups = groups;
+exports.rollup = rollup;
+exports.rollups = rollups;
 exports.bin = bin;
 exports.histogram = bin;
 exports.thresholdFreedmanDiaconis = freedmanDiaconis;
@@ -689,7 +730,6 @@ exports.permute = permute;
 exports.quantile = quantile;
 exports.quickselect = quickselect;
 exports.range = range;
-exports.rollup = rollup;
 exports.least = least;
 exports.leastIndex = leastIndex;
 exports.scan = scan;
