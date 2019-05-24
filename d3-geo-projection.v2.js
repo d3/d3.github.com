@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.5.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.7.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -219,12 +219,14 @@ function armadillo() {
   p.stream = function(stream) {
     var rotate = p.rotate(),
         rotateStream = stream_(stream),
-        sphereStream = (p.rotate([0, 0]), stream_(stream));
+        sphereStream = (p.rotate([0, 0]), stream_(stream)),
+        precision = p.precision();
     p.rotate(rotate);
     rotateStream.sphere = function() {
       sphereStream.polygonStart(), sphereStream.lineStart();
-      for (var lambda = sPhi0 * -180; sPhi0 * lambda < 180; lambda += sPhi0 * 90) sphereStream.point(lambda, sPhi0 * 90);
-      while (sPhi0 * (lambda -= phi0) >= -180) { // TODO precision?
+      for (var lambda = sPhi0 * -180; sPhi0 * lambda < 180; lambda += sPhi0 * 90)
+        sphereStream.point(lambda, sPhi0 * 90);
+      if (phi0) while (sPhi0 * (lambda -= 3 * sPhi0 * precision) >= -180) {
         sphereStream.point(lambda, sPhi0 * -atan2(cos(lambda * radians / 2), tanPhi0) * degrees);
       }
       sphereStream.lineEnd(), sphereStream.polygonEnd();
@@ -1146,8 +1148,8 @@ function gilbert(projectionType) {
   };
 
   function property(name) {
-    gilbert[name] = function(_) {
-      return arguments.length ? (projection[name](_), gilbert) : projection[name]();
+    gilbert[name] = function() {
+      return arguments.length ? (projection[name].apply(projection, arguments), gilbert) : projection[name]();
     };
   }
 
@@ -1162,6 +1164,10 @@ function gilbert(projectionType) {
   property("angle");
   property("clipAngle");
   property("clipExtent");
+  property("fitExtent");
+  property("fitHeight");
+  property("fitSize");
+  property("fitWidth");
   property("scale");
   property("translate");
   property("precision");
@@ -3006,6 +3012,81 @@ function nellHammer() {
       .scale(152.63);
 }
 
+var lobes$6 = [[ // northern hemisphere
+  [[-180,  0],  [-90,  90], [   0,  0]],
+  [[   0,  0], [  90,  90], [ 180, 0]]
+], [ // southern hemisphere
+  [[-180, 0], [-90, -90], [  0, 0]],
+  [[   0, 0], [ 90, -90], [180, 0]]
+]];
+
+function quarticAuthalic() {
+  return interrupt(hammerRaw(Infinity), lobes$6)
+      .rotate([20, 0])
+      .scale(152.63);
+}
+
+// Based on Torben Jansen's implementation
+// https://beta.observablehq.com/@toja/nicolosi-globular-projection
+// https://beta.observablehq.com/@toja/nicolosi-globular-inverse
+
+function nicolosiRaw(lambda, phi) {
+  var sinPhi = sin(phi),
+    q = cos(phi),
+    s = sign(lambda);
+
+  if (lambda === 0 || abs(phi) === halfPi) return [0, phi];
+  else if (phi === 0) return [lambda, 0];
+  else if (abs(lambda) === halfPi) return [lambda * q, halfPi * sinPhi];
+
+  var b = pi / (2 * lambda) - (2 * lambda) / pi,
+    c = (2 * phi) / pi,
+    d = (1 - c * c) / (sinPhi - c);
+
+  var b2 = b * b,
+    d2 = d * d,
+    b2d2 = 1 + b2 / d2,
+    d2b2 = 1 + d2 / b2;
+
+  var M = ((b * sinPhi) / d - b / 2) / b2d2,
+    N = ((d2 * sinPhi) / b2 + d / 2) / d2b2,
+    m = M * M + (q * q) / b2d2,
+    n = N * N - ((d2 * sinPhi * sinPhi) / b2 + d * sinPhi - 1) / d2b2;
+
+  return [
+    halfPi * (M + sqrt(m) * s),
+    halfPi * (N + sqrt(n < 0 ? 0 : n) * sign(-phi * b) * s)
+  ];
+}
+
+nicolosiRaw.invert = function(x, y) {
+
+  x /= halfPi;
+  y /= halfPi;
+
+  var x2 = x * x,
+    y2 = y * y,
+    x2y2 = x2 + y2,
+    pi2 = pi * pi;
+
+  return [
+    x ? (x2y2 -1 + sqrt((1 - x2y2) * (1 - x2y2) + 4 * x2)) / (2 * x) * halfPi : 0,
+    solve(function(phi) {
+      return (
+        x2y2 * (pi * sin(phi) - 2 * phi) * pi +
+        4 * phi * phi * (y - sin(phi)) +
+        2 * pi * phi -
+        pi2 * y
+      );
+    }, 0)
+  ];
+};
+
+function nicolosi() {
+  return d3Geo.geoProjection(nicolosiRaw)
+    .scale(127.267);
+}
+
 // Based on Java implementation by Bojan Savric.
 // https://github.com/OSUCartography/JMapProjLib/blob/master/src/com/jhlabs/map/proj/PattersonProjection.java
 
@@ -3736,8 +3817,24 @@ function quantize(input, digits) {
     return input.map(quantizePoint);
   }
 
+  function quantizePointsNoDuplicates(input) {
+    var point0 = quantizePoint(input[0]);
+    var output = [point0];
+    for (var i = 1; i < input.length; i++) {
+      var point = quantizePoint(input[i]);
+      if (point.length > 2 || point[0] != point0[0] || point[1] != point0[1]) {
+        output.push(point);
+        point0 = point;
+      }
+    }
+    if (output.length === 1 && input.length > 1) {
+      output.push(quantizePoint(input[input.length - 1]));
+    }
+    return output;
+  }
+
   function quantizePolygon(input) {
-    return input.map(quantizePoints);
+    return input.map(quantizePointsNoDuplicates);
   }
 
   function quantizeGeometry(input) {
@@ -3746,7 +3843,8 @@ function quantize(input, digits) {
     switch (input.type) {
       case "GeometryCollection": output = {type: "GeometryCollection", geometries: input.geometries.map(quantizeGeometry)}; break;
       case "Point": output = {type: "Point", coordinates: quantizePoint(input.coordinates)}; break;
-      case "MultiPoint": case "LineString": output = {type: input.type, coordinates: quantizePoints(input.coordinates)}; break;
+      case "MultiPoint": output = {type: input.type, coordinates: quantizePoints(input.coordinates)}; break;
+      case "LineString": output = {type: input.type, coordinates: quantizePointsNoDuplicates(input.coordinates)}; break;
       case "MultiLineString": case "Polygon": output = {type: input.type, coordinates: quantizePolygon(input.coordinates)}; break;
       case "MultiPolygon": output = {type: "MultiPolygon", coordinates: input.coordinates.map(quantizePolygon)}; break;
       default: return input;
@@ -4809,6 +4907,9 @@ exports.geoNaturalEarth2 = naturalEarth2;
 exports.geoNaturalEarth2Raw = naturalEarth2Raw;
 exports.geoNellHammer = nellHammer;
 exports.geoNellHammerRaw = nellHammerRaw;
+exports.geoInterruptedQuarticAuthalic = quarticAuthalic;
+exports.geoNicolosi = nicolosi;
+exports.geoNicolosiRaw = nicolosiRaw;
 exports.geoPatterson = patterson;
 exports.geoPattersonRaw = pattersonRaw;
 exports.geoPolyconic = polyconic;
