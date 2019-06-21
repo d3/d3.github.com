@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ v1.11.5 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-geo/ v1.11.6 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -1690,7 +1690,7 @@ function containsLine(coordinates, point) {
         ab > 0 &&
         ao <= ab &&
         bo <= ab &&
-        (ao + bo - ab) * (1 - ((ao - bo) / ab) ** 2) < epsilon2 * ab
+        (ao + bo - ab) * (1 - Math.pow((ao - bo) / ab, 2)) < epsilon2 * ab
       )
         return true;
     }
