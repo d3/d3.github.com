@@ -1,11 +1,11 @@
-// https://d3js.org v5.9.2 Copyright 2019 Mike Bostock
+// https://d3js.org v5.9.3 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "5.9.2";
+var version = "5.9.3";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -2434,7 +2434,7 @@ function rgb2lrgb(x) {
 function hclConvert(o) {
   if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity);
   if (!(o instanceof Lab)) o = labConvert(o);
-  if (o.a === 0 && o.b === 0) return new Hcl(NaN, 0, o.l, o.opacity);
+  if (o.a === 0 && o.b === 0) return new Hcl(NaN, 0 < o.l && o.l < 100 ? 0 : NaN, o.l, o.opacity);
   var h = Math.atan2(o.b, o.a) * rad2deg;
   return new Hcl(h < 0 ? h + 360 : h, Math.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity);
 }
@@ -7670,6 +7670,9 @@ var boundsStream = {
     else if (deltaSum > epsilon$2) phi1 = 90;
     else if (deltaSum < -epsilon$2) phi0 = -90;
     range[0] = lambda0$1, range[1] = lambda1;
+  },
+  sphere: function() {
+    lambda0$1 = -(lambda1 = 180), phi0 = -(phi1 = 90);
   }
 };
 
@@ -8240,8 +8243,15 @@ function link$1(array) {
 
 var sum$1 = adder();
 
+function longitude(point) {
+  if (abs(point[0]) <= pi$3)
+    return point[0];
+  else
+    return sign(point[0]) * ((abs(point[0]) + pi$3) % tau$3 - pi$3);
+}
+
 function polygonContains(polygon, point) {
-  var lambda = point[0],
+  var lambda = longitude(point),
       phi = point[1],
       sinPhi = sin$1(phi),
       normal = [sin$1(lambda), -cos$1(lambda), 0],
@@ -8258,14 +8268,14 @@ function polygonContains(polygon, point) {
     var ring,
         m,
         point0 = ring[m - 1],
-        lambda0 = point0[0],
+        lambda0 = longitude(point0),
         phi0 = point0[1] / 2 + quarterPi,
         sinPhi0 = sin$1(phi0),
         cosPhi0 = cos$1(phi0);
 
     for (var j = 0; j < m; ++j, lambda0 = lambda1, sinPhi0 = sinPhi1, cosPhi0 = cosPhi1, point0 = point1) {
       var point1 = ring[j],
-          lambda1 = point1[0],
+          lambda1 = longitude(point1),
           phi1 = point1[1] / 2 + quarterPi,
           sinPhi1 = sin$1(phi1),
           cosPhi1 = cos$1(phi1),
@@ -9057,10 +9067,23 @@ function containsPoint(coordinates, point) {
 }
 
 function containsLine(coordinates, point) {
-  var ab = distance(coordinates[0], coordinates[1]),
-      ao = distance(coordinates[0], point),
-      ob = distance(point, coordinates[1]);
-  return ao + ob <= ab + epsilon$2;
+  var ao, bo, ab;
+  for (var i = 0, n = coordinates.length; i < n; i++) {
+    bo = distance(coordinates[i], point);
+    if (bo === 0) return true;
+    if (i > 0) {
+      ab = distance(coordinates[i], coordinates[i - 1]);
+      if (
+        ab > 0 &&
+        ao <= ab &&
+        bo <= ab &&
+        (ao + bo - ab) * (1 - Math.pow((ao - bo) / ab, 2)) < epsilon2$1 * ab
+      )
+        return true;
+    }
+    ao = bo;
+  }
+  return false;
 }
 
 function containsPolygon(coordinates, point) {
@@ -16227,7 +16250,7 @@ function expand(series, order) {
 }
 
 function diverging$1(series, order) {
-  if (!((n = series.length) > 1)) return;
+  if (!((n = series.length) > 0)) return;
   for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
     for (yp = yn = 0, i = 0; i < n; ++i) {
       if ((dy = (d = series[order[i]][j])[1] - d[0]) >= 0) {
