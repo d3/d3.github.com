@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale/ v3.0.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-scale/ v3.0.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
@@ -860,7 +860,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
         : formatYear)(date);
   }
 
-  function tickInterval(interval, start, stop, step) {
+  function tickInterval(interval, start, stop) {
     if (interval == null) interval = 10;
 
     // If a desired tick count is specified, pick a reasonable tick interval
@@ -868,7 +868,8 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
     // Otherwise, assume interval is already a time interval and use it.
     if (typeof interval === "number") {
       var target = Math.abs(stop - start) / interval,
-          i = d3Array.bisector(function(i) { return i[2]; }).right(tickIntervals, target);
+          i = d3Array.bisector(function(i) { return i[2]; }).right(tickIntervals, target),
+          step;
       if (i === tickIntervals.length) {
         step = d3Array.tickStep(start / durationYear, stop / durationYear, interval);
         interval = year;
@@ -880,9 +881,10 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
         step = Math.max(d3Array.tickStep(start, stop, interval), 1);
         interval = millisecond;
       }
+      return interval.every(step);
     }
 
-    return step == null ? interval : interval.every(step);
+    return interval;
   }
 
   scale.invert = function(y) {
@@ -893,14 +895,14 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
     return arguments.length ? domain(Array.from(_, number$1)) : domain().map(date);
   };
 
-  scale.ticks = function(interval, step) {
+  scale.ticks = function(interval) {
     var d = domain(),
         t0 = d[0],
         t1 = d[d.length - 1],
         r = t1 < t0,
         t;
     if (r) t = t0, t0 = t1, t1 = t;
-    t = tickInterval(interval, t0, t1, step);
+    t = tickInterval(interval, t0, t1);
     t = t ? t.range(t0, t1 + 1) : []; // inclusive stop
     return r ? t.reverse() : t;
   };
@@ -909,9 +911,9 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
     return specifier == null ? tickFormat : format(specifier);
   };
 
-  scale.nice = function(interval, step) {
+  scale.nice = function(interval) {
     var d = domain();
-    return (interval = tickInterval(interval, d[0], d[d.length - 1], step))
+    return (interval = tickInterval(interval, d[0], d[d.length - 1]))
         ? domain(nice(d, interval))
         : scale;
   };
