@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v1.1.0-rc.3 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-brush/ v1.1.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -128,6 +128,10 @@ function defaultFilter() {
 
 function defaultExtent() {
   var svg = this.ownerSVGElement || this;
+  if (svg.hasAttribute("viewBox")) {
+    svg = svg.viewBox.baseVal;
+    return [[svg.x, svg.y], [svg.x + svg.width, svg.y + svg.height]];
+  }
   return [[0, 0], [svg.width.baseVal.value, svg.height.baseVal.value]];
 }
 
@@ -167,6 +171,7 @@ function brush$1(dim) {
   var extent = defaultExtent,
       filter = defaultFilter,
       touchable = defaultTouchable,
+      keys = true,
       listeners = d3Dispatch.dispatch(brush, "start", "brush", "end"),
       handleSize = 6,
       touchending;
@@ -261,6 +266,10 @@ function brush$1(dim) {
     }
   };
 
+  brush.clear = function(group) {
+    brush.move(group, null);
+  };
+
   function redraw() {
     var group = d3Selection.select(this),
         selection = local(this).selection;
@@ -291,8 +300,8 @@ function brush$1(dim) {
     }
   }
 
-  function emitter(that, args) {
-    return that.__brush.emitter || new Emitter(that, args);
+  function emitter(that, args, clean) {
+    return (!clean && that.__brush.emitter) || new Emitter(that, args);
   }
 
   function Emitter(that, args) {
@@ -309,6 +318,7 @@ function brush$1(dim) {
     },
     start: function() {
       if (this.starting) this.starting = false, this.emit("start");
+      else this.emit("brush");
       return this;
     },
     brush: function() {
@@ -331,7 +341,7 @@ function brush$1(dim) {
 
     var that = this,
         type = d3Selection.event.target.__data__.type,
-        mode = (d3Selection.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (d3Selection.event.altKey ? MODE_CENTER : MODE_HANDLE),
+        mode = (keys && d3Selection.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (keys && d3Selection.event.altKey ? MODE_CENTER : MODE_HANDLE),
         signX = dim === Y ? null : signsX[type],
         signY = dim === X ? null : signsY[type],
         state = local(that),
@@ -341,15 +351,15 @@ function brush$1(dim) {
         N = extent[0][1], n0, n1,
         E = extent[1][0], e0, e1,
         S = extent[1][1], s0, s1,
-        dx,
-        dy,
+        dx = 0,
+        dy = 0,
         moving,
-        shifting = signX && signY && d3Selection.event.shiftKey,
+        shifting = signX && signY && keys && d3Selection.event.shiftKey,
         lockX,
         lockY,
         point0 = d3Selection.mouse(that),
         point = point0,
-        emit = emitter(that, arguments).beforestart();
+        emit = emitter(that, arguments, true).beforestart();
 
     if (type === "overlay") {
       state.selection = selection = [
@@ -379,10 +389,11 @@ function brush$1(dim) {
       emit.ended = ended;
     } else {
       var view = d3Selection.select(d3Selection.event.view)
-          .on("keydown.brush", keydowned, true)
-          .on("keyup.brush", keyupped, true)
           .on("mousemove.brush", moved, true)
           .on("mouseup.brush", ended, true);
+      if (keys) view
+          .on("keydown.brush", keydowned, true)
+          .on("keyup.brush", keyupped, true);
 
       d3Drag.dragDisable(d3Selection.event.view);
     }
@@ -571,6 +582,10 @@ function brush$1(dim) {
 
   brush.handleSize = function(_) {
     return arguments.length ? (handleSize = +_, brush) : handleSize;
+  };
+
+  brush.keyModifiers = function(_) {
+    return arguments.length ? (keys = !!_, brush) : keys;
   };
 
   brush.on = function() {
