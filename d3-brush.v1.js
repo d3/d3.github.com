@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v1.1.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-brush/ v1.1.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -136,7 +136,7 @@ function defaultExtent() {
 }
 
 function defaultTouchable() {
-  return "ontouchstart" in this;
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
 }
 
 // Like d3.local, but with the name “__brush” rather than auto-generated.
@@ -334,6 +334,10 @@ function brush$1(dim) {
     }
   };
 
+  function pointer(target) {
+    return d3Selection.clientPoint(target, d3Selection.event.touches ? d3Selection.event.touches[0] : d3Selection.event);
+  }
+
   function started() {
     if (d3Selection.event.touches) { if (d3Selection.event.changedTouches.length < d3Selection.event.touches.length) return noevent(); }
     else if (touchending) return;
@@ -357,11 +361,12 @@ function brush$1(dim) {
         shifting = signX && signY && keys && d3Selection.event.shiftKey,
         lockX,
         lockY,
-        point0 = d3Selection.mouse(that),
+        point0 = pointer(that),
         point = point0,
         emit = emitter(that, arguments, true).beforestart();
 
     if (type === "overlay") {
+      if (selection) moving = true;
       state.selection = selection = [
         [w0 = dim === Y ? W : point0[0], n0 = dim === X ? N : point0[1]],
         [e0 = dim === Y ? E : w0, s0 = dim === X ? S : n0]
@@ -404,7 +409,7 @@ function brush$1(dim) {
     emit.start();
 
     function moved() {
-      var point1 = d3Selection.mouse(that);
+      var point1 = pointer(that);
       if (shifting && !lockX && !lockY) {
         if (Math.abs(point1[0] - point[0]) > Math.abs(point1[1] - point[1])) lockY = true;
         else lockX = true;
