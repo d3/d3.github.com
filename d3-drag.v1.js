@@ -1,9 +1,9 @@
-// https://d3js.org/d3-drag/ v1.2.3 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-drag/ v1.2.4 Copyright 2019 Mike Bostock
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch')) :
-typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch'], factory) :
-(factory((global.d3 = global.d3 || {}),global.d3,global.d3));
-}(this, (function (exports,d3Selection,d3Dispatch) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-selection'], factory) :
+(global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3));
+}(this, function (exports, d3Dispatch, d3Selection) { 'use strict';
 
 function nopropagation() {
   d3Selection.event.stopImmediatePropagation();
@@ -66,7 +66,7 @@ DragEvent.prototype.on = function() {
 
 // Ignore right-click, since that should open the context menu.
 function defaultFilter() {
-  return !d3Selection.event.button;
+  return !d3Selection.event.ctrlKey && !d3Selection.event.button;
 }
 
 function defaultContainer() {
@@ -78,7 +78,7 @@ function defaultSubject(d) {
 }
 
 function defaultTouchable() {
-  return "ontouchstart" in this;
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
 }
 
 function drag() {
@@ -231,4 +231,4 @@ exports.dragEnable = yesdrag;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
