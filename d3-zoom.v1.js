@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ v1.8.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-zoom/ v1.8.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -288,9 +288,6 @@ function zoom() {
         k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
         p = d3Selection.mouse(this);
 
-    // If this wheel event won’t trigger a transform change, ignore it.
-    if (t.k === k) return;
-
     // If the mouse is in the same location as before, reuse it.
     // If there were recent wheel events, reset the wheel idle timeout.
     if (g.wheel) {
@@ -299,6 +296,9 @@ function zoom() {
       }
       clearTimeout(g.wheel);
     }
+
+    // If this wheel event won’t trigger a transform change, ignore it.
+    else if (t.k === k) return;
 
     // Otherwise, capture the mouse point and location at the start.
     else {
