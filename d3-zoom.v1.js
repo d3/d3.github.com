@@ -1,4 +1,4 @@
-// https://d3js.org/d3-zoom/ v1.8.2 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-zoom/ v1.8.3 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -363,9 +363,9 @@ function zoom() {
 
   function touchstarted() {
     if (!filter.apply(this, arguments)) return;
-    var touches = d3Selection.event.changedTouches,
+    var touches = d3Selection.event.touches,
         n = touches.length,
-        g = gesture(this, arguments, d3Selection.event.touches.length === n),
+        g = gesture(this, arguments, d3Selection.event.changedTouches.length === n),
         started, i, t, p;
 
     nopropagation();
@@ -373,7 +373,7 @@ function zoom() {
       t = touches[i], p = d3Selection.touch(this, touches, t.identifier);
       p = [p, this.__zoom.invert(p), t.identifier];
       if (!g.touch0) g.touch0 = p, started = true, g.taps = 1 + !!touchstarting;
-      else if (!g.touch1) g.touch1 = p, g.taps = 0;
+      else if (!g.touch1 && g.touch0[2] !== p[2]) g.touch1 = p, g.taps = 0;
     }
 
     if (touchstarting) touchstarting = clearTimeout(touchstarting);
