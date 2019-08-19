@@ -1,11 +1,11 @@
-// https://d3js.org v5.9.7 Copyright 2019 Mike Bostock
+// https://d3js.org v5.10.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
-var version = "5.9.7";
+var version = "5.10.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -1080,9 +1080,9 @@ function selection_join(onenter, onupdate, onexit) {
   return enter && update ? enter.merge(update).order() : update;
 }
 
-function selection_merge(selection$$1) {
+function selection_merge(selection) {
 
-  for (var groups0 = this._groups, groups1 = selection$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+  for (var groups0 = this._groups, groups1 = selection._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
     for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
       if (node = group0[i] || group1[i]) {
         merge[i] = node;
@@ -1726,7 +1726,7 @@ function sourceEvent() {
   return current;
 }
 
-function point(node, event) {
+function clientPoint(node, event) {
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
@@ -1743,7 +1743,7 @@ function point(node, event) {
 function mouse(node) {
   var event = sourceEvent();
   if (event.changedTouches) event = event.changedTouches[0];
-  return point(node, event);
+  return clientPoint(node, event);
 }
 
 function selectAll(selector) {
@@ -1757,7 +1757,7 @@ function touch(node, touches, identifier) {
 
   for (var i = 0, n = touches ? touches.length : 0, touch; i < n; ++i) {
     if ((touch = touches[i]).identifier === identifier) {
-      return point(node, touch);
+      return clientPoint(node, touch);
     }
   }
 
@@ -1768,7 +1768,7 @@ function touches(node, touches) {
   if (touches == null) touches = sourceEvent().touches;
 
   for (var i = 0, n = touches ? touches.length : 0, points = new Array(n); i < n; ++i) {
-    points[i] = point(node, touches[i]);
+    points[i] = clientPoint(node, touches[i]);
   }
 
   return points;
@@ -1785,9 +1785,9 @@ function noevent() {
 
 function dragDisable(view) {
   var root = view.document.documentElement,
-      selection$$1 = select(view).on("dragstart.drag", noevent, true);
+      selection = select(view).on("dragstart.drag", noevent, true);
   if ("onselectstart" in root) {
-    selection$$1.on("selectstart.drag", noevent, true);
+    selection.on("selectstart.drag", noevent, true);
   } else {
     root.__noselect = root.style.MozUserSelect;
     root.style.MozUserSelect = "none";
@@ -1796,13 +1796,13 @@ function dragDisable(view) {
 
 function yesdrag(view, noclick) {
   var root = view.document.documentElement,
-      selection$$1 = select(view).on("dragstart.drag", null);
+      selection = select(view).on("dragstart.drag", null);
   if (noclick) {
-    selection$$1.on("click.drag", noevent, true);
-    setTimeout(function() { selection$$1.on("click.drag", null); }, 0);
+    selection.on("click.drag", noevent, true);
+    setTimeout(function() { selection.on("click.drag", null); }, 0);
   }
   if ("onselectstart" in root) {
-    selection$$1.on("selectstart.drag", null);
+    selection.on("selectstart.drag", null);
   } else {
     root.style.MozUserSelect = root.__noselect;
     delete root.__noselect;
@@ -1835,7 +1835,7 @@ DragEvent.prototype.on = function() {
 
 // Ignore right-click, since that should open the context menu.
 function defaultFilter() {
-  return !exports.event.button;
+  return !exports.event.ctrlKey && !exports.event.button;
 }
 
 function defaultContainer() {
@@ -1847,7 +1847,7 @@ function defaultSubject(d) {
 }
 
 function defaultTouchable() {
-  return "ontouchstart" in this;
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
 }
 
 function drag() {
@@ -1864,8 +1864,8 @@ function drag() {
       touchending,
       clickDistance2 = 0;
 
-  function drag(selection$$1) {
-    selection$$1
+  function drag(selection) {
+    selection
         .on("mousedown.drag", mousedowned)
       .filter(touchable)
         .on("touchstart.drag", touchstarted)
@@ -1906,12 +1906,12 @@ function drag() {
 
   function touchstarted() {
     if (!filter.apply(this, arguments)) return;
-    var touches$$1 = exports.event.changedTouches,
+    var touches = exports.event.changedTouches,
         c = container.apply(this, arguments),
-        n = touches$$1.length, i, gesture;
+        n = touches.length, i, gesture;
 
     for (i = 0; i < n; ++i) {
-      if (gesture = beforestart(touches$$1[i].identifier, c, touch, this, arguments)) {
+      if (gesture = beforestart(touches[i].identifier, c, touch, this, arguments)) {
         nopropagation();
         gesture("start");
       }
@@ -1919,11 +1919,11 @@ function drag() {
   }
 
   function touchmoved() {
-    var touches$$1 = exports.event.changedTouches,
-        n = touches$$1.length, i, gesture;
+    var touches = exports.event.changedTouches,
+        n = touches.length, i, gesture;
 
     for (i = 0; i < n; ++i) {
-      if (gesture = gestures[touches$$1[i].identifier]) {
+      if (gesture = gestures[touches[i].identifier]) {
         noevent();
         gesture("drag");
       }
@@ -1931,21 +1931,21 @@ function drag() {
   }
 
   function touchended() {
-    var touches$$1 = exports.event.changedTouches,
-        n = touches$$1.length, i, gesture;
+    var touches = exports.event.changedTouches,
+        n = touches.length, i, gesture;
 
     if (touchending) clearTimeout(touchending);
     touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
     for (i = 0; i < n; ++i) {
-      if (gesture = gestures[touches$$1[i].identifier]) {
+      if (gesture = gestures[touches[i].identifier]) {
         nopropagation();
         gesture("end");
       }
     }
   }
 
-  function beforestart(id, container, point$$1, that, args) {
-    var p = point$$1(container, id), s, dx, dy,
+  function beforestart(id, container, point, that, args) {
+    var p = point(container, id), s, dx, dy,
         sublisteners = listeners.copy();
 
     if (!customEvent(new DragEvent(drag, "beforestart", s, id, active, p[0], p[1], 0, 0, sublisteners), function() {
@@ -1960,7 +1960,7 @@ function drag() {
       switch (type) {
         case "start": gestures[id] = gesture, n = active++; break;
         case "end": delete gestures[id], --active; // nobreak
-        case "drag": p = point$$1(container, id), n = active; break;
+        case "drag": p = point(container, id), n = active; break;
       }
       customEvent(new DragEvent(drag, type, s, id, n, p[0] + dx, p[1] + dy, p[0] - p0[0], p[1] - p0[1], sublisteners), sublisteners.apply, sublisteners, [type, that, args]);
     };
@@ -2174,16 +2174,30 @@ var named = {
 };
 
 define(Color, color, {
+  copy: function(channels) {
+    return Object.assign(new this.constructor, this, channels);
+  },
   displayable: function() {
     return this.rgb().displayable();
   },
-  hex: function() {
-    return this.rgb().hex();
-  },
-  toString: function() {
-    return this.rgb() + "";
-  }
+  hex: color_formatHex, // Deprecated! Use color.formatHex.
+  formatHex: color_formatHex,
+  formatHsl: color_formatHsl,
+  formatRgb: color_formatRgb,
+  toString: color_formatRgb
 });
+
+function color_formatHex() {
+  return this.rgb().formatHex();
+}
+
+function color_formatHsl() {
+  return hslConvert(this).formatHsl();
+}
+
+function color_formatRgb() {
+  return this.rgb().formatRgb();
+}
 
 function color(format) {
   var m;
@@ -2196,7 +2210,7 @@ function color(format) {
       : (m = reRgbaPercent.exec(format)) ? rgba(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, m[4]) // rgb(100%, 0%, 0%, 1)
       : (m = reHslPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, 1) // hsl(120, 50%, 50%)
       : (m = reHslaPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, m[4]) // hsla(120, 50%, 50%, 1)
-      : named.hasOwnProperty(format) ? rgbn(named[format])
+      : named.hasOwnProperty(format) ? rgbn(named[format]) // eslint-disable-line no-prototype-builtins
       : format === "transparent" ? new Rgb(NaN, NaN, NaN, 0)
       : null;
 }
@@ -2246,18 +2260,24 @@ define(Rgb, rgb, extend(Color, {
         && (-0.5 <= this.b && this.b < 255.5)
         && (0 <= this.opacity && this.opacity <= 1);
   },
-  hex: function() {
-    return "#" + hex(this.r) + hex(this.g) + hex(this.b);
-  },
-  toString: function() {
-    var a = this.opacity; a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
-    return (a === 1 ? "rgb(" : "rgba(")
-        + Math.max(0, Math.min(255, Math.round(this.r) || 0)) + ", "
-        + Math.max(0, Math.min(255, Math.round(this.g) || 0)) + ", "
-        + Math.max(0, Math.min(255, Math.round(this.b) || 0))
-        + (a === 1 ? ")" : ", " + a + ")");
-  }
+  hex: rgb_formatHex, // Deprecated! Use color.formatHex.
+  formatHex: rgb_formatHex,
+  formatRgb: rgb_formatRgb,
+  toString: rgb_formatRgb
 }));
+
+function rgb_formatHex() {
+  return "#" + hex(this.r) + hex(this.g) + hex(this.b);
+}
+
+function rgb_formatRgb() {
+  var a = this.opacity; a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
+  return (a === 1 ? "rgb(" : "rgba(")
+      + Math.max(0, Math.min(255, Math.round(this.r) || 0)) + ", "
+      + Math.max(0, Math.min(255, Math.round(this.g) || 0)) + ", "
+      + Math.max(0, Math.min(255, Math.round(this.b) || 0))
+      + (a === 1 ? ")" : ", " + a + ")");
+}
 
 function hex(value) {
   value = Math.max(0, Math.min(255, Math.round(value) || 0));
@@ -2334,6 +2354,14 @@ define(Hsl, hsl, extend(Color, {
     return (0 <= this.s && this.s <= 1 || isNaN(this.s))
         && (0 <= this.l && this.l <= 1)
         && (0 <= this.opacity && this.opacity <= 1);
+  },
+  formatHsl: function() {
+    var a = this.opacity; a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
+    return (a === 1 ? "hsl(" : "hsla(")
+        + (this.h || 0) + ", "
+        + (this.s || 0) * 100 + "%, "
+        + (this.l || 0) * 100 + "%"
+        + (a === 1 ? ")" : ", " + a + ")");
   }
 }));
 
@@ -2593,12 +2621,12 @@ function nogamma(a, b) {
 }
 
 var interpolateRgb = (function rgbGamma(y) {
-  var color$$1 = gamma(y);
+  var color = gamma(y);
 
-  function rgb$$1(start, end) {
-    var r = color$$1((start = rgb(start)).r, (end = rgb(end)).r),
-        g = color$$1(start.g, end.g),
-        b = color$$1(start.b, end.b),
+  function rgb$1(start, end) {
+    var r = color((start = rgb(start)).r, (end = rgb(end)).r),
+        g = color(start.g, end.g),
+        b = color(start.b, end.b),
         opacity = nogamma(start.opacity, end.opacity);
     return function(t) {
       start.r = r(t);
@@ -2609,9 +2637,9 @@ var interpolateRgb = (function rgbGamma(y) {
     };
   }
 
-  rgb$$1.gamma = rgbGamma;
+  rgb$1.gamma = rgbGamma;
 
-  return rgb$$1;
+  return rgb$1;
 })(1);
 
 function rgbSpline(spline) {
@@ -2620,22 +2648,22 @@ function rgbSpline(spline) {
         r = new Array(n),
         g = new Array(n),
         b = new Array(n),
-        i, color$$1;
+        i, color;
     for (i = 0; i < n; ++i) {
-      color$$1 = rgb(colors[i]);
-      r[i] = color$$1.r || 0;
-      g[i] = color$$1.g || 0;
-      b[i] = color$$1.b || 0;
+      color = rgb(colors[i]);
+      r[i] = color.r || 0;
+      g[i] = color.g || 0;
+      b[i] = color.b || 0;
     }
     r = spline(r);
     g = spline(g);
     b = spline(b);
-    color$$1.opacity = 1;
+    color.opacity = 1;
     return function(t) {
-      color$$1.r = r(t);
-      color$$1.g = g(t);
-      color$$1.b = b(t);
-      return color$$1 + "";
+      color.r = r(t);
+      color.g = g(t);
+      color.b = b(t);
+      return color + "";
     };
   };
 }
@@ -2967,9 +2995,9 @@ function interpolateZoom(p0, p1) {
   return i;
 }
 
-function hsl$1(hue$$1) {
+function hsl$1(hue) {
   return function(start, end) {
-    var h = hue$$1((start = hsl(start)).h, (end = hsl(end)).h),
+    var h = hue((start = hsl(start)).h, (end = hsl(end)).h),
         s = nogamma(start.s, end.s),
         l = nogamma(start.l, end.l),
         opacity = nogamma(start.opacity, end.opacity);
@@ -3000,9 +3028,9 @@ function lab$1(start, end) {
   };
 }
 
-function hcl$1(hue$$1) {
+function hcl$1(hue) {
   return function(start, end) {
-    var h = hue$$1((start = hcl(start)).h, (end = hcl(end)).h),
+    var h = hue((start = hcl(start)).h, (end = hcl(end)).h),
         c = nogamma(start.c, end.c),
         l = nogamma(start.l, end.l),
         opacity = nogamma(start.opacity, end.opacity);
@@ -3019,12 +3047,12 @@ function hcl$1(hue$$1) {
 var hcl$2 = hcl$1(hue);
 var hclLong = hcl$1(nogamma);
 
-function cubehelix$1(hue$$1) {
+function cubehelix$1(hue) {
   return (function cubehelixGamma(y) {
     y = +y;
 
-    function cubehelix$$1(start, end) {
-      var h = hue$$1((start = cubehelix(start)).h, (end = cubehelix(end)).h),
+    function cubehelix$1(start, end) {
+      var h = hue((start = cubehelix(start)).h, (end = cubehelix(end)).h),
           s = nogamma(start.s, end.s),
           l = nogamma(start.l, end.l),
           opacity = nogamma(start.opacity, end.opacity);
@@ -3037,9 +3065,9 @@ function cubehelix$1(hue$$1) {
       };
     }
 
-    cubehelix$$1.gamma = cubehelixGamma;
+    cubehelix$1.gamma = cubehelixGamma;
 
-    return cubehelix$$1;
+    return cubehelix$1;
   })(1);
 }
 
@@ -3347,7 +3375,7 @@ function create$1(node, id, self) {
 
 function interrupt(node, name) {
   var schedules = node.__transition,
-      schedule$$1,
+      schedule,
       active,
       empty = true,
       i;
@@ -3357,11 +3385,11 @@ function interrupt(node, name) {
   name = name == null ? null : name + "";
 
   for (i in schedules) {
-    if ((schedule$$1 = schedules[i]).name !== name) { empty = false; continue; }
-    active = schedule$$1.state > STARTING && schedule$$1.state < ENDING;
-    schedule$$1.state = ENDED;
-    schedule$$1.timer.stop();
-    schedule$$1.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule$$1.index, schedule$$1.group);
+    if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
+    active = schedule.state > STARTING && schedule.state < ENDING;
+    schedule.state = ENDED;
+    schedule.timer.stop();
+    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group);
     delete schedules[i];
   }
 
@@ -3377,8 +3405,8 @@ function selection_interrupt(name) {
 function tweenRemove(id, name) {
   var tween0, tween1;
   return function() {
-    var schedule$$1 = set$1(this, id),
-        tween = schedule$$1.tween;
+    var schedule = set$1(this, id),
+        tween = schedule.tween;
 
     // If this node shared tween with the previous node,
     // just assign the updated shared tween and we’re done!
@@ -3394,7 +3422,7 @@ function tweenRemove(id, name) {
       }
     }
 
-    schedule$$1.tween = tween1;
+    schedule.tween = tween1;
   };
 }
 
@@ -3402,8 +3430,8 @@ function tweenFunction(id, name, value) {
   var tween0, tween1;
   if (typeof value !== "function") throw new Error;
   return function() {
-    var schedule$$1 = set$1(this, id),
-        tween = schedule$$1.tween;
+    var schedule = set$1(this, id),
+        tween = schedule.tween;
 
     // If this node shared tween with the previous node,
     // just assign the updated shared tween and we’re done!
@@ -3419,7 +3447,7 @@ function tweenFunction(id, name, value) {
       if (i === n) tween1.push(t);
     }
 
-    schedule$$1.tween = tween1;
+    schedule.tween = tween1;
   };
 }
 
@@ -3445,8 +3473,8 @@ function tweenValue(transition, name, value) {
   var id = transition._id;
 
   transition.each(function() {
-    var schedule$$1 = set$1(this, id);
-    (schedule$$1.value || (schedule$$1.value = {}))[name] = value.apply(this, arguments);
+    var schedule = set$1(this, id);
+    (schedule.value || (schedule.value = {}))[name] = value.apply(this, arguments);
   });
 
   return function(node) {
@@ -3474,7 +3502,7 @@ function attrRemoveNS$1(fullname) {
   };
 }
 
-function attrConstant$1(name, interpolate$$1, value1) {
+function attrConstant$1(name, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -3482,11 +3510,11 @@ function attrConstant$1(name, interpolate$$1, value1) {
     var string0 = this.getAttribute(name);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function attrConstantNS$1(fullname, interpolate$$1, value1) {
+function attrConstantNS$1(fullname, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -3494,11 +3522,11 @@ function attrConstantNS$1(fullname, interpolate$$1, value1) {
     var string0 = this.getAttributeNS(fullname.space, fullname.local);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function attrFunction$1(name, interpolate$$1, value) {
+function attrFunction$1(name, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -3509,11 +3537,11 @@ function attrFunction$1(name, interpolate$$1, value) {
     string1 = value1 + "";
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
-function attrFunctionNS$1(fullname, interpolate$$1, value) {
+function attrFunctionNS$1(fullname, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -3524,7 +3552,7 @@ function attrFunctionNS$1(fullname, interpolate$$1, value) {
     string1 = value1 + "";
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
@@ -3652,10 +3680,10 @@ function transition_filter(match) {
   return new Transition(subgroups, this._parents, this._name, this._id);
 }
 
-function transition_merge(transition$$1) {
-  if (transition$$1._id !== this._id) throw new Error;
+function transition_merge(transition) {
+  if (transition._id !== this._id) throw new Error;
 
-  for (var groups0 = this._groups, groups1 = transition$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+  for (var groups0 = this._groups, groups1 = transition._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
     for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
       if (node = group0[i] || group1[i]) {
         merge[i] = node;
@@ -3681,15 +3709,15 @@ function start(name) {
 function onFunction(id, name, listener) {
   var on0, on1, sit = start(name) ? init : set$1;
   return function() {
-    var schedule$$1 = sit(this, id),
-        on = schedule$$1.on;
+    var schedule = sit(this, id),
+        on = schedule.on;
 
     // If this node shared a dispatch with the previous node,
     // just assign the updated shared dispatch and we’re done!
     // Otherwise, copy-on-write.
     if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener);
 
-    schedule$$1.on = on1;
+    schedule.on = on1;
   };
 }
 
@@ -3713,15 +3741,15 @@ function transition_remove() {
   return this.on("end.remove", removeFunction(this._id));
 }
 
-function transition_select(select$$1) {
+function transition_select(select) {
   var name = this._name,
       id = this._id;
 
-  if (typeof select$$1 !== "function") select$$1 = selector(select$$1);
+  if (typeof select !== "function") select = selector(select);
 
   for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
-      if ((node = group[i]) && (subnode = select$$1.call(node, node.__data__, i, group))) {
+      if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
         if ("__data__" in node) subnode.__data__ = node.__data__;
         subgroup[i] = subnode;
         schedule(subgroup[i], name, id, i, subgroup, get$1(node, id));
@@ -3732,16 +3760,16 @@ function transition_select(select$$1) {
   return new Transition(subgroups, this._parents, name, id);
 }
 
-function transition_selectAll(select$$1) {
+function transition_selectAll(select) {
   var name = this._name,
       id = this._id;
 
-  if (typeof select$$1 !== "function") select$$1 = selectorAll(select$$1);
+  if (typeof select !== "function") select = selectorAll(select);
 
   for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
     for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
       if (node = group[i]) {
-        for (var children = select$$1.call(node, node.__data__, i, group), child, inherit = get$1(node, id), k = 0, l = children.length; k < l; ++k) {
+        for (var children = select.call(node, node.__data__, i, group), child, inherit = get$1(node, id), k = 0, l = children.length; k < l; ++k) {
           if (child = children[k]) {
             schedule(child, name, id, k, children, inherit);
           }
@@ -3761,7 +3789,7 @@ function transition_selection() {
   return new Selection$1(this._groups, this._parents);
 }
 
-function styleNull(name, interpolate$$1) {
+function styleNull(name, interpolate) {
   var string00,
       string10,
       interpolate0;
@@ -3770,7 +3798,7 @@ function styleNull(name, interpolate$$1) {
         string1 = (this.style.removeProperty(name), styleValue(this, name));
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, string10 = string1);
+        : interpolate0 = interpolate(string00 = string0, string10 = string1);
   };
 }
 
@@ -3780,7 +3808,7 @@ function styleRemove$1(name) {
   };
 }
 
-function styleConstant$1(name, interpolate$$1, value1) {
+function styleConstant$1(name, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -3788,11 +3816,11 @@ function styleConstant$1(name, interpolate$$1, value1) {
     var string0 = styleValue(this, name);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function styleFunction$1(name, interpolate$$1, value) {
+function styleFunction$1(name, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -3803,23 +3831,23 @@ function styleFunction$1(name, interpolate$$1, value) {
     if (value1 == null) string1 = value1 = (this.style.removeProperty(name), styleValue(this, name));
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
 function styleMaybeRemove(id, name) {
   var on0, on1, listener0, key = "style." + name, event = "end." + key, remove;
   return function() {
-    var schedule$$1 = set$1(this, id),
-        on = schedule$$1.on,
-        listener = schedule$$1.value[key] == null ? remove || (remove = styleRemove$1(name)) : undefined;
+    var schedule = set$1(this, id),
+        on = schedule.on,
+        listener = schedule.value[key] == null ? remove || (remove = styleRemove$1(name)) : undefined;
 
     // If this node shared a dispatch with the previous node,
     // just assign the updated shared dispatch and we’re done!
     // Otherwise, copy-on-write.
     if (on !== on0 || listener0 !== listener) (on1 = (on0 = on).copy()).on(event, listener0 = listener);
 
-    schedule$$1.on = on1;
+    schedule.on = on1;
   };
 }
 
@@ -3909,8 +3937,8 @@ function transition_end() {
         end = {value: function() { if (--size === 0) resolve(); }};
 
     that.each(function() {
-      var schedule$$1 = set$1(this, id),
-          on = schedule$$1.on;
+      var schedule = set$1(this, id),
+          on = schedule.on;
 
       // If this node shared a dispatch with the previous node,
       // just assign the updated shared dispatch and we’re done!
@@ -3922,7 +3950,7 @@ function transition_end() {
         on1._.end.push(end);
       }
 
-      schedule$$1.on = on1;
+      schedule.on = on1;
     });
   });
 }
@@ -4230,13 +4258,13 @@ var root$1 = [null];
 
 function active(node, name) {
   var schedules = node.__transition,
-      schedule$$1,
+      schedule,
       i;
 
   if (schedules) {
     name = name == null ? null : name + "";
     for (i in schedules) {
-      if ((schedule$$1 = schedules[i]).state > SCHEDULED && schedule$$1.name === name) {
+      if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
         return new Transition([[node]], root$1, name, +i);
       }
     }
@@ -4271,24 +4299,32 @@ var MODE_DRAG = {name: "drag"},
     MODE_HANDLE = {name: "handle"},
     MODE_CENTER = {name: "center"};
 
+function number1(e) {
+  return [+e[0], +e[1]];
+}
+
+function number2(e) {
+  return [number1(e[0]), number1(e[1])];
+}
+
 var X = {
   name: "x",
-  handles: ["e", "w"].map(type),
-  input: function(x, e) { return x && [[x[0], e[0][1]], [x[1], e[1][1]]]; },
+  handles: ["w", "e"].map(type),
+  input: function(x, e) { return x == null ? null : [[+x[0], e[0][1]], [+x[1], e[1][1]]]; },
   output: function(xy) { return xy && [xy[0][0], xy[1][0]]; }
 };
 
 var Y = {
   name: "y",
   handles: ["n", "s"].map(type),
-  input: function(y, e) { return y && [[e[0][0], y[0]], [e[1][0], y[1]]]; },
+  input: function(y, e) { return y == null ? null : [[e[0][0], +y[0]], [e[1][0], +y[1]]]; },
   output: function(xy) { return xy && [xy[0][1], xy[1][1]]; }
 };
 
 var XY = {
   name: "xy",
-  handles: ["n", "e", "s", "w", "nw", "ne", "se", "sw"].map(type),
-  input: function(xy) { return xy; },
+  handles: ["nw", "n", "ne", "w", "e", "sw", "s", "se"].map(type),
+  input: function(xy) { return xy == null ? null : number2(xy); },
   output: function(xy) { return xy; }
 };
 
@@ -4355,12 +4391,20 @@ function type(t) {
 
 // Ignore right-click, since that should open the context menu.
 function defaultFilter$1() {
-  return !exports.event.button;
+  return !exports.event.ctrlKey && !exports.event.button;
 }
 
 function defaultExtent() {
   var svg = this.ownerSVGElement || this;
+  if (svg.hasAttribute("viewBox")) {
+    svg = svg.viewBox.baseVal;
+    return [[svg.x, svg.y], [svg.x + svg.width, svg.y + svg.height]];
+  }
   return [[0, 0], [svg.width.baseVal.value, svg.height.baseVal.value]];
+}
+
+function defaultTouchable$1() {
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
 }
 
 // Like d3.local, but with the name “__brush” rather than auto-generated.
@@ -4394,6 +4438,8 @@ function brush() {
 function brush$1(dim) {
   var extent = defaultExtent,
       filter = defaultFilter$1,
+      touchable = defaultTouchable$1,
+      keys = true,
       listeners = dispatch(brush, "start", "brush", "end"),
       handleSize = 6,
       touchending;
@@ -4441,11 +4487,16 @@ function brush$1(dim) {
         .each(redraw)
         .attr("fill", "none")
         .attr("pointer-events", "all")
-        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)")
-        .on("mousedown.brush touchstart.brush", started);
+        .on("mousedown.brush", started)
+      .filter(touchable)
+        .on("touchstart.brush", started)
+        .on("touchmove.brush", touchmoved)
+        .on("touchend.brush touchcancel.brush", touchended)
+        .style("touch-action", "none")
+        .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
   }
 
-  brush.move = function(group, selection$$1) {
+  brush.move = function(group, selection) {
     if (group.selection) {
       group
           .on("start.brush", function() { emitter(this, arguments).beforestart().start(); })
@@ -4455,16 +4506,16 @@ function brush$1(dim) {
                 state = that.__brush,
                 emit = emitter(that, arguments),
                 selection0 = state.selection,
-                selection1 = dim.input(typeof selection$$1 === "function" ? selection$$1.apply(this, arguments) : selection$$1, state.extent),
+                selection1 = dim.input(typeof selection === "function" ? selection.apply(this, arguments) : selection, state.extent),
                 i = interpolateValue(selection0, selection1);
 
             function tween(t) {
-              state.selection = t === 1 && empty$1(selection1) ? null : i(t);
+              state.selection = t === 1 && selection1 === null ? null : i(t);
               redraw.call(that);
               emit.brush();
             }
 
-            return selection0 && selection1 ? tween : tween(1);
+            return selection0 !== null && selection1 !== null ? tween : tween(1);
           });
     } else {
       group
@@ -4472,35 +4523,39 @@ function brush$1(dim) {
             var that = this,
                 args = arguments,
                 state = that.__brush,
-                selection1 = dim.input(typeof selection$$1 === "function" ? selection$$1.apply(that, args) : selection$$1, state.extent),
+                selection1 = dim.input(typeof selection === "function" ? selection.apply(that, args) : selection, state.extent),
                 emit = emitter(that, args).beforestart();
 
             interrupt(that);
-            state.selection = selection1 == null || empty$1(selection1) ? null : selection1;
+            state.selection = selection1 === null ? null : selection1;
             redraw.call(that);
             emit.start().brush().end();
           });
     }
   };
 
+  brush.clear = function(group) {
+    brush.move(group, null);
+  };
+
   function redraw() {
     var group = select(this),
-        selection$$1 = local$1(this).selection;
+        selection = local$1(this).selection;
 
-    if (selection$$1) {
+    if (selection) {
       group.selectAll(".selection")
           .style("display", null)
-          .attr("x", selection$$1[0][0])
-          .attr("y", selection$$1[0][1])
-          .attr("width", selection$$1[1][0] - selection$$1[0][0])
-          .attr("height", selection$$1[1][1] - selection$$1[0][1]);
+          .attr("x", selection[0][0])
+          .attr("y", selection[0][1])
+          .attr("width", selection[1][0] - selection[0][0])
+          .attr("height", selection[1][1] - selection[0][1]);
 
       group.selectAll(".handle")
           .style("display", null)
-          .attr("x", function(d) { return d.type[d.type.length - 1] === "e" ? selection$$1[1][0] - handleSize / 2 : selection$$1[0][0] - handleSize / 2; })
-          .attr("y", function(d) { return d.type[0] === "s" ? selection$$1[1][1] - handleSize / 2 : selection$$1[0][1] - handleSize / 2; })
-          .attr("width", function(d) { return d.type === "n" || d.type === "s" ? selection$$1[1][0] - selection$$1[0][0] + handleSize : handleSize; })
-          .attr("height", function(d) { return d.type === "e" || d.type === "w" ? selection$$1[1][1] - selection$$1[0][1] + handleSize : handleSize; });
+          .attr("x", function(d) { return d.type[d.type.length - 1] === "e" ? selection[1][0] - handleSize / 2 : selection[0][0] - handleSize / 2; })
+          .attr("y", function(d) { return d.type[0] === "s" ? selection[1][1] - handleSize / 2 : selection[0][1] - handleSize / 2; })
+          .attr("width", function(d) { return d.type === "n" || d.type === "s" ? selection[1][0] - selection[0][0] + handleSize : handleSize; })
+          .attr("height", function(d) { return d.type === "e" || d.type === "w" ? selection[1][1] - selection[0][1] + handleSize : handleSize; });
     }
 
     else {
@@ -4513,8 +4568,8 @@ function brush$1(dim) {
     }
   }
 
-  function emitter(that, args) {
-    return that.__brush.emitter || new Emitter(that, args);
+  function emitter(that, args, clean) {
+    return (!clean && that.__brush.emitter) || new Emitter(that, args);
   }
 
   function Emitter(that, args) {
@@ -4531,6 +4586,7 @@ function brush$1(dim) {
     },
     start: function() {
       if (this.starting) this.starting = false, this.emit("start");
+      else this.emit("brush");
       return this;
     },
     brush: function() {
@@ -4546,6 +4602,10 @@ function brush$1(dim) {
     }
   };
 
+  function pointer(target) {
+    return clientPoint(target, exports.event.touches ? exports.event.touches[0] : exports.event);
+  }
+
   function started() {
     if (exports.event.touches) { if (exports.event.changedTouches.length < exports.event.touches.length) return noevent$1(); }
     else if (touchending) return;
@@ -4553,36 +4613,37 @@ function brush$1(dim) {
 
     var that = this,
         type = exports.event.target.__data__.type,
-        mode = (exports.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (exports.event.altKey ? MODE_CENTER : MODE_HANDLE),
+        mode = (keys && exports.event.metaKey ? type = "overlay" : type) === "selection" ? MODE_DRAG : (keys && exports.event.altKey ? MODE_CENTER : MODE_HANDLE),
         signX = dim === Y ? null : signsX[type],
         signY = dim === X ? null : signsY[type],
         state = local$1(that),
         extent = state.extent,
-        selection$$1 = state.selection,
+        selection = state.selection,
         W = extent[0][0], w0, w1,
         N = extent[0][1], n0, n1,
         E = extent[1][0], e0, e1,
         S = extent[1][1], s0, s1,
-        dx,
-        dy,
+        dx = 0,
+        dy = 0,
         moving,
-        shifting = signX && signY && exports.event.shiftKey,
+        shifting = signX && signY && keys && exports.event.shiftKey,
         lockX,
         lockY,
-        point0 = mouse(that),
-        point$$1 = point0,
-        emit = emitter(that, arguments).beforestart();
+        point0 = pointer(that),
+        point = point0,
+        emit = emitter(that, arguments, true).beforestart();
 
     if (type === "overlay") {
-      state.selection = selection$$1 = [
+      if (selection) moving = true;
+      state.selection = selection = [
         [w0 = dim === Y ? W : point0[0], n0 = dim === X ? N : point0[1]],
         [e0 = dim === Y ? E : w0, s0 = dim === X ? S : n0]
       ];
     } else {
-      w0 = selection$$1[0][0];
-      n0 = selection$$1[0][1];
-      e0 = selection$$1[1][0];
-      s0 = selection$$1[1][1];
+      w0 = selection[0][0];
+      n0 = selection[0][1];
+      e0 = selection[1][0];
+      s0 = selection[1][1];
     }
 
     w1 = w0;
@@ -4597,15 +4658,15 @@ function brush$1(dim) {
         .attr("cursor", cursors[type]);
 
     if (exports.event.touches) {
-      group
-          .on("touchmove.brush", moved, true)
-          .on("touchend.brush touchcancel.brush", ended, true);
+      emit.moved = moved;
+      emit.ended = ended;
     } else {
       var view = select(exports.event.view)
-          .on("keydown.brush", keydowned, true)
-          .on("keyup.brush", keyupped, true)
           .on("mousemove.brush", moved, true)
           .on("mouseup.brush", ended, true);
+      if (keys) view
+          .on("keydown.brush", keydowned, true)
+          .on("keyup.brush", keyupped, true);
 
       dragDisable(exports.event.view);
     }
@@ -4616,12 +4677,12 @@ function brush$1(dim) {
     emit.start();
 
     function moved() {
-      var point1 = mouse(that);
+      var point1 = pointer(that);
       if (shifting && !lockX && !lockY) {
-        if (Math.abs(point1[0] - point$$1[0]) > Math.abs(point1[1] - point$$1[1])) lockY = true;
+        if (Math.abs(point1[0] - point[0]) > Math.abs(point1[1] - point[1])) lockY = true;
         else lockX = true;
       }
-      point$$1 = point1;
+      point = point1;
       moving = true;
       noevent$1();
       move();
@@ -4630,8 +4691,8 @@ function brush$1(dim) {
     function move() {
       var t;
 
-      dx = point$$1[0] - point0[0];
-      dy = point$$1[1] - point0[1];
+      dx = point[0] - point0[0];
+      dy = point[1] - point0[1];
 
       switch (mode) {
         case MODE_SPACE:
@@ -4668,14 +4729,14 @@ function brush$1(dim) {
         if (type in flipY) overlay.attr("cursor", cursors[type = flipY[type]]);
       }
 
-      if (state.selection) selection$$1 = state.selection; // May be set by brush.move!
-      if (lockX) w1 = selection$$1[0][0], e1 = selection$$1[1][0];
-      if (lockY) n1 = selection$$1[0][1], s1 = selection$$1[1][1];
+      if (state.selection) selection = state.selection; // May be set by brush.move!
+      if (lockX) w1 = selection[0][0], e1 = selection[1][0];
+      if (lockY) n1 = selection[0][1], s1 = selection[1][1];
 
-      if (selection$$1[0][0] !== w1
-          || selection$$1[0][1] !== n1
-          || selection$$1[1][0] !== e1
-          || selection$$1[1][1] !== s1) {
+      if (selection[0][0] !== w1
+          || selection[0][1] !== n1
+          || selection[1][0] !== e1
+          || selection[1][1] !== s1) {
         state.selection = [[w1, n1], [e1, s1]];
         redraw.call(that);
         emit.brush();
@@ -4688,15 +4749,14 @@ function brush$1(dim) {
         if (exports.event.touches.length) return;
         if (touchending) clearTimeout(touchending);
         touchending = setTimeout(function() { touchending = null; }, 500); // Ghost clicks are delayed!
-        group.on("touchmove.brush touchend.brush touchcancel.brush", null);
       } else {
         yesdrag(exports.event.view, moving);
         view.on("keydown.brush keyup.brush mousemove.brush mouseup.brush", null);
       }
       group.attr("pointer-events", "all");
       overlay.attr("cursor", cursors.overlay);
-      if (state.selection) selection$$1 = state.selection; // May be set by brush.move (on start)!
-      if (empty$1(selection$$1)) state.selection = null, redraw.call(that);
+      if (state.selection) selection = state.selection; // May be set by brush.move (on start)!
+      if (empty$1(selection)) state.selection = null, redraw.call(that);
       emit.end();
     }
 
@@ -4770,15 +4830,23 @@ function brush$1(dim) {
     }
   }
 
+  function touchmoved() {
+    emitter(this, arguments).moved();
+  }
+
+  function touchended() {
+    emitter(this, arguments).ended();
+  }
+
   function initialize() {
     var state = this.__brush || {selection: null};
-    state.extent = extent.apply(this, arguments);
+    state.extent = number2(extent.apply(this, arguments));
     state.dim = dim;
     return state;
   }
 
   brush.extent = function(_) {
-    return arguments.length ? (extent = typeof _ === "function" ? _ : constant$4([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
+    return arguments.length ? (extent = typeof _ === "function" ? _ : constant$4(number2(_)), brush) : extent;
   };
 
   brush.filter = function(_) {
@@ -4787,6 +4855,10 @@ function brush$1(dim) {
 
   brush.handleSize = function(_) {
     return arguments.length ? (handleSize = +_, brush) : handleSize;
+  };
+
+  brush.keyModifiers = function(_) {
+    return arguments.length ? (keys = !!_, brush) : keys;
   };
 
   brush.on = function() {
@@ -5015,7 +5087,7 @@ Path.prototype = path.prototype = {
     }
   },
   arc: function(x, y, r, a0, a1, ccw) {
-    x = +x, y = +y, r = +r;
+    x = +x, y = +y, r = +r, ccw = !!ccw;
     var dx = r * Math.cos(a0),
         dy = r * Math.sin(a0),
         x0 = x + dx,
@@ -5415,11 +5487,11 @@ var cases = [
 function contours() {
   var dx = 1,
       dy = 1,
-      threshold$$1 = thresholdSturges,
+      threshold = thresholdSturges,
       smooth = smoothLinear;
 
   function contours(values) {
-    var tz = threshold$$1(values);
+    var tz = threshold(values);
 
     // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
@@ -5579,7 +5651,7 @@ function contours() {
   };
 
   contours.thresholds = function(_) {
-    return arguments.length ? (threshold$$1 = typeof _ === "function" ? _ : Array.isArray(_) ? constant$6(slice$3.call(_)) : constant$6(_), contours) : threshold$$1;
+    return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant$6(slice$3.call(_)) : constant$6(_), contours) : threshold;
   };
 
   contours.smooth = function(_) {
@@ -5656,7 +5728,7 @@ function density() {
       o = r * 3, // grid offset, to pad for blur
       n = (dx + o * 2) >> k, // grid width
       m = (dy + o * 2) >> k, // grid height
-      threshold$$1 = constant$6(20);
+      threshold = constant$6(20);
 
   function density(data) {
     var values0 = new Float32Array(n * m),
@@ -5679,7 +5751,7 @@ function density() {
     blurX({width: n, height: m, data: values0}, {width: n, height: m, data: values1}, r >> k);
     blurY({width: n, height: m, data: values1}, {width: n, height: m, data: values0}, r >> k);
 
-    var tz = threshold$$1(values0);
+    var tz = threshold(values0);
 
     // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
@@ -5749,7 +5821,7 @@ function density() {
   };
 
   density.thresholds = function(_) {
-    return arguments.length ? (threshold$$1 = typeof _ === "function" ? _ : Array.isArray(_) ? constant$6(slice$3.call(_)) : constant$6(_), density) : threshold$$1;
+    return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant$6(slice$3.call(_)) : constant$6(_), density) : threshold;
   };
 
   density.bandwidth = function(_) {
@@ -5813,7 +5885,7 @@ function formatDate(date) {
       seconds = date.getUTCSeconds(),
       milliseconds = date.getUTCMilliseconds();
   return isNaN(date) ? "Invalid Date"
-      : formatYear(date.getUTCFullYear(), 4) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
+      : formatYear(date.getUTCFullYear()) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
       + (milliseconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
       : seconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
       : minutes || hours ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
@@ -6023,8 +6095,8 @@ function json(input, init) {
 
 function parser(type) {
   return function(input, init)  {
-    return text(input, init).then(function(text$$1) {
-      return (new DOMParser).parseFromString(text$$1, type);
+    return text(input, init).then(function(text) {
+      return (new DOMParser).parseFromString(text, type);
     });
   };
 }
@@ -7693,14 +7765,14 @@ function linePoint(lambda, phi) {
     cartesianNormalizeInPlace(inflection);
     inflection = spherical(inflection);
     var delta = lambda - lambda2,
-        sign$$1 = delta > 0 ? 1 : -1,
-        lambdai = inflection[0] * degrees$1 * sign$$1,
+        sign = delta > 0 ? 1 : -1,
+        lambdai = inflection[0] * degrees$1 * sign,
         phii,
         antimeridian = abs(delta) > 180;
-    if (antimeridian ^ (sign$$1 * lambda2 < lambdai && lambdai < sign$$1 * lambda)) {
+    if (antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
       phii = inflection[1] * degrees$1;
       if (phii > phi1) phi1 = phii;
-    } else if (lambdai = (lambdai + 360) % 360 - 180, antimeridian ^ (sign$$1 * lambda2 < lambdai && lambdai < sign$$1 * lambda)) {
+    } else if (lambdai = (lambdai + 360) % 360 - 180, antimeridian ^ (sign * lambda2 < lambdai && lambdai < sign * lambda)) {
       phii = -inflection[1] * degrees$1;
       if (phii < phi0) phi0 = phii;
     } else {
@@ -8282,13 +8354,13 @@ function polygonContains(polygon, point) {
           sinPhi1 = sin$1(phi1),
           cosPhi1 = cos$1(phi1),
           delta = lambda1 - lambda0,
-          sign$$1 = delta >= 0 ? 1 : -1,
-          absDelta = sign$$1 * delta,
+          sign = delta >= 0 ? 1 : -1,
+          absDelta = sign * delta,
           antimeridian = absDelta > pi$3,
           k = sinPhi0 * sinPhi1;
 
-      sum$1.add(atan2(k * sign$$1 * sin$1(absDelta), cosPhi0 * cosPhi1 + k * cos$1(absDelta)));
-      angle += antimeridian ? delta + sign$$1 * tau$3 : delta;
+      sum$1.add(atan2(k * sign * sin$1(absDelta), cosPhi0 * cosPhi1 + k * cos$1(absDelta)));
+      angle += antimeridian ? delta + sign * tau$3 : delta;
 
       // Are the longitudes either side of the point’s meridian (lambda),
       // and are the latitudes smaller than the parallel (phi)?
@@ -9798,13 +9870,13 @@ function transformRotate(rotate) {
 }
 
 function scaleTranslate(k, dx, dy) {
-  function transform$$1(x, y) {
+  function transform(x, y) {
     return [dx + k * x, dy - k * y];
   }
-  transform$$1.invert = function(x, y) {
+  transform.invert = function(x, y) {
     return [(x - dx) / k, (dy - y) / k];
   };
-  return transform$$1;
+  return transform;
 }
 
 function scaleTranslateRotate(k, dx, dy, alpha) {
@@ -9816,13 +9888,13 @@ function scaleTranslateRotate(k, dx, dy, alpha) {
       bi = sinAlpha / k,
       ci = (sinAlpha * dy - cosAlpha * dx) / k,
       fi = (sinAlpha * dx + cosAlpha * dy) / k;
-  function transform$$1(x, y) {
+  function transform(x, y) {
     return [a * x - b * y + dx, dy - b * x - a * y];
   }
-  transform$$1.invert = function(x, y) {
+  transform.invert = function(x, y) {
     return [ai * x - bi * y + ci, fi - bi * x - ai * y];
   };
-  return transform$$1;
+  return transform;
 }
 
 function projection(project) {
@@ -9916,9 +9988,9 @@ function projectionMutator(projectAt) {
 
   function recenter() {
     var center = scaleTranslateRotate(k, 0, 0, alpha).apply(null, project(lambda, phi)),
-        transform$$1 = (alpha ? scaleTranslateRotate : scaleTranslate)(k, x - center[0], y - center[1], alpha);
+        transform = (alpha ? scaleTranslateRotate : scaleTranslate)(k, x - center[0], y - center[1], alpha);
     rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma);
-    projectTransform = compose(project, transform$$1);
+    projectTransform = compose(project, transform);
     projectRotateTransform = compose(rotate, projectTransform);
     projectResample = resample(projectTransform, delta2);
     return reset();
@@ -10333,7 +10405,7 @@ function scaleTranslate$1(kx, ky, tx, ty) {
 }
 
 function identity$5() {
-  var k = 1, tx = 0, ty = 0, sx = 1, sy = 1, transform$$1 = identity$4, // scale, translate and reflect
+  var k = 1, tx = 0, ty = 0, sx = 1, sy = 1, transform = identity$4, // scale, translate and reflect
       x0 = null, y0, x1, y1, // clip extent
       postclip = identity$4,
       cache,
@@ -10347,7 +10419,7 @@ function identity$5() {
 
   return projection = {
     stream: function(stream) {
-      return cache && cacheStream === stream ? cache : cache = transform$$1(postclip(cacheStream = stream));
+      return cache && cacheStream === stream ? cache : cache = transform(postclip(cacheStream = stream));
     },
     postclip: function(_) {
       return arguments.length ? (postclip = _, x0 = y0 = x1 = y1 = null, reset()) : postclip;
@@ -10356,16 +10428,16 @@ function identity$5() {
       return arguments.length ? (postclip = _ == null ? (x0 = y0 = x1 = y1 = null, identity$4) : clipRectangle(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
     },
     scale: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate$1((k = +_) * sx, k * sy, tx, ty), reset()) : k;
+      return arguments.length ? (transform = scaleTranslate$1((k = +_) * sx, k * sy, tx, ty), reset()) : k;
     },
     translate: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate$1(k * sx, k * sy, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
+      return arguments.length ? (transform = scaleTranslate$1(k * sx, k * sy, tx = +_[0], ty = +_[1]), reset()) : [tx, ty];
     },
     reflectX: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate$1(k * (sx = _ ? -1 : 1), k * sy, tx, ty), reset()) : sx < 0;
+      return arguments.length ? (transform = scaleTranslate$1(k * (sx = _ ? -1 : 1), k * sy, tx, ty), reset()) : sx < 0;
     },
     reflectY: function(_) {
-      return arguments.length ? (transform$$1 = scaleTranslate$1(k * sx, k * (sy = _ ? -1 : 1), tx, ty), reset()) : sy < 0;
+      return arguments.length ? (transform = scaleTranslate$1(k * sx, k * (sy = _ ? -1 : 1), tx, ty), reset()) : sy < 0;
     },
     fitExtent: function(extent, object) {
       return fitExtent(projection, extent, object);
@@ -12025,7 +12097,7 @@ function band() {
   var scale = ordinal().unknown(undefined),
       domain = scale.domain,
       ordinalRange = scale.range,
-      range$$1 = [0, 1],
+      range = [0, 1],
       step,
       bandwidth,
       round = false,
@@ -12037,9 +12109,9 @@ function band() {
 
   function rescale() {
     var n = domain().length,
-        reverse = range$$1[1] < range$$1[0],
-        start = range$$1[reverse - 0],
-        stop = range$$1[1 - reverse];
+        reverse = range[1] < range[0],
+        start = range[reverse - 0],
+        stop = range[1 - reverse];
     step = (stop - start) / Math.max(1, n - paddingInner + paddingOuter * 2);
     if (round) step = Math.floor(step);
     start += (stop - start - step * (n - paddingInner)) * align;
@@ -12054,11 +12126,11 @@ function band() {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (range$$1 = [+_[0], +_[1]], rescale()) : range$$1.slice();
+    return arguments.length ? (range = [+_[0], +_[1]], rescale()) : range.slice();
   };
 
   scale.rangeRound = function(_) {
-    return range$$1 = [+_[0], +_[1]], round = true, rescale();
+    return range = [+_[0], +_[1]], round = true, rescale();
   };
 
   scale.bandwidth = function() {
@@ -12090,7 +12162,7 @@ function band() {
   };
 
   scale.copy = function() {
-    return band(domain(), range$$1)
+    return band(domain(), range)
         .round(round)
         .paddingInner(paddingInner)
         .paddingOuter(paddingOuter)
@@ -12114,7 +12186,7 @@ function pointish(scale) {
   return scale;
 }
 
-function point$1() {
+function point() {
   return pointish(band.apply(null, arguments).paddingInner(1));
 }
 
@@ -12148,14 +12220,14 @@ function clamper(domain) {
 
 // normalize(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
 // interpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding range value x in [a,b].
-function bimap(domain, range, interpolate$$1) {
+function bimap(domain, range, interpolate) {
   var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
-  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate$$1(r1, r0);
-  else d0 = normalize(d0, d1), r0 = interpolate$$1(r0, r1);
+  if (d1 < d0) d0 = normalize(d1, d0), r0 = interpolate(r1, r0);
+  else d0 = normalize(d0, d1), r0 = interpolate(r0, r1);
   return function(x) { return r0(d0(x)); };
 }
 
-function polymap(domain, range, interpolate$$1) {
+function polymap(domain, range, interpolate) {
   var j = Math.min(domain.length, range.length) - 1,
       d = new Array(j),
       r = new Array(j),
@@ -12169,7 +12241,7 @@ function polymap(domain, range, interpolate$$1) {
 
   while (++i < j) {
     d[i] = normalize(domain[i], domain[i + 1]);
-    r[i] = interpolate$$1(range[i], range[i + 1]);
+    r[i] = interpolate(range[i], range[i + 1]);
   }
 
   return function(x) {
@@ -12190,27 +12262,27 @@ function copy(source, target) {
 function transformer$1() {
   var domain = unit,
       range = unit,
-      interpolate$$1 = interpolateValue,
+      interpolate = interpolateValue,
       transform,
       untransform,
       unknown,
       clamp = identity$6,
-      piecewise$$1,
+      piecewise,
       output,
       input;
 
   function rescale() {
-    piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+    piecewise = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
     output = input = null;
     return scale;
   }
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : (output || (output = piecewise$$1(domain.map(transform), range, interpolate$$1)))(transform(clamp(x)));
+    return isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
   }
 
   scale.invert = function(y) {
-    return clamp(untransform((input || (input = piecewise$$1(range, domain.map(transform), interpolateNumber)))(y)));
+    return clamp(untransform((input || (input = piecewise(range, domain.map(transform), interpolateNumber)))(y)));
   };
 
   scale.domain = function(_) {
@@ -12222,7 +12294,7 @@ function transformer$1() {
   };
 
   scale.rangeRound = function(_) {
-    return range = slice$5.call(_), interpolate$$1 = interpolateRound, rescale();
+    return range = slice$5.call(_), interpolate = interpolateRound, rescale();
   };
 
   scale.clamp = function(_) {
@@ -12230,7 +12302,7 @@ function transformer$1() {
   };
 
   scale.interpolate = function(_) {
-    return arguments.length ? (interpolate$$1 = _, rescale()) : interpolate$$1;
+    return arguments.length ? (interpolate = _, rescale()) : interpolate;
   };
 
   scale.unknown = function(_) {
@@ -12606,7 +12678,7 @@ function sqrt$1() {
   return pow$1.apply(null, arguments).exponent(0.5);
 }
 
-function quantile$$1() {
+function quantile() {
   var domain = [],
       range = [],
       thresholds = [],
@@ -12652,7 +12724,7 @@ function quantile$$1() {
   };
 
   scale.copy = function() {
-    return quantile$$1()
+    return quantile()
         .domain(domain)
         .range(range)
         .unknown(unknown);
@@ -13229,7 +13301,7 @@ function formatLocale$1(locale) {
     return function(string) {
       var d = newYear(1900),
           i = parseSpecifier(d, specifier, string += "", 0),
-          week, day$$1;
+          week, day$1;
       if (i != string.length) return null;
 
       // If a UNIX timestamp is specified, return it.
@@ -13243,15 +13315,15 @@ function formatLocale$1(locale) {
         if (d.V < 1 || d.V > 53) return null;
         if (!("w" in d)) d.w = 1;
         if ("Z" in d) {
-          week = utcDate(newYear(d.y)), day$$1 = week.getUTCDay();
-          week = day$$1 > 4 || day$$1 === 0 ? utcMonday.ceil(week) : utcMonday(week);
+          week = utcDate(newYear(d.y)), day$1 = week.getUTCDay();
+          week = day$1 > 4 || day$1 === 0 ? utcMonday.ceil(week) : utcMonday(week);
           week = utcDay.offset(week, (d.V - 1) * 7);
           d.y = week.getUTCFullYear();
           d.m = week.getUTCMonth();
           d.d = week.getUTCDate() + (d.w + 6) % 7;
         } else {
-          week = newDate(newYear(d.y)), day$$1 = week.getDay();
-          week = day$$1 > 4 || day$$1 === 0 ? monday.ceil(week) : monday(week);
+          week = newDate(newYear(d.y)), day$1 = week.getDay();
+          week = day$1 > 4 || day$1 === 0 ? monday.ceil(week) : monday(week);
           week = day.offset(week, (d.V - 1) * 7);
           d.y = week.getFullYear();
           d.m = week.getMonth();
@@ -13259,9 +13331,9 @@ function formatLocale$1(locale) {
         }
       } else if ("W" in d || "U" in d) {
         if (!("w" in d)) d.w = "u" in d ? d.u % 7 : "W" in d ? 1 : 0;
-        day$$1 = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
+        day$1 = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
         d.m = 0;
-        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day$$1 + 5) % 7 : d.w + d.U * 7 - (day$$1 + 6) % 7;
+        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day$1 + 5) % 7 : d.w + d.U * 7 - (day$1 + 6) % 7;
       }
 
       // If a time zone is specified, all fields are interpreted as UTC and then
@@ -13558,8 +13630,8 @@ function formatSeconds(d, p) {
 }
 
 function formatWeekdayNumberMonday(d) {
-  var day$$1 = d.getDay();
-  return day$$1 === 0 ? 7 : day$$1;
+  var day = d.getDay();
+  return day === 0 ? 7 : day;
 }
 
 function formatWeekNumberSunday(d, p) {
@@ -13567,8 +13639,8 @@ function formatWeekNumberSunday(d, p) {
 }
 
 function formatWeekNumberISO(d, p) {
-  var day$$1 = d.getDay();
-  d = (day$$1 >= 4 || day$$1 === 0) ? thursday(d) : thursday.ceil(d);
+  var day = d.getDay();
+  d = (day >= 4 || day === 0) ? thursday(d) : thursday.ceil(d);
   return pad$1(thursday.count(year(d), d) + (year(d).getDay() === 4), p, 2);
 }
 
@@ -13641,8 +13713,8 @@ function formatUTCWeekNumberSunday(d, p) {
 }
 
 function formatUTCWeekNumberISO(d, p) {
-  var day$$1 = d.getUTCDay();
-  d = (day$$1 >= 4 || day$$1 === 0) ? utcThursday(d) : utcThursday.ceil(d);
+  var day = d.getUTCDay();
+  d = (day >= 4 || day === 0) ? utcThursday(d) : utcThursday.ceil(d);
   return pad$1(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
 }
 
@@ -13735,7 +13807,7 @@ function number$3(t) {
   return t instanceof Date ? +t : +new Date(+t);
 }
 
-function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1, millisecond$$1, format) {
+function calendar(year, month, week, day, hour, minute, second, millisecond, format) {
   var scale = continuous(identity$6, identity$6),
       invert = scale.invert,
       domain = scale.domain;
@@ -13750,33 +13822,33 @@ function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1
       formatYear = format("%Y");
 
   var tickIntervals = [
-    [second$$1,  1,      durationSecond$1],
-    [second$$1,  5,  5 * durationSecond$1],
-    [second$$1, 15, 15 * durationSecond$1],
-    [second$$1, 30, 30 * durationSecond$1],
-    [minute$$1,  1,      durationMinute$1],
-    [minute$$1,  5,  5 * durationMinute$1],
-    [minute$$1, 15, 15 * durationMinute$1],
-    [minute$$1, 30, 30 * durationMinute$1],
-    [  hour$$1,  1,      durationHour$1  ],
-    [  hour$$1,  3,  3 * durationHour$1  ],
-    [  hour$$1,  6,  6 * durationHour$1  ],
-    [  hour$$1, 12, 12 * durationHour$1  ],
-    [   day$$1,  1,      durationDay$1   ],
-    [   day$$1,  2,  2 * durationDay$1   ],
+    [second,  1,      durationSecond$1],
+    [second,  5,  5 * durationSecond$1],
+    [second, 15, 15 * durationSecond$1],
+    [second, 30, 30 * durationSecond$1],
+    [minute,  1,      durationMinute$1],
+    [minute,  5,  5 * durationMinute$1],
+    [minute, 15, 15 * durationMinute$1],
+    [minute, 30, 30 * durationMinute$1],
+    [  hour,  1,      durationHour$1  ],
+    [  hour,  3,  3 * durationHour$1  ],
+    [  hour,  6,  6 * durationHour$1  ],
+    [  hour, 12, 12 * durationHour$1  ],
+    [   day,  1,      durationDay$1   ],
+    [   day,  2,  2 * durationDay$1   ],
     [  week,  1,      durationWeek$1  ],
-    [ month$$1,  1,      durationMonth ],
-    [ month$$1,  3,  3 * durationMonth ],
-    [  year$$1,  1,      durationYear  ]
+    [ month,  1,      durationMonth ],
+    [ month,  3,  3 * durationMonth ],
+    [  year,  1,      durationYear  ]
   ];
 
   function tickFormat(date) {
-    return (second$$1(date) < date ? formatMillisecond
-        : minute$$1(date) < date ? formatSecond
-        : hour$$1(date) < date ? formatMinute
-        : day$$1(date) < date ? formatHour
-        : month$$1(date) < date ? (week(date) < date ? formatDay : formatWeek)
-        : year$$1(date) < date ? formatMonth
+    return (second(date) < date ? formatMillisecond
+        : minute(date) < date ? formatSecond
+        : hour(date) < date ? formatMinute
+        : day(date) < date ? formatHour
+        : month(date) < date ? (week(date) < date ? formatDay : formatWeek)
+        : year(date) < date ? formatMonth
         : formatYear)(date);
   }
 
@@ -13791,14 +13863,14 @@ function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1
           i = bisector(function(i) { return i[2]; }).right(tickIntervals, target);
       if (i === tickIntervals.length) {
         step = tickStep(start / durationYear, stop / durationYear, interval);
-        interval = year$$1;
+        interval = year;
       } else if (i) {
         i = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
         step = i[1];
         interval = i[0];
       } else {
         step = Math.max(tickStep(start, stop, interval), 1);
-        interval = millisecond$$1;
+        interval = millisecond;
       }
     }
 
@@ -13837,7 +13909,7 @@ function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1
   };
 
   scale.copy = function() {
-    return copy(scale, calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1, millisecond$$1, format));
+    return copy(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format));
   };
 
   return scale;
@@ -14074,6 +14146,8 @@ var Set1 = colors("e41a1c377eb84daf4a984ea3ff7f00ffff33a65628f781bf999999");
 var Set2 = colors("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
 
 var Set3 = colors("8dd3c7ffffb3bebadafb807280b1d3fdb462b3de69fccde5d9d9d9bc80bdccebc5ffed6f");
+
+var Tableau10 = colors("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
 
 function ramp(scheme) {
   return rgbBasis(scheme[scheme.length - 1]);
@@ -14792,8 +14866,8 @@ function y$3(p) {
 }
 
 function line() {
-  var x$$1 = x$3,
-      y$$1 = y$3,
+  var x = x$3,
+      y = y$3,
       defined = constant$b(true),
       context = null,
       curve = curveLinear,
@@ -14813,18 +14887,18 @@ function line() {
         if (defined0 = !defined0) output.lineStart();
         else output.lineEnd();
       }
-      if (defined0) output.point(+x$$1(d, i, data), +y$$1(d, i, data));
+      if (defined0) output.point(+x(d, i, data), +y(d, i, data));
     }
 
     if (buffer) return output = null, buffer + "" || null;
   }
 
   line.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$b(+_), line) : x$$1;
+    return arguments.length ? (x = typeof _ === "function" ? _ : constant$b(+_), line) : x;
   };
 
   line.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$b(+_), line) : y$$1;
+    return arguments.length ? (y = typeof _ === "function" ? _ : constant$b(+_), line) : y;
   };
 
   line.defined = function(_) {
@@ -15124,14 +15198,14 @@ function linkTarget(d) {
 function link$2(curve) {
   var source = linkSource,
       target = linkTarget,
-      x$$1 = x$3,
-      y$$1 = y$3,
+      x = x$3,
+      y = y$3,
       context = null;
 
   function link() {
     var buffer, argv = slice$6.call(arguments), s = source.apply(this, argv), t = target.apply(this, argv);
     if (!context) context = buffer = path();
-    curve(context, +x$$1.apply(this, (argv[0] = s, argv)), +y$$1.apply(this, argv), +x$$1.apply(this, (argv[0] = t, argv)), +y$$1.apply(this, argv));
+    curve(context, +x.apply(this, (argv[0] = s, argv)), +y.apply(this, argv), +x.apply(this, (argv[0] = t, argv)), +y.apply(this, argv));
     if (buffer) return context = null, buffer + "" || null;
   }
 
@@ -15144,11 +15218,11 @@ function link$2(curve) {
   };
 
   link.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$b(+_), link) : x$$1;
+    return arguments.length ? (x = typeof _ === "function" ? _ : constant$b(+_), link) : x;
   };
 
   link.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$b(+_), link) : y$$1;
+    return arguments.length ? (y = typeof _ === "function" ? _ : constant$b(+_), link) : y;
   };
 
   link.context = function(_) {
@@ -15343,7 +15417,7 @@ function symbol() {
 
 function noop$3() {}
 
-function point$2(that, x, y) {
+function point$1(that, x, y) {
   that._context.bezierCurveTo(
     (2 * that._x0 + that._x1) / 3,
     (2 * that._y0 + that._y1) / 3,
@@ -15372,7 +15446,7 @@ Basis.prototype = {
   },
   lineEnd: function() {
     switch (this._point) {
-      case 3: point$2(this, this._x1, this._y1); // proceed
+      case 3: point$1(this, this._x1, this._y1); // proceed
       case 2: this._context.lineTo(this._x1, this._y1); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
@@ -15384,7 +15458,7 @@ Basis.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6); // proceed
-      default: point$2(this, x, y); break;
+      default: point$1(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15434,7 +15508,7 @@ BasisClosed.prototype = {
       case 0: this._point = 1; this._x2 = x, this._y2 = y; break;
       case 1: this._point = 2; this._x3 = x, this._y3 = y; break;
       case 2: this._point = 3; this._x4 = x, this._y4 = y; this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6); break;
-      default: point$2(this, x, y); break;
+      default: point$1(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15472,7 +15546,7 @@ BasisOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; var x0 = (this._x0 + 4 * this._x1 + x) / 6, y0 = (this._y0 + 4 * this._y1 + y) / 6; this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0); break;
       case 3: this._point = 4; // proceed
-      default: point$2(this, x, y); break;
+      default: point$1(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15538,7 +15612,7 @@ var bundle = (function custom(beta) {
   return bundle;
 })(0.85);
 
-function point$3(that, x, y) {
+function point$2(that, x, y) {
   that._context.bezierCurveTo(
     that._x1 + that._k * (that._x2 - that._x0),
     that._y1 + that._k * (that._y2 - that._y0),
@@ -15569,7 +15643,7 @@ Cardinal.prototype = {
   lineEnd: function() {
     switch (this._point) {
       case 2: this._context.lineTo(this._x2, this._y2); break;
-      case 3: point$3(this, this._x1, this._y1); break;
+      case 3: point$2(this, this._x1, this._y1); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
     this._line = 1 - this._line;
@@ -15580,7 +15654,7 @@ Cardinal.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; this._x1 = x, this._y1 = y; break;
       case 2: this._point = 3; // proceed
-      default: point$3(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15639,7 +15713,7 @@ CardinalClosed.prototype = {
       case 0: this._point = 1; this._x3 = x, this._y3 = y; break;
       case 1: this._point = 2; this._context.moveTo(this._x4 = x, this._y4 = y); break;
       case 2: this._point = 3; this._x5 = x, this._y5 = y; break;
-      default: point$3(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15648,15 +15722,15 @@ CardinalClosed.prototype = {
 
 var cardinalClosed = (function custom(tension) {
 
-  function cardinal$$1(context) {
+  function cardinal(context) {
     return new CardinalClosed(context, tension);
   }
 
-  cardinal$$1.tension = function(tension) {
+  cardinal.tension = function(tension) {
     return custom(+tension);
   };
 
-  return cardinal$$1;
+  return cardinal;
 })(0);
 
 function CardinalOpen(context, tension) {
@@ -15687,7 +15761,7 @@ CardinalOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2); break;
       case 3: this._point = 4; // proceed
-      default: point$3(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15696,18 +15770,18 @@ CardinalOpen.prototype = {
 
 var cardinalOpen = (function custom(tension) {
 
-  function cardinal$$1(context) {
+  function cardinal(context) {
     return new CardinalOpen(context, tension);
   }
 
-  cardinal$$1.tension = function(tension) {
+  cardinal.tension = function(tension) {
     return custom(+tension);
   };
 
-  return cardinal$$1;
+  return cardinal;
 })(0);
 
-function point$4(that, x, y) {
+function point$3(that, x, y) {
   var x1 = that._x1,
       y1 = that._y1,
       x2 = that._x2,
@@ -15770,7 +15844,7 @@ CatmullRom.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
       case 2: this._point = 3; // proceed
-      default: point$4(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -15841,7 +15915,7 @@ CatmullRomClosed.prototype = {
       case 0: this._point = 1; this._x3 = x, this._y3 = y; break;
       case 1: this._point = 2; this._context.moveTo(this._x4 = x, this._y4 = y); break;
       case 2: this._point = 3; this._x5 = x, this._y5 = y; break;
-      default: point$4(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -15853,15 +15927,15 @@ CatmullRomClosed.prototype = {
 
 var catmullRomClosed = (function custom(alpha) {
 
-  function catmullRom$$1(context) {
+  function catmullRom(context) {
     return alpha ? new CatmullRomClosed(context, alpha) : new CardinalClosed(context, 0);
   }
 
-  catmullRom$$1.alpha = function(alpha) {
+  catmullRom.alpha = function(alpha) {
     return custom(+alpha);
   };
 
-  return catmullRom$$1;
+  return catmullRom;
 })(0.5);
 
 function CatmullRomOpen(context, alpha) {
@@ -15901,7 +15975,7 @@ CatmullRomOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2); break;
       case 3: this._point = 4; // proceed
-      default: point$4(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -15913,15 +15987,15 @@ CatmullRomOpen.prototype = {
 
 var catmullRomOpen = (function custom(alpha) {
 
-  function catmullRom$$1(context) {
+  function catmullRom(context) {
     return alpha ? new CatmullRomOpen(context, alpha) : new CardinalOpen(context, 0);
   }
 
-  catmullRom$$1.alpha = function(alpha) {
+  catmullRom.alpha = function(alpha) {
     return custom(+alpha);
   };
 
-  return catmullRom$$1;
+  return catmullRom;
 })(0.5);
 
 function LinearClosed(context) {
@@ -15974,7 +16048,7 @@ function slope2(that, t) {
 // According to https://en.wikipedia.org/wiki/Cubic_Hermite_spline#Representations
 // "you can express cubic Hermite interpolation in terms of cubic Bézier curves
 // with respect to the four values p0, p0 + m0 / 3, p1 - m1 / 3, p1".
-function point$5(that, t0, t1) {
+function point$4(that, t0, t1) {
   var x0 = that._x0,
       y0 = that._y0,
       x1 = that._x1,
@@ -16003,7 +16077,7 @@ MonotoneX.prototype = {
   lineEnd: function() {
     switch (this._point) {
       case 2: this._context.lineTo(this._x1, this._y1); break;
-      case 3: point$5(this, this._t0, slope2(this, this._t0)); break;
+      case 3: point$4(this, this._t0, slope2(this, this._t0)); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
     this._line = 1 - this._line;
@@ -16016,8 +16090,8 @@ MonotoneX.prototype = {
     switch (this._point) {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
-      case 2: this._point = 3; point$5(this, slope2(this, t1 = slope3(this, x, y)), t1); break;
-      default: point$5(this, this._t0, t1 = slope3(this, x, y)); break;
+      case 2: this._point = 3; point$4(this, slope2(this, t1 = slope3(this, x, y)), t1); break;
+      default: point$4(this, this._t0, t1 = slope3(this, x, y)); break;
     }
 
     this._x0 = this._x1, this._x1 = x;
@@ -17296,13 +17370,13 @@ Diagram.prototype = {
 };
 
 function voronoi() {
-  var x$$1 = x$4,
-      y$$1 = y$4,
+  var x = x$4,
+      y = y$4,
       extent = null;
 
   function voronoi(data) {
     return new Diagram(data.map(function(d, i) {
-      var s = [Math.round(x$$1(d, i, data) / epsilon$4) * epsilon$4, Math.round(y$$1(d, i, data) / epsilon$4) * epsilon$4];
+      var s = [Math.round(x(d, i, data) / epsilon$4) * epsilon$4, Math.round(y(d, i, data) / epsilon$4) * epsilon$4];
       s.index = i;
       s.data = d;
       return s;
@@ -17322,11 +17396,11 @@ function voronoi() {
   };
 
   voronoi.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$c(+_), voronoi) : x$$1;
+    return arguments.length ? (x = typeof _ === "function" ? _ : constant$c(+_), voronoi) : x;
   };
 
   voronoi.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$c(+_), voronoi) : y$$1;
+    return arguments.length ? (y = typeof _ === "function" ? _ : constant$c(+_), voronoi) : y;
   };
 
   voronoi.extent = function(_) {
@@ -17400,7 +17474,8 @@ var identity$9 = new Transform(1, 0, 0);
 transform$1.prototype = Transform.prototype;
 
 function transform$1(node) {
-  return node.__zoom || identity$9;
+  while (!node.__zoom) if (!(node = node.parentNode)) return identity$9;
+  return node.__zoom;
 }
 
 function nopropagation$2() {
@@ -17414,20 +17489,20 @@ function noevent$2() {
 
 // Ignore right-click, since that should open the context menu.
 function defaultFilter$2() {
-  return !exports.event.button;
+  return !exports.event.ctrlKey && !exports.event.button;
 }
 
 function defaultExtent$1() {
-  var e = this, w, h;
+  var e = this;
   if (e instanceof SVGElement) {
     e = e.ownerSVGElement || e;
-    w = e.width.baseVal.value;
-    h = e.height.baseVal.value;
-  } else {
-    w = e.clientWidth;
-    h = e.clientHeight;
+    if (e.hasAttribute("viewBox")) {
+      e = e.viewBox.baseVal;
+      return [[e.x, e.y], [e.x + e.width, e.y + e.height]];
+    }
+    return [[0, 0], [e.width.baseVal.value, e.height.baseVal.value]];
   }
-  return [[0, 0], [w, h]];
+  return [[0, 0], [e.clientWidth, e.clientHeight]];
 }
 
 function defaultTransform() {
@@ -17435,11 +17510,11 @@ function defaultTransform() {
 }
 
 function defaultWheelDelta() {
-  return -exports.event.deltaY * (exports.event.deltaMode ? 120 : 1) / 500;
+  return -exports.event.deltaY * (exports.event.deltaMode === 1 ? 0.05 : exports.event.deltaMode ? 1 : 0.002);
 }
 
-function defaultTouchable$1() {
-  return "ontouchstart" in this;
+function defaultTouchable$2() {
+  return navigator.maxTouchPoints || ("ontouchstart" in this);
 }
 
 function defaultConstrain(transform, extent, translateExtent) {
@@ -17458,12 +17533,11 @@ function zoom() {
       extent = defaultExtent$1,
       constrain = defaultConstrain,
       wheelDelta = defaultWheelDelta,
-      touchable = defaultTouchable$1,
+      touchable = defaultTouchable$2,
       scaleExtent = [0, Infinity],
       translateExtent = [[-Infinity, -Infinity], [Infinity, Infinity]],
       duration = 250,
       interpolate = interpolateZoom,
-      gestures = [],
       listeners = dispatch("start", "zoom", "end"),
       touchstarting,
       touchending,
@@ -17471,8 +17545,8 @@ function zoom() {
       wheelDelay = 150,
       clickDistance2 = 0;
 
-  function zoom(selection$$1) {
-    selection$$1
+  function zoom(selection) {
+    selection
         .property("__zoom", defaultTransform)
         .on("wheel.zoom", wheeled)
         .on("mousedown.zoom", mousedowned)
@@ -17485,13 +17559,13 @@ function zoom() {
         .style("-webkit-tap-highlight-color", "rgba(0,0,0,0)");
   }
 
-  zoom.transform = function(collection, transform) {
-    var selection$$1 = collection.selection ? collection.selection() : collection;
-    selection$$1.property("__zoom", defaultTransform);
-    if (collection !== selection$$1) {
-      schedule(collection, transform);
+  zoom.transform = function(collection, transform, point) {
+    var selection = collection.selection ? collection.selection() : collection;
+    selection.property("__zoom", defaultTransform);
+    if (collection !== selection) {
+      schedule(collection, transform, point);
     } else {
-      selection$$1.interrupt().each(function() {
+      selection.interrupt().each(function() {
         gesture(this, arguments)
             .start()
             .zoom(null, typeof transform === "function" ? transform.apply(this, arguments) : transform)
@@ -17500,27 +17574,27 @@ function zoom() {
     }
   };
 
-  zoom.scaleBy = function(selection$$1, k) {
-    zoom.scaleTo(selection$$1, function() {
+  zoom.scaleBy = function(selection, k, p) {
+    zoom.scaleTo(selection, function() {
       var k0 = this.__zoom.k,
           k1 = typeof k === "function" ? k.apply(this, arguments) : k;
       return k0 * k1;
-    });
+    }, p);
   };
 
-  zoom.scaleTo = function(selection$$1, k) {
-    zoom.transform(selection$$1, function() {
+  zoom.scaleTo = function(selection, k, p) {
+    zoom.transform(selection, function() {
       var e = extent.apply(this, arguments),
           t0 = this.__zoom,
-          p0 = centroid(e),
+          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
           p1 = t0.invert(p0),
           k1 = typeof k === "function" ? k.apply(this, arguments) : k;
       return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent);
-    });
+    }, p);
   };
 
-  zoom.translateBy = function(selection$$1, x, y) {
-    zoom.transform(selection$$1, function() {
+  zoom.translateBy = function(selection, x, y) {
+    zoom.transform(selection, function() {
       return constrain(this.__zoom.translate(
         typeof x === "function" ? x.apply(this, arguments) : x,
         typeof y === "function" ? y.apply(this, arguments) : y
@@ -17528,16 +17602,16 @@ function zoom() {
     });
   };
 
-  zoom.translateTo = function(selection$$1, x, y) {
-    zoom.transform(selection$$1, function() {
+  zoom.translateTo = function(selection, x, y, p) {
+    zoom.transform(selection, function() {
       var e = extent.apply(this, arguments),
           t = this.__zoom,
-          p = centroid(e);
-      return constrain(identity$9.translate(p[0], p[1]).scale(t.k).translate(
+          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p;
+      return constrain(identity$9.translate(p0[0], p0[1]).scale(t.k).translate(
         typeof x === "function" ? -x.apply(this, arguments) : -x,
         typeof y === "function" ? -y.apply(this, arguments) : -y
       ), e, translateExtent);
-    });
+    }, p);
   };
 
   function scale(transform, k) {
@@ -17554,8 +17628,8 @@ function zoom() {
     return [(+extent[0][0] + +extent[1][0]) / 2, (+extent[0][1] + +extent[1][1]) / 2];
   }
 
-  function schedule(transition$$1, transform, center) {
-    transition$$1
+  function schedule(transition, transform, point) {
+    transition
         .on("start.zoom", function() { gesture(this, arguments).start(); })
         .on("interrupt.zoom end.zoom", function() { gesture(this, arguments).end(); })
         .tween("zoom", function() {
@@ -17563,7 +17637,7 @@ function zoom() {
               args = arguments,
               g = gesture(that, args),
               e = extent.apply(that, args),
-              p = center || centroid(e),
+              p = point == null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
               w = Math.max(e[1][0] - e[0][0], e[1][1] - e[0][1]),
               a = that.__zoom,
               b = typeof transform === "function" ? transform.apply(that, args) : transform,
@@ -17576,27 +17650,22 @@ function zoom() {
         });
   }
 
-  function gesture(that, args) {
-    for (var i = 0, n = gestures.length, g; i < n; ++i) {
-      if ((g = gestures[i]).that === that) {
-        return g;
-      }
-    }
-    return new Gesture(that, args);
+  function gesture(that, args, clean) {
+    return (!clean && that.__zooming) || new Gesture(that, args);
   }
 
   function Gesture(that, args) {
     this.that = that;
     this.args = args;
-    this.index = -1;
     this.active = 0;
     this.extent = extent.apply(that, args);
+    this.taps = 0;
   }
 
   Gesture.prototype = {
     start: function() {
       if (++this.active === 1) {
-        this.index = gestures.push(this) - 1;
+        this.that.__zooming = this;
         this.emit("start");
       }
       return this;
@@ -17611,8 +17680,7 @@ function zoom() {
     },
     end: function() {
       if (--this.active === 0) {
-        gestures.splice(this.index, 1);
-        this.index = -1;
+        delete this.that.__zooming;
         this.emit("end");
       }
       return this;
@@ -17660,7 +17728,7 @@ function zoom() {
 
   function mousedowned() {
     if (touchending || !filter.apply(this, arguments)) return;
-    var g = gesture(this, arguments),
+    var g = gesture(this, arguments, true),
         v = select(exports.event.view).on("mousemove.zoom", mousemoved, true).on("mouseup.zoom", mouseupped, true),
         p = mouse(this),
         x0 = exports.event.clientX,
@@ -17704,46 +17772,39 @@ function zoom() {
 
   function touchstarted() {
     if (!filter.apply(this, arguments)) return;
-    var g = gesture(this, arguments),
-        touches$$1 = exports.event.changedTouches,
-        started,
-        n = touches$$1.length, i, t, p;
+    var touches = exports.event.touches,
+        n = touches.length,
+        g = gesture(this, arguments, exports.event.changedTouches.length === n),
+        started, i, t, p;
 
     nopropagation$2();
     for (i = 0; i < n; ++i) {
-      t = touches$$1[i], p = touch(this, touches$$1, t.identifier);
+      t = touches[i], p = touch(this, touches, t.identifier);
       p = [p, this.__zoom.invert(p), t.identifier];
-      if (!g.touch0) g.touch0 = p, started = true;
-      else if (!g.touch1) g.touch1 = p;
+      if (!g.touch0) g.touch0 = p, started = true, g.taps = 1 + !!touchstarting;
+      else if (!g.touch1 && g.touch0[2] !== p[2]) g.touch1 = p, g.taps = 0;
     }
 
-    // If this is a dbltap, reroute to the (optional) dblclick.zoom handler.
-    if (touchstarting) {
-      touchstarting = clearTimeout(touchstarting);
-      if (!g.touch1) {
-        g.end();
-        p = select(this).on("dblclick.zoom");
-        if (p) p.apply(this, arguments);
-        return;
-      }
-    }
+    if (touchstarting) touchstarting = clearTimeout(touchstarting);
 
     if (started) {
-      touchstarting = setTimeout(function() { touchstarting = null; }, touchDelay);
+      if (g.taps < 2) touchstarting = setTimeout(function() { touchstarting = null; }, touchDelay);
       interrupt(this);
       g.start();
     }
   }
 
   function touchmoved() {
+    if (!this.__zooming) return;
     var g = gesture(this, arguments),
-        touches$$1 = exports.event.changedTouches,
-        n = touches$$1.length, i, t, p, l;
+        touches = exports.event.changedTouches,
+        n = touches.length, i, t, p, l;
 
     noevent$2();
     if (touchstarting) touchstarting = clearTimeout(touchstarting);
+    g.taps = 0;
     for (i = 0; i < n; ++i) {
-      t = touches$$1[i], p = touch(this, touches$$1, t.identifier);
+      t = touches[i], p = touch(this, touches, t.identifier);
       if (g.touch0 && g.touch0[2] === t.identifier) g.touch0[0] = p;
       else if (g.touch1 && g.touch1[2] === t.identifier) g.touch1[0] = p;
     }
@@ -17763,21 +17824,29 @@ function zoom() {
   }
 
   function touchended() {
+    if (!this.__zooming) return;
     var g = gesture(this, arguments),
-        touches$$1 = exports.event.changedTouches,
-        n = touches$$1.length, i, t;
+        touches = exports.event.changedTouches,
+        n = touches.length, i, t;
 
     nopropagation$2();
     if (touchending) clearTimeout(touchending);
     touchending = setTimeout(function() { touchending = null; }, touchDelay);
     for (i = 0; i < n; ++i) {
-      t = touches$$1[i];
+      t = touches[i];
       if (g.touch0 && g.touch0[2] === t.identifier) delete g.touch0;
       else if (g.touch1 && g.touch1[2] === t.identifier) delete g.touch1;
     }
     if (g.touch1 && !g.touch0) g.touch0 = g.touch1, delete g.touch1;
     if (g.touch0) g.touch0[1] = this.__zoom.invert(g.touch0[0]);
-    else g.end();
+    else {
+      g.end();
+      // If this was a dbltap, reroute to the (optional) dblclick.zoom handler.
+      if (g.taps === 2) {
+        var p = select(this).on("dblclick.zoom");
+        if (p) p.apply(this, arguments);
+      }
+    }
   }
 
   zoom.wheelDelta = function(_) {
@@ -17828,128 +17897,108 @@ function zoom() {
   return zoom;
 }
 
-exports.version = version;
-exports.bisect = bisectRight;
-exports.bisectRight = bisectRight;
-exports.bisectLeft = bisectLeft;
+exports.active = active;
+exports.arc = arc;
+exports.area = area$3;
+exports.areaRadial = areaRadial;
 exports.ascending = ascending;
-exports.bisector = bisector;
-exports.cross = cross;
-exports.descending = descending;
-exports.deviation = deviation;
-exports.extent = extent;
-exports.histogram = histogram;
-exports.thresholdFreedmanDiaconis = freedmanDiaconis;
-exports.thresholdScott = scott;
-exports.thresholdSturges = thresholdSturges;
-exports.max = max;
-exports.mean = mean;
-exports.median = median;
-exports.merge = merge;
-exports.min = min;
-exports.pairs = pairs;
-exports.permute = permute;
-exports.quantile = threshold;
-exports.range = sequence;
-exports.scan = scan;
-exports.shuffle = shuffle;
-exports.sum = sum;
-exports.ticks = ticks;
-exports.tickIncrement = tickIncrement;
-exports.tickStep = tickStep;
-exports.transpose = transpose;
-exports.variance = variance;
-exports.zip = zip;
-exports.axisTop = axisTop;
-exports.axisRight = axisRight;
+exports.autoType = autoType;
 exports.axisBottom = axisBottom;
 exports.axisLeft = axisLeft;
+exports.axisRight = axisRight;
+exports.axisTop = axisTop;
+exports.bisect = bisectRight;
+exports.bisectLeft = bisectLeft;
+exports.bisectRight = bisectRight;
+exports.bisector = bisector;
+exports.blob = blob;
 exports.brush = brush;
+exports.brushSelection = brushSelection;
 exports.brushX = brushX;
 exports.brushY = brushY;
-exports.brushSelection = brushSelection;
+exports.buffer = buffer;
 exports.chord = chord;
-exports.ribbon = ribbon;
-exports.nest = nest;
-exports.set = set$2;
-exports.map = map$1;
-exports.keys = keys;
-exports.values = values;
-exports.entries = entries;
+exports.clientPoint = clientPoint;
+exports.cluster = cluster;
 exports.color = color;
-exports.rgb = rgb;
-exports.hsl = hsl;
-exports.lab = lab;
-exports.hcl = hcl;
-exports.lch = lch;
-exports.gray = gray;
-exports.cubehelix = cubehelix;
-exports.contours = contours;
 exports.contourDensity = density;
+exports.contours = contours;
+exports.create = create;
+exports.creator = creator;
+exports.cross = cross;
+exports.csv = csv$1;
+exports.csvFormat = csvFormat;
+exports.csvFormatBody = csvFormatBody;
+exports.csvFormatRows = csvFormatRows;
+exports.csvParse = csvParse;
+exports.csvParseRows = csvParseRows;
+exports.cubehelix = cubehelix;
+exports.curveBasis = basis$2;
+exports.curveBasisClosed = basisClosed$1;
+exports.curveBasisOpen = basisOpen;
+exports.curveBundle = bundle;
+exports.curveCardinal = cardinal;
+exports.curveCardinalClosed = cardinalClosed;
+exports.curveCardinalOpen = cardinalOpen;
+exports.curveCatmullRom = catmullRom;
+exports.curveCatmullRomClosed = catmullRomClosed;
+exports.curveCatmullRomOpen = catmullRomOpen;
+exports.curveLinear = curveLinear;
+exports.curveLinearClosed = linearClosed;
+exports.curveMonotoneX = monotoneX;
+exports.curveMonotoneY = monotoneY;
+exports.curveNatural = natural;
+exports.curveStep = step;
+exports.curveStepAfter = stepAfter;
+exports.curveStepBefore = stepBefore;
+exports.customEvent = customEvent;
+exports.descending = descending;
+exports.deviation = deviation;
 exports.dispatch = dispatch;
 exports.drag = drag;
 exports.dragDisable = dragDisable;
 exports.dragEnable = yesdrag;
+exports.dsv = dsv;
 exports.dsvFormat = dsvFormat;
-exports.csvParse = csvParse;
-exports.csvParseRows = csvParseRows;
-exports.csvFormat = csvFormat;
-exports.csvFormatBody = csvFormatBody;
-exports.csvFormatRows = csvFormatRows;
-exports.tsvParse = tsvParse;
-exports.tsvParseRows = tsvParseRows;
-exports.tsvFormat = tsvFormat;
-exports.tsvFormatBody = tsvFormatBody;
-exports.tsvFormatRows = tsvFormatRows;
-exports.autoType = autoType;
-exports.easeLinear = linear$1;
-exports.easeQuad = quadInOut;
-exports.easeQuadIn = quadIn;
-exports.easeQuadOut = quadOut;
-exports.easeQuadInOut = quadInOut;
-exports.easeCubic = cubicInOut;
-exports.easeCubicIn = cubicIn;
-exports.easeCubicOut = cubicOut;
-exports.easeCubicInOut = cubicInOut;
-exports.easePoly = polyInOut;
-exports.easePolyIn = polyIn;
-exports.easePolyOut = polyOut;
-exports.easePolyInOut = polyInOut;
-exports.easeSin = sinInOut;
-exports.easeSinIn = sinIn;
-exports.easeSinOut = sinOut;
-exports.easeSinInOut = sinInOut;
-exports.easeExp = expInOut;
-exports.easeExpIn = expIn;
-exports.easeExpOut = expOut;
-exports.easeExpInOut = expInOut;
-exports.easeCircle = circleInOut;
-exports.easeCircleIn = circleIn;
-exports.easeCircleOut = circleOut;
-exports.easeCircleInOut = circleInOut;
-exports.easeBounce = bounceOut;
-exports.easeBounceIn = bounceIn;
-exports.easeBounceOut = bounceOut;
-exports.easeBounceInOut = bounceInOut;
 exports.easeBack = backInOut;
 exports.easeBackIn = backIn;
-exports.easeBackOut = backOut;
 exports.easeBackInOut = backInOut;
+exports.easeBackOut = backOut;
+exports.easeBounce = bounceOut;
+exports.easeBounceIn = bounceIn;
+exports.easeBounceInOut = bounceInOut;
+exports.easeBounceOut = bounceOut;
+exports.easeCircle = circleInOut;
+exports.easeCircleIn = circleIn;
+exports.easeCircleInOut = circleInOut;
+exports.easeCircleOut = circleOut;
+exports.easeCubic = cubicInOut;
+exports.easeCubicIn = cubicIn;
+exports.easeCubicInOut = cubicInOut;
+exports.easeCubicOut = cubicOut;
 exports.easeElastic = elasticOut;
 exports.easeElasticIn = elasticIn;
-exports.easeElasticOut = elasticOut;
 exports.easeElasticInOut = elasticInOut;
-exports.blob = blob;
-exports.buffer = buffer;
-exports.dsv = dsv;
-exports.csv = csv$1;
-exports.tsv = tsv$1;
-exports.image = image;
-exports.json = json;
-exports.text = text;
-exports.xml = xml;
-exports.html = html;
-exports.svg = svg;
+exports.easeElasticOut = elasticOut;
+exports.easeExp = expInOut;
+exports.easeExpIn = expIn;
+exports.easeExpInOut = expInOut;
+exports.easeExpOut = expOut;
+exports.easeLinear = linear$1;
+exports.easePoly = polyInOut;
+exports.easePolyIn = polyIn;
+exports.easePolyInOut = polyInOut;
+exports.easePolyOut = polyOut;
+exports.easeQuad = quadInOut;
+exports.easeQuadIn = quadIn;
+exports.easeQuadInOut = quadInOut;
+exports.easeQuadOut = quadOut;
+exports.easeSin = sinInOut;
+exports.easeSinIn = sinIn;
+exports.easeSinInOut = sinInOut;
+exports.easeSinOut = sinOut;
+exports.entries = entries;
+exports.extent = extent;
 exports.forceCenter = center$1;
 exports.forceCollide = collide;
 exports.forceLink = link;
@@ -17961,10 +18010,13 @@ exports.forceY = y$2;
 exports.formatDefaultLocale = defaultLocale;
 exports.formatLocale = formatLocale;
 exports.formatSpecifier = formatSpecifier;
-exports.precisionFixed = precisionFixed;
-exports.precisionPrefix = precisionPrefix;
-exports.precisionRound = precisionRound;
+exports.geoAlbers = albers;
+exports.geoAlbersUsa = albersUsa;
 exports.geoArea = area$1;
+exports.geoAzimuthalEqualArea = azimuthalEqualArea;
+exports.geoAzimuthalEqualAreaRaw = azimuthalEqualAreaRaw;
+exports.geoAzimuthalEquidistant = azimuthalEquidistant;
+exports.geoAzimuthalEquidistantRaw = azimuthalEquidistantRaw;
 exports.geoBounds = bounds;
 exports.geoCentroid = centroid;
 exports.geoCircle = circle;
@@ -17972,260 +18024,240 @@ exports.geoClipAntimeridian = clipAntimeridian;
 exports.geoClipCircle = clipCircle;
 exports.geoClipExtent = extent$1;
 exports.geoClipRectangle = clipRectangle;
-exports.geoContains = contains$1;
-exports.geoDistance = distance;
-exports.geoGraticule = graticule;
-exports.geoGraticule10 = graticule10;
-exports.geoInterpolate = interpolate$1;
-exports.geoLength = length$1;
-exports.geoPath = index$1;
-exports.geoAlbers = albers;
-exports.geoAlbersUsa = albersUsa;
-exports.geoAzimuthalEqualArea = azimuthalEqualArea;
-exports.geoAzimuthalEqualAreaRaw = azimuthalEqualAreaRaw;
-exports.geoAzimuthalEquidistant = azimuthalEquidistant;
-exports.geoAzimuthalEquidistantRaw = azimuthalEquidistantRaw;
 exports.geoConicConformal = conicConformal;
 exports.geoConicConformalRaw = conicConformalRaw;
 exports.geoConicEqualArea = conicEqualArea;
 exports.geoConicEqualAreaRaw = conicEqualAreaRaw;
 exports.geoConicEquidistant = conicEquidistant;
 exports.geoConicEquidistantRaw = conicEquidistantRaw;
+exports.geoContains = contains$1;
+exports.geoDistance = distance;
 exports.geoEqualEarth = equalEarth;
 exports.geoEqualEarthRaw = equalEarthRaw;
 exports.geoEquirectangular = equirectangular;
 exports.geoEquirectangularRaw = equirectangularRaw;
 exports.geoGnomonic = gnomonic;
 exports.geoGnomonicRaw = gnomonicRaw;
+exports.geoGraticule = graticule;
+exports.geoGraticule10 = graticule10;
 exports.geoIdentity = identity$5;
-exports.geoProjection = projection;
-exports.geoProjectionMutator = projectionMutator;
+exports.geoInterpolate = interpolate$1;
+exports.geoLength = length$1;
 exports.geoMercator = mercator;
 exports.geoMercatorRaw = mercatorRaw;
 exports.geoNaturalEarth1 = naturalEarth1;
 exports.geoNaturalEarth1Raw = naturalEarth1Raw;
 exports.geoOrthographic = orthographic;
 exports.geoOrthographicRaw = orthographicRaw;
+exports.geoPath = index$1;
+exports.geoProjection = projection;
+exports.geoProjectionMutator = projectionMutator;
+exports.geoRotation = rotation;
 exports.geoStereographic = stereographic;
 exports.geoStereographicRaw = stereographicRaw;
-exports.geoTransverseMercator = transverseMercator;
-exports.geoTransverseMercatorRaw = transverseMercatorRaw;
-exports.geoRotation = rotation;
 exports.geoStream = geoStream;
 exports.geoTransform = transform;
-exports.cluster = cluster;
+exports.geoTransverseMercator = transverseMercator;
+exports.geoTransverseMercatorRaw = transverseMercatorRaw;
+exports.gray = gray;
+exports.hcl = hcl;
 exports.hierarchy = hierarchy;
-exports.pack = index$2;
-exports.packSiblings = siblings;
-exports.packEnclose = enclose;
-exports.partition = partition;
-exports.stratify = stratify;
-exports.tree = tree;
-exports.treemap = index$3;
-exports.treemapBinary = binary;
-exports.treemapDice = treemapDice;
-exports.treemapSlice = treemapSlice;
-exports.treemapSliceDice = sliceDice;
-exports.treemapSquarify = squarify;
-exports.treemapResquarify = resquarify;
+exports.histogram = histogram;
+exports.hsl = hsl;
+exports.html = html;
+exports.image = image;
 exports.interpolate = interpolateValue;
 exports.interpolateArray = array$1;
 exports.interpolateBasis = basis$1;
 exports.interpolateBasisClosed = basisClosed;
+exports.interpolateBlues = Blues;
+exports.interpolateBrBG = BrBG;
+exports.interpolateBuGn = BuGn;
+exports.interpolateBuPu = BuPu;
+exports.interpolateCool = cool;
+exports.interpolateCubehelix = cubehelix$2;
+exports.interpolateCubehelixDefault = cubehelix$3;
+exports.interpolateCubehelixLong = cubehelixLong;
 exports.interpolateDate = date;
 exports.interpolateDiscrete = discrete;
+exports.interpolateGnBu = GnBu;
+exports.interpolateGreens = Greens;
+exports.interpolateGreys = Greys;
+exports.interpolateHcl = hcl$2;
+exports.interpolateHclLong = hclLong;
+exports.interpolateHsl = hsl$2;
+exports.interpolateHslLong = hslLong;
 exports.interpolateHue = hue$1;
+exports.interpolateInferno = inferno;
+exports.interpolateLab = lab$1;
+exports.interpolateMagma = magma;
 exports.interpolateNumber = interpolateNumber;
 exports.interpolateObject = object;
-exports.interpolateRound = interpolateRound;
-exports.interpolateString = interpolateString;
-exports.interpolateTransformCss = interpolateTransformCss;
-exports.interpolateTransformSvg = interpolateTransformSvg;
-exports.interpolateZoom = interpolateZoom;
+exports.interpolateOrRd = OrRd;
+exports.interpolateOranges = Oranges;
+exports.interpolatePRGn = PRGn;
+exports.interpolatePiYG = PiYG;
+exports.interpolatePlasma = plasma;
+exports.interpolatePuBu = PuBu;
+exports.interpolatePuBuGn = PuBuGn;
+exports.interpolatePuOr = PuOr;
+exports.interpolatePuRd = PuRd;
+exports.interpolatePurples = Purples;
+exports.interpolateRainbow = rainbow;
+exports.interpolateRdBu = RdBu;
+exports.interpolateRdGy = RdGy;
+exports.interpolateRdPu = RdPu;
+exports.interpolateRdYlBu = RdYlBu;
+exports.interpolateRdYlGn = RdYlGn;
+exports.interpolateReds = Reds;
 exports.interpolateRgb = interpolateRgb;
 exports.interpolateRgbBasis = rgbBasis;
 exports.interpolateRgbBasisClosed = rgbBasisClosed;
-exports.interpolateHsl = hsl$2;
-exports.interpolateHslLong = hslLong;
-exports.interpolateLab = lab$1;
-exports.interpolateHcl = hcl$2;
-exports.interpolateHclLong = hclLong;
-exports.interpolateCubehelix = cubehelix$2;
-exports.interpolateCubehelixLong = cubehelixLong;
-exports.piecewise = piecewise;
-exports.quantize = quantize;
+exports.interpolateRound = interpolateRound;
+exports.interpolateSinebow = sinebow;
+exports.interpolateSpectral = Spectral;
+exports.interpolateString = interpolateString;
+exports.interpolateTransformCss = interpolateTransformCss;
+exports.interpolateTransformSvg = interpolateTransformSvg;
+exports.interpolateViridis = viridis;
+exports.interpolateWarm = warm;
+exports.interpolateYlGn = YlGn;
+exports.interpolateYlGnBu = YlGnBu;
+exports.interpolateYlOrBr = YlOrBr;
+exports.interpolateYlOrRd = YlOrRd;
+exports.interpolateZoom = interpolateZoom;
+exports.interrupt = interrupt;
+exports.interval = interval$1;
+exports.isoFormat = formatIso;
+exports.isoParse = parseIso;
+exports.json = json;
+exports.keys = keys;
+exports.lab = lab;
+exports.lch = lch;
+exports.line = line;
+exports.lineRadial = lineRadial$1;
+exports.linkHorizontal = linkHorizontal;
+exports.linkRadial = linkRadial;
+exports.linkVertical = linkVertical;
+exports.local = local;
+exports.map = map$1;
+exports.matcher = matcher;
+exports.max = max;
+exports.mean = mean;
+exports.median = median;
+exports.merge = merge;
+exports.min = min;
+exports.mouse = mouse;
+exports.namespace = namespace;
+exports.namespaces = namespaces;
+exports.nest = nest;
+exports.now = now;
+exports.pack = index$2;
+exports.packEnclose = enclose;
+exports.packSiblings = siblings;
+exports.pairs = pairs;
+exports.partition = partition;
 exports.path = path;
+exports.permute = permute;
+exports.pie = pie;
+exports.piecewise = piecewise;
+exports.pointRadial = pointRadial;
 exports.polygonArea = area$2;
 exports.polygonCentroid = centroid$1;
-exports.polygonHull = hull;
 exports.polygonContains = contains$2;
+exports.polygonHull = hull;
 exports.polygonLength = length$2;
+exports.precisionFixed = precisionFixed;
+exports.precisionPrefix = precisionPrefix;
+exports.precisionRound = precisionRound;
 exports.quadtree = quadtree;
-exports.randomUniform = uniform;
-exports.randomNormal = normal;
-exports.randomLogNormal = logNormal;
+exports.quantile = threshold;
+exports.quantize = quantize;
+exports.radialArea = areaRadial;
+exports.radialLine = lineRadial$1;
 exports.randomBates = bates;
-exports.randomIrwinHall = irwinHall;
 exports.randomExponential = exponential$1;
+exports.randomIrwinHall = irwinHall;
+exports.randomLogNormal = logNormal;
+exports.randomNormal = normal;
+exports.randomUniform = uniform;
+exports.range = sequence;
+exports.rgb = rgb;
+exports.ribbon = ribbon;
 exports.scaleBand = band;
-exports.scalePoint = point$1;
-exports.scaleIdentity = identity$7;
-exports.scaleLinear = linear$2;
-exports.scaleLog = log$1;
-exports.scaleSymlog = symlog;
-exports.scaleOrdinal = ordinal;
-exports.scaleImplicit = implicit;
-exports.scalePow = pow$1;
-exports.scaleSqrt = sqrt$1;
-exports.scaleQuantile = quantile$$1;
-exports.scaleQuantize = quantize$1;
-exports.scaleThreshold = threshold$1;
-exports.scaleTime = time;
-exports.scaleUtc = utcTime;
-exports.scaleSequential = sequential;
-exports.scaleSequentialLog = sequentialLog;
-exports.scaleSequentialPow = sequentialPow;
-exports.scaleSequentialSqrt = sequentialSqrt;
-exports.scaleSequentialSymlog = sequentialSymlog;
-exports.scaleSequentialQuantile = sequentialQuantile;
 exports.scaleDiverging = diverging;
 exports.scaleDivergingLog = divergingLog;
 exports.scaleDivergingPow = divergingPow;
 exports.scaleDivergingSqrt = divergingSqrt;
 exports.scaleDivergingSymlog = divergingSymlog;
-exports.tickFormat = tickFormat;
-exports.schemeCategory10 = category10;
+exports.scaleIdentity = identity$7;
+exports.scaleImplicit = implicit;
+exports.scaleLinear = linear$2;
+exports.scaleLog = log$1;
+exports.scaleOrdinal = ordinal;
+exports.scalePoint = point;
+exports.scalePow = pow$1;
+exports.scaleQuantile = quantile;
+exports.scaleQuantize = quantize$1;
+exports.scaleSequential = sequential;
+exports.scaleSequentialLog = sequentialLog;
+exports.scaleSequentialPow = sequentialPow;
+exports.scaleSequentialQuantile = sequentialQuantile;
+exports.scaleSequentialSqrt = sequentialSqrt;
+exports.scaleSequentialSymlog = sequentialSymlog;
+exports.scaleSqrt = sqrt$1;
+exports.scaleSymlog = symlog;
+exports.scaleThreshold = threshold$1;
+exports.scaleTime = time;
+exports.scaleUtc = utcTime;
+exports.scan = scan;
 exports.schemeAccent = Accent;
+exports.schemeBlues = scheme$l;
+exports.schemeBrBG = scheme;
+exports.schemeBuGn = scheme$9;
+exports.schemeBuPu = scheme$a;
+exports.schemeCategory10 = category10;
 exports.schemeDark2 = Dark2;
+exports.schemeGnBu = scheme$b;
+exports.schemeGreens = scheme$m;
+exports.schemeGreys = scheme$n;
+exports.schemeOrRd = scheme$c;
+exports.schemeOranges = scheme$q;
+exports.schemePRGn = scheme$1;
 exports.schemePaired = Paired;
 exports.schemePastel1 = Pastel1;
 exports.schemePastel2 = Pastel2;
+exports.schemePiYG = scheme$2;
+exports.schemePuBu = scheme$e;
+exports.schemePuBuGn = scheme$d;
+exports.schemePuOr = scheme$3;
+exports.schemePuRd = scheme$f;
+exports.schemePurples = scheme$o;
+exports.schemeRdBu = scheme$4;
+exports.schemeRdGy = scheme$5;
+exports.schemeRdPu = scheme$g;
+exports.schemeRdYlBu = scheme$6;
+exports.schemeRdYlGn = scheme$7;
+exports.schemeReds = scheme$p;
 exports.schemeSet1 = Set1;
 exports.schemeSet2 = Set2;
 exports.schemeSet3 = Set3;
-exports.interpolateBrBG = BrBG;
-exports.schemeBrBG = scheme;
-exports.interpolatePRGn = PRGn;
-exports.schemePRGn = scheme$1;
-exports.interpolatePiYG = PiYG;
-exports.schemePiYG = scheme$2;
-exports.interpolatePuOr = PuOr;
-exports.schemePuOr = scheme$3;
-exports.interpolateRdBu = RdBu;
-exports.schemeRdBu = scheme$4;
-exports.interpolateRdGy = RdGy;
-exports.schemeRdGy = scheme$5;
-exports.interpolateRdYlBu = RdYlBu;
-exports.schemeRdYlBu = scheme$6;
-exports.interpolateRdYlGn = RdYlGn;
-exports.schemeRdYlGn = scheme$7;
-exports.interpolateSpectral = Spectral;
 exports.schemeSpectral = scheme$8;
-exports.interpolateBuGn = BuGn;
-exports.schemeBuGn = scheme$9;
-exports.interpolateBuPu = BuPu;
-exports.schemeBuPu = scheme$a;
-exports.interpolateGnBu = GnBu;
-exports.schemeGnBu = scheme$b;
-exports.interpolateOrRd = OrRd;
-exports.schemeOrRd = scheme$c;
-exports.interpolatePuBuGn = PuBuGn;
-exports.schemePuBuGn = scheme$d;
-exports.interpolatePuBu = PuBu;
-exports.schemePuBu = scheme$e;
-exports.interpolatePuRd = PuRd;
-exports.schemePuRd = scheme$f;
-exports.interpolateRdPu = RdPu;
-exports.schemeRdPu = scheme$g;
-exports.interpolateYlGnBu = YlGnBu;
-exports.schemeYlGnBu = scheme$h;
-exports.interpolateYlGn = YlGn;
+exports.schemeTableau10 = Tableau10;
 exports.schemeYlGn = scheme$i;
-exports.interpolateYlOrBr = YlOrBr;
+exports.schemeYlGnBu = scheme$h;
 exports.schemeYlOrBr = scheme$j;
-exports.interpolateYlOrRd = YlOrRd;
 exports.schemeYlOrRd = scheme$k;
-exports.interpolateBlues = Blues;
-exports.schemeBlues = scheme$l;
-exports.interpolateGreens = Greens;
-exports.schemeGreens = scheme$m;
-exports.interpolateGreys = Greys;
-exports.schemeGreys = scheme$n;
-exports.interpolatePurples = Purples;
-exports.schemePurples = scheme$o;
-exports.interpolateReds = Reds;
-exports.schemeReds = scheme$p;
-exports.interpolateOranges = Oranges;
-exports.schemeOranges = scheme$q;
-exports.interpolateCubehelixDefault = cubehelix$3;
-exports.interpolateRainbow = rainbow;
-exports.interpolateWarm = warm;
-exports.interpolateCool = cool;
-exports.interpolateSinebow = sinebow;
-exports.interpolateViridis = viridis;
-exports.interpolateMagma = magma;
-exports.interpolateInferno = inferno;
-exports.interpolatePlasma = plasma;
-exports.create = create;
-exports.creator = creator;
-exports.local = local;
-exports.matcher = matcher;
-exports.mouse = mouse;
-exports.namespace = namespace;
-exports.namespaces = namespaces;
-exports.clientPoint = point;
 exports.select = select;
 exports.selectAll = selectAll;
 exports.selection = selection;
 exports.selector = selector;
 exports.selectorAll = selectorAll;
-exports.style = styleValue;
-exports.touch = touch;
-exports.touches = touches;
-exports.window = defaultView;
-exports.customEvent = customEvent;
-exports.arc = arc;
-exports.area = area$3;
-exports.line = line;
-exports.pie = pie;
-exports.areaRadial = areaRadial;
-exports.radialArea = areaRadial;
-exports.lineRadial = lineRadial$1;
-exports.radialLine = lineRadial$1;
-exports.pointRadial = pointRadial;
-exports.linkHorizontal = linkHorizontal;
-exports.linkVertical = linkVertical;
-exports.linkRadial = linkRadial;
-exports.symbol = symbol;
-exports.symbols = symbols;
-exports.symbolCircle = circle$2;
-exports.symbolCross = cross$2;
-exports.symbolDiamond = diamond;
-exports.symbolSquare = square;
-exports.symbolStar = star;
-exports.symbolTriangle = triangle;
-exports.symbolWye = wye;
-exports.curveBasisClosed = basisClosed$1;
-exports.curveBasisOpen = basisOpen;
-exports.curveBasis = basis$2;
-exports.curveBundle = bundle;
-exports.curveCardinalClosed = cardinalClosed;
-exports.curveCardinalOpen = cardinalOpen;
-exports.curveCardinal = cardinal;
-exports.curveCatmullRomClosed = catmullRomClosed;
-exports.curveCatmullRomOpen = catmullRomOpen;
-exports.curveCatmullRom = catmullRom;
-exports.curveLinearClosed = linearClosed;
-exports.curveLinear = curveLinear;
-exports.curveMonotoneX = monotoneX;
-exports.curveMonotoneY = monotoneY;
-exports.curveNatural = natural;
-exports.curveStep = step;
-exports.curveStepAfter = stepAfter;
-exports.curveStepBefore = stepBefore;
+exports.set = set$2;
+exports.shuffle = shuffle;
 exports.stack = stack;
-exports.stackOffsetExpand = expand;
 exports.stackOffsetDiverging = diverging$1;
+exports.stackOffsetExpand = expand;
 exports.stackOffsetNone = none$1;
 exports.stackOffsetSilhouette = silhouette;
 exports.stackOffsetWiggle = wiggle;
@@ -18235,84 +18267,122 @@ exports.stackOrderDescending = descending$2;
 exports.stackOrderInsideOut = insideOut;
 exports.stackOrderNone = none$2;
 exports.stackOrderReverse = reverse;
+exports.stratify = stratify;
+exports.style = styleValue;
+exports.sum = sum;
+exports.svg = svg;
+exports.symbol = symbol;
+exports.symbolCircle = circle$2;
+exports.symbolCross = cross$2;
+exports.symbolDiamond = diamond;
+exports.symbolSquare = square;
+exports.symbolStar = star;
+exports.symbolTriangle = triangle;
+exports.symbolWye = wye;
+exports.symbols = symbols;
+exports.text = text;
+exports.thresholdFreedmanDiaconis = freedmanDiaconis;
+exports.thresholdScott = scott;
+exports.thresholdSturges = thresholdSturges;
+exports.tickFormat = tickFormat;
+exports.tickIncrement = tickIncrement;
+exports.tickStep = tickStep;
+exports.ticks = ticks;
+exports.timeDay = day;
+exports.timeDays = days;
+exports.timeFormatDefaultLocale = defaultLocale$1;
+exports.timeFormatLocale = formatLocale$1;
+exports.timeFriday = friday;
+exports.timeFridays = fridays;
+exports.timeHour = hour;
+exports.timeHours = hours;
 exports.timeInterval = newInterval;
 exports.timeMillisecond = millisecond;
 exports.timeMilliseconds = milliseconds;
-exports.utcMillisecond = millisecond;
-exports.utcMilliseconds = milliseconds;
-exports.timeSecond = second;
-exports.timeSeconds = seconds;
-exports.utcSecond = second;
-exports.utcSeconds = seconds;
 exports.timeMinute = minute;
 exports.timeMinutes = minutes;
-exports.timeHour = hour;
-exports.timeHours = hours;
-exports.timeDay = day;
-exports.timeDays = days;
-exports.timeWeek = sunday;
-exports.timeWeeks = sundays;
-exports.timeSunday = sunday;
-exports.timeSundays = sundays;
 exports.timeMonday = monday;
 exports.timeMondays = mondays;
+exports.timeMonth = month;
+exports.timeMonths = months;
+exports.timeSaturday = saturday;
+exports.timeSaturdays = saturdays;
+exports.timeSecond = second;
+exports.timeSeconds = seconds;
+exports.timeSunday = sunday;
+exports.timeSundays = sundays;
+exports.timeThursday = thursday;
+exports.timeThursdays = thursdays;
 exports.timeTuesday = tuesday;
 exports.timeTuesdays = tuesdays;
 exports.timeWednesday = wednesday;
 exports.timeWednesdays = wednesdays;
-exports.timeThursday = thursday;
-exports.timeThursdays = thursdays;
-exports.timeFriday = friday;
-exports.timeFridays = fridays;
-exports.timeSaturday = saturday;
-exports.timeSaturdays = saturdays;
-exports.timeMonth = month;
-exports.timeMonths = months;
+exports.timeWeek = sunday;
+exports.timeWeeks = sundays;
 exports.timeYear = year;
 exports.timeYears = years;
-exports.utcMinute = utcMinute;
-exports.utcMinutes = utcMinutes;
-exports.utcHour = utcHour;
-exports.utcHours = utcHours;
+exports.timeout = timeout$1;
+exports.timer = timer;
+exports.timerFlush = timerFlush;
+exports.touch = touch;
+exports.touches = touches;
+exports.transition = transition;
+exports.transpose = transpose;
+exports.tree = tree;
+exports.treemap = index$3;
+exports.treemapBinary = binary;
+exports.treemapDice = treemapDice;
+exports.treemapResquarify = resquarify;
+exports.treemapSlice = treemapSlice;
+exports.treemapSliceDice = sliceDice;
+exports.treemapSquarify = squarify;
+exports.tsv = tsv$1;
+exports.tsvFormat = tsvFormat;
+exports.tsvFormatBody = tsvFormatBody;
+exports.tsvFormatRows = tsvFormatRows;
+exports.tsvParse = tsvParse;
+exports.tsvParseRows = tsvParseRows;
 exports.utcDay = utcDay;
 exports.utcDays = utcDays;
-exports.utcWeek = utcSunday;
-exports.utcWeeks = utcSundays;
-exports.utcSunday = utcSunday;
-exports.utcSundays = utcSundays;
+exports.utcFriday = utcFriday;
+exports.utcFridays = utcFridays;
+exports.utcHour = utcHour;
+exports.utcHours = utcHours;
+exports.utcMillisecond = millisecond;
+exports.utcMilliseconds = milliseconds;
+exports.utcMinute = utcMinute;
+exports.utcMinutes = utcMinutes;
 exports.utcMonday = utcMonday;
 exports.utcMondays = utcMondays;
+exports.utcMonth = utcMonth;
+exports.utcMonths = utcMonths;
+exports.utcSaturday = utcSaturday;
+exports.utcSaturdays = utcSaturdays;
+exports.utcSecond = second;
+exports.utcSeconds = seconds;
+exports.utcSunday = utcSunday;
+exports.utcSundays = utcSundays;
+exports.utcThursday = utcThursday;
+exports.utcThursdays = utcThursdays;
 exports.utcTuesday = utcTuesday;
 exports.utcTuesdays = utcTuesdays;
 exports.utcWednesday = utcWednesday;
 exports.utcWednesdays = utcWednesdays;
-exports.utcThursday = utcThursday;
-exports.utcThursdays = utcThursdays;
-exports.utcFriday = utcFriday;
-exports.utcFridays = utcFridays;
-exports.utcSaturday = utcSaturday;
-exports.utcSaturdays = utcSaturdays;
-exports.utcMonth = utcMonth;
-exports.utcMonths = utcMonths;
+exports.utcWeek = utcSunday;
+exports.utcWeeks = utcSundays;
 exports.utcYear = utcYear;
 exports.utcYears = utcYears;
-exports.timeFormatDefaultLocale = defaultLocale$1;
-exports.timeFormatLocale = formatLocale$1;
-exports.isoFormat = formatIso;
-exports.isoParse = parseIso;
-exports.now = now;
-exports.timer = timer;
-exports.timerFlush = timerFlush;
-exports.timeout = timeout$1;
-exports.interval = interval$1;
-exports.transition = transition;
-exports.active = active;
-exports.interrupt = interrupt;
+exports.values = values;
+exports.variance = variance;
+exports.version = version;
 exports.voronoi = voronoi;
+exports.window = defaultView;
+exports.xml = xml;
+exports.zip = zip;
 exports.zoom = zoom;
-exports.zoomTransform = transform$1;
 exports.zoomIdentity = identity$9;
+exports.zoomTransform = transform$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
