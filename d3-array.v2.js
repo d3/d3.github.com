@@ -1,9 +1,9 @@
-// https://d3js.org/d3-array/ v2.2.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-array/ v2.3.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -356,7 +356,28 @@ function number(x) {
   return x === null ? NaN : +x;
 }
 
-function quantile(values, p, valueof = number) {
+function* numbers(values, valueof) {
+  if (valueof === undefined) {
+    for (let value of values) {
+      if (value != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  }
+}
+
+function quantile(values, p, valueof) {
+  return quantileSorted(Float64Array.from(numbers(values, valueof)).sort(ascending), p);
+}
+
+function quantileSorted(values, p, valueof = number) {
   if (!(n = values.length)) return;
   if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
   if (p >= 1) return +valueof(values[n - 1], n - 1, values);
@@ -484,23 +505,6 @@ function swap(array, i, j) {
   array[j] = t;
 }
 
-function* numbers(values, valueof) {
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  } else {
-    let index = -1;
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  }
-}
-
 function median(values, valueof) {
   values = Float64Array.from(numbers(values, valueof));
   if (!values.length) return;
@@ -614,32 +618,65 @@ function least(values, compare = ascending) {
 }
 
 function leastIndex(values, compare = ascending) {
-  let min;
-  let minIndex = -1;
+  if (compare.length === 1) return minIndex(values, compare);
+  let minValue;
+  let min = -1;
   let index = -1;
+  for (const value of values) {
+    ++index;
+    if (min < 0
+        ? compare(value, value) === 0
+        : compare(value, minValue) < 0) {
+      minValue = value;
+      min = index;
+    }
+  }
+  return min;
+}
+
+function greatest(values, compare = ascending) {
+  let max;
+  let defined = false;
   if (compare.length === 1) {
+    let maxValue;
     for (const element of values) {
-      ++index;
       const value = compare(element);
-      if (minIndex < 0
-          ? ascending(value, value) === 0
-          : ascending(value, min) < 0) {
-        min = value;
-        minIndex = index;
+      if (defined
+          ? ascending(value, maxValue) > 0
+          : ascending(value, value) === 0) {
+        max = element;
+        maxValue = value;
+        defined = true;
       }
     }
   } else {
     for (const value of values) {
-      ++index;
-      if (minIndex < 0
-          ? compare(value, value) === 0
-          : compare(value, min) < 0) {
-        min = value;
-        minIndex = index;
+      if (defined
+          ? compare(value, max) > 0
+          : compare(value, value) === 0) {
+        max = value;
+        defined = true;
       }
     }
   }
-  return minIndex;
+  return max;
+}
+
+function greatestIndex(values, compare = ascending) {
+  if (compare.length === 1) return maxIndex(values, compare);
+  let maxValue;
+  let max = -1;
+  let index = -1;
+  for (const value of values) {
+    ++index;
+    if (max < 0
+        ? compare(value, value) === 0
+        : compare(value, maxValue) > 0) {
+      maxValue = value;
+      max = index;
+    }
+  }
+  return max;
 }
 
 function scan(values, compare) {
@@ -699,25 +736,24 @@ function zip() {
   return transpose(arguments);
 }
 
-exports.bisect = bisectRight;
-exports.bisectRight = bisectRight;
-exports.bisectLeft = bisectLeft;
 exports.ascending = ascending;
+exports.bin = bin;
+exports.bisect = bisectRight;
+exports.bisectLeft = bisectLeft;
+exports.bisectRight = bisectRight;
 exports.bisector = bisector;
 exports.count = count;
 exports.cross = cross;
 exports.descending = descending;
 exports.deviation = deviation;
 exports.extent = extent;
+exports.greatest = greatest;
+exports.greatestIndex = greatestIndex;
 exports.group = group;
 exports.groups = groups;
-exports.rollup = rollup;
-exports.rollups = rollups;
-exports.bin = bin;
 exports.histogram = bin;
-exports.thresholdFreedmanDiaconis = freedmanDiaconis;
-exports.thresholdScott = scott;
-exports.thresholdSturges = sturges;
+exports.least = least;
+exports.leastIndex = leastIndex;
 exports.max = max;
 exports.maxIndex = maxIndex;
 exports.mean = mean;
@@ -728,20 +764,24 @@ exports.minIndex = minIndex;
 exports.pairs = pairs;
 exports.permute = permute;
 exports.quantile = quantile;
+exports.quantileSorted = quantileSorted;
 exports.quickselect = quickselect;
 exports.range = range;
-exports.least = least;
-exports.leastIndex = leastIndex;
+exports.rollup = rollup;
+exports.rollups = rollups;
 exports.scan = scan;
 exports.shuffle = shuffle;
 exports.sum = sum;
-exports.ticks = ticks;
+exports.thresholdFreedmanDiaconis = freedmanDiaconis;
+exports.thresholdScott = scott;
+exports.thresholdSturges = sturges;
 exports.tickIncrement = tickIncrement;
 exports.tickStep = tickStep;
+exports.ticks = ticks;
 exports.transpose = transpose;
 exports.variance = variance;
 exports.zip = zip;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
