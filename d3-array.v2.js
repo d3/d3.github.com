@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.3.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-array/ v2.3.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -48,15 +48,15 @@ var bisectLeft = ascendingBisect.left;
 function count(values, valueof) {
   let count = 0;
   if (valueof === undefined) {
-    for (const value of values) {
-      if (value != null && value >= value) {
+    for (let value of values) {
+      if (value != null && (value = +value) >= value) {
         ++count;
       }
     }
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && value >= value) {
+      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
         ++count;
       }
     }
