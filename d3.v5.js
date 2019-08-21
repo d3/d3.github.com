@@ -1,11 +1,11 @@
-// https://d3js.org v5.10.0 Copyright 2019 Mike Bostock
+// https://d3js.org v5.10.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}));
 }(this, function (exports) { 'use strict';
 
-var version = "5.10.0";
+var version = "5.10.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -1726,7 +1726,7 @@ function sourceEvent() {
   return current;
 }
 
-function clientPoint(node, event) {
+function point(node, event) {
   var svg = node.ownerSVGElement || node;
 
   if (svg.createSVGPoint) {
@@ -1743,7 +1743,7 @@ function clientPoint(node, event) {
 function mouse(node) {
   var event = sourceEvent();
   if (event.changedTouches) event = event.changedTouches[0];
-  return clientPoint(node, event);
+  return point(node, event);
 }
 
 function selectAll(selector) {
@@ -1757,7 +1757,7 @@ function touch(node, touches, identifier) {
 
   for (var i = 0, n = touches ? touches.length : 0, touch; i < n; ++i) {
     if ((touch = touches[i]).identifier === identifier) {
-      return clientPoint(node, touch);
+      return point(node, touch);
     }
   }
 
@@ -1768,7 +1768,7 @@ function touches(node, touches) {
   if (touches == null) touches = sourceEvent().touches;
 
   for (var i = 0, n = touches ? touches.length : 0, points = new Array(n); i < n; ++i) {
-    points[i] = clientPoint(node, touches[i]);
+    points[i] = point(node, touches[i]);
   }
 
   return points;
@@ -4307,6 +4307,12 @@ function number2(e) {
   return [number1(e[0]), number1(e[1])];
 }
 
+function toucher(identifier) {
+  return function(target) {
+    return touch(target, exports.event.touches, identifier);
+  };
+}
+
 var X = {
   name: "x",
   handles: ["w", "e"].map(type),
@@ -4323,7 +4329,7 @@ var Y = {
 
 var XY = {
   name: "xy",
-  handles: ["nw", "n", "ne", "w", "e", "sw", "s", "se"].map(type),
+  handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
   input: function(xy) { return xy == null ? null : number2(xy); },
   output: function(xy) { return xy; }
 };
@@ -4602,13 +4608,8 @@ function brush$1(dim) {
     }
   };
 
-  function pointer(target) {
-    return clientPoint(target, exports.event.touches ? exports.event.touches[0] : exports.event);
-  }
-
   function started() {
-    if (exports.event.touches) { if (exports.event.changedTouches.length < exports.event.touches.length) return noevent$1(); }
-    else if (touchending) return;
+    if (touchending && !exports.event.touches) return;
     if (!filter.apply(this, arguments)) return;
 
     var that = this,
@@ -4629,6 +4630,7 @@ function brush$1(dim) {
         shifting = signX && signY && keys && exports.event.shiftKey,
         lockX,
         lockY,
+        pointer = exports.event.touches ? toucher(exports.event.changedTouches[0].identifier) : mouse,
         point0 = pointer(that),
         point = point0,
         emit = emitter(that, arguments, true).beforestart();
@@ -12186,7 +12188,7 @@ function pointish(scale) {
   return scale;
 }
 
-function point() {
+function point$1() {
   return pointish(band.apply(null, arguments).paddingInner(1));
 }
 
@@ -15417,7 +15419,7 @@ function symbol() {
 
 function noop$3() {}
 
-function point$1(that, x, y) {
+function point$2(that, x, y) {
   that._context.bezierCurveTo(
     (2 * that._x0 + that._x1) / 3,
     (2 * that._y0 + that._y1) / 3,
@@ -15446,7 +15448,7 @@ Basis.prototype = {
   },
   lineEnd: function() {
     switch (this._point) {
-      case 3: point$1(this, this._x1, this._y1); // proceed
+      case 3: point$2(this, this._x1, this._y1); // proceed
       case 2: this._context.lineTo(this._x1, this._y1); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
@@ -15458,7 +15460,7 @@ Basis.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6); // proceed
-      default: point$1(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15508,7 +15510,7 @@ BasisClosed.prototype = {
       case 0: this._point = 1; this._x2 = x, this._y2 = y; break;
       case 1: this._point = 2; this._x3 = x, this._y3 = y; break;
       case 2: this._point = 3; this._x4 = x, this._y4 = y; this._context.moveTo((this._x0 + 4 * this._x1 + x) / 6, (this._y0 + 4 * this._y1 + y) / 6); break;
-      default: point$1(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15546,7 +15548,7 @@ BasisOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; var x0 = (this._x0 + 4 * this._x1 + x) / 6, y0 = (this._y0 + 4 * this._y1 + y) / 6; this._line ? this._context.lineTo(x0, y0) : this._context.moveTo(x0, y0); break;
       case 3: this._point = 4; // proceed
-      default: point$1(this, x, y); break;
+      default: point$2(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = x;
     this._y0 = this._y1, this._y1 = y;
@@ -15612,7 +15614,7 @@ var bundle = (function custom(beta) {
   return bundle;
 })(0.85);
 
-function point$2(that, x, y) {
+function point$3(that, x, y) {
   that._context.bezierCurveTo(
     that._x1 + that._k * (that._x2 - that._x0),
     that._y1 + that._k * (that._y2 - that._y0),
@@ -15643,7 +15645,7 @@ Cardinal.prototype = {
   lineEnd: function() {
     switch (this._point) {
       case 2: this._context.lineTo(this._x2, this._y2); break;
-      case 3: point$2(this, this._x1, this._y1); break;
+      case 3: point$3(this, this._x1, this._y1); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
     this._line = 1 - this._line;
@@ -15654,7 +15656,7 @@ Cardinal.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; this._x1 = x, this._y1 = y; break;
       case 2: this._point = 3; // proceed
-      default: point$2(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15713,7 +15715,7 @@ CardinalClosed.prototype = {
       case 0: this._point = 1; this._x3 = x, this._y3 = y; break;
       case 1: this._point = 2; this._context.moveTo(this._x4 = x, this._y4 = y); break;
       case 2: this._point = 3; this._x5 = x, this._y5 = y; break;
-      default: point$2(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15761,7 +15763,7 @@ CardinalOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2); break;
       case 3: this._point = 4; // proceed
-      default: point$2(this, x, y); break;
+      default: point$3(this, x, y); break;
     }
     this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
     this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
@@ -15781,7 +15783,7 @@ var cardinalOpen = (function custom(tension) {
   return cardinal;
 })(0);
 
-function point$3(that, x, y) {
+function point$4(that, x, y) {
   var x1 = that._x1,
       y1 = that._y1,
       x2 = that._x2,
@@ -15844,7 +15846,7 @@ CatmullRom.prototype = {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
       case 2: this._point = 3; // proceed
-      default: point$3(this, x, y); break;
+      default: point$4(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -15915,7 +15917,7 @@ CatmullRomClosed.prototype = {
       case 0: this._point = 1; this._x3 = x, this._y3 = y; break;
       case 1: this._point = 2; this._context.moveTo(this._x4 = x, this._y4 = y); break;
       case 2: this._point = 3; this._x5 = x, this._y5 = y; break;
-      default: point$3(this, x, y); break;
+      default: point$4(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -15975,7 +15977,7 @@ CatmullRomOpen.prototype = {
       case 1: this._point = 2; break;
       case 2: this._point = 3; this._line ? this._context.lineTo(this._x2, this._y2) : this._context.moveTo(this._x2, this._y2); break;
       case 3: this._point = 4; // proceed
-      default: point$3(this, x, y); break;
+      default: point$4(this, x, y); break;
     }
 
     this._l01_a = this._l12_a, this._l12_a = this._l23_a;
@@ -16048,7 +16050,7 @@ function slope2(that, t) {
 // According to https://en.wikipedia.org/wiki/Cubic_Hermite_spline#Representations
 // "you can express cubic Hermite interpolation in terms of cubic Bézier curves
 // with respect to the four values p0, p0 + m0 / 3, p1 - m1 / 3, p1".
-function point$4(that, t0, t1) {
+function point$5(that, t0, t1) {
   var x0 = that._x0,
       y0 = that._y0,
       x1 = that._x1,
@@ -16077,7 +16079,7 @@ MonotoneX.prototype = {
   lineEnd: function() {
     switch (this._point) {
       case 2: this._context.lineTo(this._x1, this._y1); break;
-      case 3: point$4(this, this._t0, slope2(this, this._t0)); break;
+      case 3: point$5(this, this._t0, slope2(this, this._t0)); break;
     }
     if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
     this._line = 1 - this._line;
@@ -16090,8 +16092,8 @@ MonotoneX.prototype = {
     switch (this._point) {
       case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
       case 1: this._point = 2; break;
-      case 2: this._point = 3; point$4(this, slope2(this, t1 = slope3(this, x, y)), t1); break;
-      default: point$4(this, this._t0, t1 = slope3(this, x, y)); break;
+      case 2: this._point = 3; point$5(this, slope2(this, t1 = slope3(this, x, y)), t1); break;
+      default: point$5(this, this._t0, t1 = slope3(this, x, y)); break;
     }
 
     this._x0 = this._x1, this._x1 = x;
@@ -17918,7 +17920,7 @@ exports.brushX = brushX;
 exports.brushY = brushY;
 exports.buffer = buffer;
 exports.chord = chord;
-exports.clientPoint = clientPoint;
+exports.clientPoint = point;
 exports.cluster = cluster;
 exports.color = color;
 exports.contourDensity = density;
@@ -18195,7 +18197,7 @@ exports.scaleImplicit = implicit;
 exports.scaleLinear = linear$2;
 exports.scaleLog = log$1;
 exports.scaleOrdinal = ordinal;
-exports.scalePoint = point;
+exports.scalePoint = point$1;
 exports.scalePow = pow$1;
 exports.scaleQuantile = quantile;
 exports.scaleQuantize = quantize$1;
