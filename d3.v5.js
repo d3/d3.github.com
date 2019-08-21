@@ -1,11 +1,11 @@
-// https://d3js.org v5.10.1 Copyright 2019 Mike Bostock
+// https://d3js.org v5.11.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}));
 }(this, function (exports) { 'use strict';
 
-var version = "5.10.1";
+var version = "5.11.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -14497,6 +14497,15 @@ var scheme$q = new Array(3).concat(
 
 var Oranges = ramp(scheme$q);
 
+function cividis(t) {
+  t = Math.max(0, Math.min(1, t));
+  return "rgb("
+      + Math.max(0, Math.min(255, Math.round(-4.54 - t * (35.34 - t * (2381.73 - t * (6402.7 - t * (7024.72 - t * 2710.57))))))) + ", "
+      + Math.max(0, Math.min(255, Math.round(32.49 + t * (170.73 + t * (52.82 - t * (131.46 - t * (176.58 - t * 67.37))))))) + ", "
+      + Math.max(0, Math.min(255, Math.round(81.24 + t * (442.36 - t * (2482.43 - t * (6167.24 - t * (6614.94 - t * 2475.67)))))))
+      + ")";
+}
+
 var cubehelix$3 = cubehelixLong(cubehelix(300, 0.5, 0.0), cubehelix(-240, 0.5, 1.0));
 
 var warm = cubehelixLong(cubehelix(-100, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
@@ -14525,6 +14534,15 @@ function sinebow(t) {
   c$1.g = 255 * (x = Math.sin(t + pi_1_3)) * x;
   c$1.b = 255 * (x = Math.sin(t + pi_2_3)) * x;
   return c$1 + "";
+}
+
+function turbo(t) {
+  t = Math.max(0, Math.min(1, t));
+  return "rgb("
+      + Math.max(0, Math.min(255, Math.round(34.61 + t * (1172.33 - t * (10793.56 - t * (33300.12 - t * (38394.49 - t * 14825.05))))))) + ", "
+      + Math.max(0, Math.min(255, Math.round(23.31 + t * (557.33 + t * (1225.33 - t * (3574.96 - t * (1073.77 + t * 707.56))))))) + ", "
+      + Math.max(0, Math.min(255, Math.round(27.2 + t * (3211.1 - t * (15327.97 - t * (27814 - t * (22569.18 - t * 6838.66)))))))
+      + ")";
 }
 
 function ramp$1(range) {
@@ -18076,6 +18094,7 @@ exports.interpolateBlues = Blues;
 exports.interpolateBrBG = BrBG;
 exports.interpolateBuGn = BuGn;
 exports.interpolateBuPu = BuPu;
+exports.interpolateCividis = cividis;
 exports.interpolateCool = cool;
 exports.interpolateCubehelix = cubehelix$2;
 exports.interpolateCubehelixDefault = cubehelix$3;
@@ -18121,6 +18140,7 @@ exports.interpolateSpectral = Spectral;
 exports.interpolateString = interpolateString;
 exports.interpolateTransformCss = interpolateTransformCss;
 exports.interpolateTransformSvg = interpolateTransformSvg;
+exports.interpolateTurbo = turbo;
 exports.interpolateViridis = viridis;
 exports.interpolateWarm = warm;
 exports.interpolateYlGn = YlGn;
