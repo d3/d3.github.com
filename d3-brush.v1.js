@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v1.1.2 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-brush/ v1.1.3 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -39,6 +39,12 @@ function number2(e) {
   return [number1(e[0]), number1(e[1])];
 }
 
+function toucher(identifier) {
+  return function(target) {
+    return d3Selection.touch(target, d3Selection.event.touches, identifier);
+  };
+}
+
 var X = {
   name: "x",
   handles: ["w", "e"].map(type),
@@ -55,7 +61,7 @@ var Y = {
 
 var XY = {
   name: "xy",
-  handles: ["nw", "n", "ne", "w", "e", "sw", "s", "se"].map(type),
+  handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
   input: function(xy) { return xy == null ? null : number2(xy); },
   output: function(xy) { return xy; }
 };
@@ -334,13 +340,8 @@ function brush$1(dim) {
     }
   };
 
-  function pointer(target) {
-    return d3Selection.clientPoint(target, d3Selection.event.touches ? d3Selection.event.touches[0] : d3Selection.event);
-  }
-
   function started() {
-    if (d3Selection.event.touches) { if (d3Selection.event.changedTouches.length < d3Selection.event.touches.length) return noevent(); }
-    else if (touchending) return;
+    if (touchending && !d3Selection.event.touches) return;
     if (!filter.apply(this, arguments)) return;
 
     var that = this,
@@ -361,6 +362,7 @@ function brush$1(dim) {
         shifting = signX && signY && keys && d3Selection.event.shiftKey,
         lockX,
         lockY,
+        pointer = d3Selection.event.touches ? toucher(d3Selection.event.changedTouches[0].identifier) : d3Selection.mouse,
         point0 = pointer(that),
         point = point0,
         emit = emitter(that, arguments, true).beforestart();
