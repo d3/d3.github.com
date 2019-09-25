@@ -1,9 +1,9 @@
-// https://d3js.org/d3-time/ v1.0.11 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-time/ v1.1.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 var t0 = new Date,
     t1 = new Date;
@@ -11,10 +11,12 @@ var t0 = new Date,
 function newInterval(floori, offseti, count, field) {
 
   function interval(date) {
-    return floori(date = new Date(+date)), date;
+    return floori(date = arguments.length === 0 ? new Date : new Date(+date)), date;
   }
 
-  interval.floor = interval;
+  interval.floor = function(date) {
+    return floori(date = new Date(+date)), date;
+  };
 
   interval.ceil = function(date) {
     return floori(date = new Date(date - 1)), offseti(date, 1), floori(date), date;
@@ -304,68 +306,68 @@ utcYear.every = function(k) {
 };
 var utcYears = utcYear.range;
 
+exports.timeDay = day;
+exports.timeDays = days;
+exports.timeFriday = friday;
+exports.timeFridays = fridays;
+exports.timeHour = hour;
+exports.timeHours = hours;
 exports.timeInterval = newInterval;
 exports.timeMillisecond = millisecond;
 exports.timeMilliseconds = milliseconds;
-exports.utcMillisecond = millisecond;
-exports.utcMilliseconds = milliseconds;
-exports.timeSecond = second;
-exports.timeSeconds = seconds;
-exports.utcSecond = second;
-exports.utcSeconds = seconds;
 exports.timeMinute = minute;
 exports.timeMinutes = minutes;
-exports.timeHour = hour;
-exports.timeHours = hours;
-exports.timeDay = day;
-exports.timeDays = days;
-exports.timeWeek = sunday;
-exports.timeWeeks = sundays;
-exports.timeSunday = sunday;
-exports.timeSundays = sundays;
 exports.timeMonday = monday;
 exports.timeMondays = mondays;
+exports.timeMonth = month;
+exports.timeMonths = months;
+exports.timeSaturday = saturday;
+exports.timeSaturdays = saturdays;
+exports.timeSecond = second;
+exports.timeSeconds = seconds;
+exports.timeSunday = sunday;
+exports.timeSundays = sundays;
+exports.timeThursday = thursday;
+exports.timeThursdays = thursdays;
 exports.timeTuesday = tuesday;
 exports.timeTuesdays = tuesdays;
 exports.timeWednesday = wednesday;
 exports.timeWednesdays = wednesdays;
-exports.timeThursday = thursday;
-exports.timeThursdays = thursdays;
-exports.timeFriday = friday;
-exports.timeFridays = fridays;
-exports.timeSaturday = saturday;
-exports.timeSaturdays = saturdays;
-exports.timeMonth = month;
-exports.timeMonths = months;
+exports.timeWeek = sunday;
+exports.timeWeeks = sundays;
 exports.timeYear = year;
 exports.timeYears = years;
-exports.utcMinute = utcMinute;
-exports.utcMinutes = utcMinutes;
-exports.utcHour = utcHour;
-exports.utcHours = utcHours;
 exports.utcDay = utcDay;
 exports.utcDays = utcDays;
-exports.utcWeek = utcSunday;
-exports.utcWeeks = utcSundays;
-exports.utcSunday = utcSunday;
-exports.utcSundays = utcSundays;
+exports.utcFriday = utcFriday;
+exports.utcFridays = utcFridays;
+exports.utcHour = utcHour;
+exports.utcHours = utcHours;
+exports.utcMillisecond = millisecond;
+exports.utcMilliseconds = milliseconds;
+exports.utcMinute = utcMinute;
+exports.utcMinutes = utcMinutes;
 exports.utcMonday = utcMonday;
 exports.utcMondays = utcMondays;
+exports.utcMonth = utcMonth;
+exports.utcMonths = utcMonths;
+exports.utcSaturday = utcSaturday;
+exports.utcSaturdays = utcSaturdays;
+exports.utcSecond = second;
+exports.utcSeconds = seconds;
+exports.utcSunday = utcSunday;
+exports.utcSundays = utcSundays;
+exports.utcThursday = utcThursday;
+exports.utcThursdays = utcThursdays;
 exports.utcTuesday = utcTuesday;
 exports.utcTuesdays = utcTuesdays;
 exports.utcWednesday = utcWednesday;
 exports.utcWednesdays = utcWednesdays;
-exports.utcThursday = utcThursday;
-exports.utcThursdays = utcThursdays;
-exports.utcFriday = utcFriday;
-exports.utcFridays = utcFridays;
-exports.utcSaturday = utcSaturday;
-exports.utcSaturdays = utcSaturdays;
-exports.utcMonth = utcMonth;
-exports.utcMonths = utcMonths;
+exports.utcWeek = utcSunday;
+exports.utcWeeks = utcSundays;
 exports.utcYear = utcYear;
 exports.utcYears = utcYears;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
