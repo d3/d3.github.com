@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.3.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-array/ v2.3.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -205,7 +205,6 @@ function nest(values, map, reduce, keys) {
 var array = Array.prototype;
 
 var slice = array.slice;
-var map = array.map;
 
 function constant(x) {
   return function() {
@@ -280,7 +279,7 @@ function tickStep(start, stop, count) {
 }
 
 function sturges(values) {
-  return Math.ceil(Math.log(values.length) / Math.LN2) + 1;
+  return Math.ceil(Math.log(count(values)) / Math.LN2) + 1;
 }
 
 function bin() {
@@ -374,7 +373,9 @@ function* numbers(values, valueof) {
 }
 
 function quantile(values, p, valueof) {
-  return quantileSorted(Float64Array.from(numbers(values, valueof)).sort(ascending), p);
+  values = Float64Array.from(numbers(values, valueof));
+  values.sort(ascending);
+  return quantileSorted(values, p);
 }
 
 function quantileSorted(values, p, valueof = number) {
@@ -390,12 +391,11 @@ function quantileSorted(values, p, valueof = number) {
 }
 
 function freedmanDiaconis(values, min, max) {
-  values = map.call(values, number).sort(ascending);
-  return Math.ceil((max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(values.length, -1 / 3)));
+  return Math.ceil((max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3)));
 }
 
 function scott(values, min, max) {
-  return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(values.length, -1 / 3)));
+  return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(count(values), -1 / 3)));
 }
 
 function max(values, valueof) {
