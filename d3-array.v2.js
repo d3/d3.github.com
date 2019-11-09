@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.3.3 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-array/ v2.4.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -96,6 +96,13 @@ function cross(...values) {
       index[i--] = 0;
     }
   }
+}
+
+function cumsum(values, valueof) {
+  var sum = 0, index = 0;
+  return Float64Array.from(values, valueof === undefined
+    ? v => (sum += +v || 0)
+    : v => (sum += +valueof(v, index++, values) || 0));
 }
 
 function descending(a, b) {
@@ -745,6 +752,7 @@ exports.bisectRight = bisectRight;
 exports.bisector = bisector;
 exports.count = count;
 exports.cross = cross;
+exports.cumsum = cumsum;
 exports.descending = descending;
 exports.deviation = deviation;
 exports.extent = extent;
