@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.7.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.7.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -1874,7 +1874,8 @@ function hammerRetroazimuthal() {
       .clipAngle(180 - 1e-3);
 }
 
-var healpixParallel = 41 + 48 / 36 + 37 / 3600, // for K=3; TODO automate
+var K = 3,
+    healpixParallel = asin(1 - 1 / K) * degrees,
     healpixLambert = cylindricalEqualAreaRaw(0);
 
 function healpixRaw(H) {
@@ -3915,7 +3916,7 @@ function rectangularPolyconic() {
       .scale(131.215);
 }
 
-var K = [
+var K$1 = [
   [0.9986, -0.062],
   [1.0000, 0.0000],
   [0.9986, 0.0620],
@@ -3938,7 +3939,7 @@ var K = [
   [0.5322, 1.0000]
 ];
 
-K.forEach(function(d) {
+K$1.forEach(function(d) {
   d[1] *= 1.0144;
 });
 
@@ -3946,11 +3947,11 @@ function robinsonRaw(lambda, phi) {
   var i = min(18, abs(phi) * 36 / pi),
       i0 = floor(i),
       di = i - i0,
-      ax = (k = K[i0])[0],
+      ax = (k = K$1[i0])[0],
       ay = k[1],
-      bx = (k = K[++i0])[0],
+      bx = (k = K$1[++i0])[0],
       by = k[1],
-      cx = (k = K[min(19, ++i0)])[0],
+      cx = (k = K$1[min(19, ++i0)])[0],
       cy = k[1],
       k;
   return [
@@ -3965,9 +3966,9 @@ robinsonRaw.invert = function(x, y) {
       i = min(18, abs(phi / 5)),
       i0 = max(0, floor(i));
   do {
-    var ay = K[i0][1],
-        by = K[i0 + 1][1],
-        cy = K[min(19, i0 + 2)][1],
+    var ay = K$1[i0][1],
+        by = K$1[i0 + 1][1],
+        cy = K$1[min(19, i0 + 2)][1],
         u = cy - ay,
         v = cy - 2 * by + ay,
         t = 2 * (abs(yy) - by) / u,
@@ -3980,17 +3981,17 @@ robinsonRaw.invert = function(x, y) {
         i = min(18, abs(phi) / 5);
         i0 = floor(i);
         di = i - i0;
-        ay = K[i0][1];
-        by = K[i0 + 1][1];
-        cy = K[min(19, i0 + 2)][1];
+        ay = K$1[i0][1];
+        by = K$1[i0 + 1][1];
+        cy = K$1[min(19, i0 + 2)][1];
         phi -= (delta = (y >= 0 ? halfPi : -halfPi) * (by + di * (cy - ay) / 2 + di * di * (cy - 2 * by + ay) / 2) - y) * degrees;
       } while (abs(delta) > epsilon2 && --j > 0);
       break;
     }
   } while (--i0 >= 0);
-  var ax = K[i0][0],
-      bx = K[i0 + 1][0],
-      cx = K[min(19, i0 + 2)][0];
+  var ax = K$1[i0][0],
+      bx = K$1[i0 + 1][0],
+      cx = K$1[min(19, i0 + 2)][0];
   return [
     x / (bx + di * (cx - ax) / 2 + di * di * (cx - 2 * bx + ax) / 2),
     phi * radians
