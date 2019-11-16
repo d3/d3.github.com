@@ -1,4 +1,4 @@
-// https://d3js.org/d3-dsv/ v1.1.2 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-dsv/ v1.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -164,7 +164,9 @@ function dsv(delimiter) {
     parseRows: parseRows,
     format: format,
     formatBody: formatBody,
-    formatRows: formatRows
+    formatRows: formatRows,
+    formatRow: formatRow,
+    formatValue: formatValue
   };
 }
 
@@ -175,6 +177,8 @@ var csvParseRows = csv.parseRows;
 var csvFormat = csv.format;
 var csvFormatBody = csv.formatBody;
 var csvFormatRows = csv.formatRows;
+var csvFormatRow = csv.formatRow;
+var csvFormatValue = csv.formatValue;
 
 var tsv = dsv("\t");
 
@@ -183,6 +187,8 @@ var tsvParseRows = tsv.parseRows;
 var tsvFormat = tsv.format;
 var tsvFormatBody = tsv.formatBody;
 var tsvFormatRows = tsv.formatRows;
+var tsvFormatRow = tsv.formatRow;
+var tsvFormatValue = tsv.formatValue;
 
 function autoType(object) {
   for (var key in object) {
@@ -208,13 +214,17 @@ var fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:0
 exports.autoType = autoType;
 exports.csvFormat = csvFormat;
 exports.csvFormatBody = csvFormatBody;
+exports.csvFormatRow = csvFormatRow;
 exports.csvFormatRows = csvFormatRows;
+exports.csvFormatValue = csvFormatValue;
 exports.csvParse = csvParse;
 exports.csvParseRows = csvParseRows;
 exports.dsvFormat = dsv;
 exports.tsvFormat = tsvFormat;
 exports.tsvFormatBody = tsvFormatBody;
+exports.tsvFormatRow = tsvFormatRow;
 exports.tsvFormatRows = tsvFormatRows;
+exports.tsvFormatValue = tsvFormatValue;
 exports.tsvParse = tsvParse;
 exports.tsvParseRows = tsvParseRows;
 
