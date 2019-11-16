@@ -1,4 +1,4 @@
-// https://d3js.org/d3-time-format/ v2.2.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-time-format/ v2.2.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
