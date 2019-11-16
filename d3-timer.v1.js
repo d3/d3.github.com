@@ -1,9 +1,9 @@
-// https://d3js.org/d3-timer/ v1.0.9 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-timer/ v1.0.10 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 var frame = 0, // is an animation frame pending?
     timeout = 0, // is a timeout pending?
@@ -138,12 +138,12 @@ function interval$1(callback, delay, time) {
   return t;
 }
 
+exports.interval = interval$1;
 exports.now = now;
+exports.timeout = timeout$1;
 exports.timer = timer;
 exports.timerFlush = timerFlush;
-exports.timeout = timeout$1;
-exports.interval = interval$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
