@@ -1,9 +1,9 @@
-// https://d3js.org/d3-geo/ v1.11.8 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-geo/ v1.11.9 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}, global.d3));
-}(this, (function (exports, d3Array) { 'use strict';
+}(this, function (exports, d3Array) { 'use strict';
 
 // Adds floating point numbers with twice the normal precision.
 // Reference: J. R. Shewchuk, Adaptive Precision Floating-Point Arithmetic and
@@ -3123,4 +3123,4 @@ exports.geoTransverseMercatorRaw = transverseMercatorRaw;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
