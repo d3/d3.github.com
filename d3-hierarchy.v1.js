@@ -1,9 +1,9 @@
-// https://d3js.org/d3-hierarchy/ v1.1.8 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-hierarchy/ v1.1.9 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 function defaultSeparation(a, b) {
   return a.parent === b.parent ? 1 : 2;
@@ -1272,19 +1272,19 @@ var resquarify = (function custom(ratio) {
 exports.cluster = cluster;
 exports.hierarchy = hierarchy;
 exports.pack = index;
-exports.packSiblings = siblings;
 exports.packEnclose = enclose;
+exports.packSiblings = siblings;
 exports.partition = partition;
 exports.stratify = stratify;
 exports.tree = tree;
 exports.treemap = index$1;
 exports.treemapBinary = binary;
 exports.treemapDice = treemapDice;
+exports.treemapResquarify = resquarify;
 exports.treemapSlice = treemapSlice;
 exports.treemapSliceDice = sliceDice;
 exports.treemapSquarify = squarify;
-exports.treemapResquarify = resquarify;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
