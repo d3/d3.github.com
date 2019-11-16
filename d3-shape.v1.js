@@ -1,9 +1,9 @@
-// https://d3js.org/d3-shape/ v1.3.5 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-shape/ v1.3.6 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
-(factory((global.d3 = global.d3 || {}),global.d3));
-}(this, (function (exports,d3Path) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}, global.d3));
+}(this, function (exports, d3Path) { 'use strict';
 
 function constant(x) {
   return function constant() {
@@ -331,8 +331,8 @@ function y(p) {
 }
 
 function line() {
-  var x$$1 = x,
-      y$$1 = y,
+  var x$1 = x,
+      y$1 = y,
       defined = constant(true),
       context = null,
       curve = curveLinear,
@@ -352,18 +352,18 @@ function line() {
         if (defined0 = !defined0) output.lineStart();
         else output.lineEnd();
       }
-      if (defined0) output.point(+x$$1(d, i, data), +y$$1(d, i, data));
+      if (defined0) output.point(+x$1(d, i, data), +y$1(d, i, data));
     }
 
     if (buffer) return output = null, buffer + "" || null;
   }
 
   line.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant(+_), line) : x$$1;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant(+_), line) : x$1;
   };
 
   line.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant(+_), line) : y$$1;
+    return arguments.length ? (y$1 = typeof _ === "function" ? _ : constant(+_), line) : y$1;
   };
 
   line.defined = function(_) {
@@ -663,14 +663,14 @@ function linkTarget(d) {
 function link(curve) {
   var source = linkSource,
       target = linkTarget,
-      x$$1 = x,
-      y$$1 = y,
+      x$1 = x,
+      y$1 = y,
       context = null;
 
   function link() {
     var buffer, argv = slice.call(arguments), s = source.apply(this, argv), t = target.apply(this, argv);
     if (!context) context = buffer = d3Path.path();
-    curve(context, +x$$1.apply(this, (argv[0] = s, argv)), +y$$1.apply(this, argv), +x$$1.apply(this, (argv[0] = t, argv)), +y$$1.apply(this, argv));
+    curve(context, +x$1.apply(this, (argv[0] = s, argv)), +y$1.apply(this, argv), +x$1.apply(this, (argv[0] = t, argv)), +y$1.apply(this, argv));
     if (buffer) return context = null, buffer + "" || null;
   }
 
@@ -683,11 +683,11 @@ function link(curve) {
   };
 
   link.x = function(_) {
-    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant(+_), link) : x$$1;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant(+_), link) : x$1;
   };
 
   link.y = function(_) {
-    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant(+_), link) : y$$1;
+    return arguments.length ? (y$1 = typeof _ === "function" ? _ : constant(+_), link) : y$1;
   };
 
   link.context = function(_) {
@@ -1187,15 +1187,15 @@ CardinalClosed.prototype = {
 
 var cardinalClosed = (function custom(tension) {
 
-  function cardinal$$1(context) {
+  function cardinal(context) {
     return new CardinalClosed(context, tension);
   }
 
-  cardinal$$1.tension = function(tension) {
+  cardinal.tension = function(tension) {
     return custom(+tension);
   };
 
-  return cardinal$$1;
+  return cardinal;
 })(0);
 
 function CardinalOpen(context, tension) {
@@ -1235,15 +1235,15 @@ CardinalOpen.prototype = {
 
 var cardinalOpen = (function custom(tension) {
 
-  function cardinal$$1(context) {
+  function cardinal(context) {
     return new CardinalOpen(context, tension);
   }
 
-  cardinal$$1.tension = function(tension) {
+  cardinal.tension = function(tension) {
     return custom(+tension);
   };
 
-  return cardinal$$1;
+  return cardinal;
 })(0);
 
 function point$2(that, x, y) {
@@ -1392,15 +1392,15 @@ CatmullRomClosed.prototype = {
 
 var catmullRomClosed = (function custom(alpha) {
 
-  function catmullRom$$1(context) {
+  function catmullRom(context) {
     return alpha ? new CatmullRomClosed(context, alpha) : new CardinalClosed(context, 0);
   }
 
-  catmullRom$$1.alpha = function(alpha) {
+  catmullRom.alpha = function(alpha) {
     return custom(+alpha);
   };
 
-  return catmullRom$$1;
+  return catmullRom;
 })(0.5);
 
 function CatmullRomOpen(context, alpha) {
@@ -1452,15 +1452,15 @@ CatmullRomOpen.prototype = {
 
 var catmullRomOpen = (function custom(alpha) {
 
-  function catmullRom$$1(context) {
+  function catmullRom(context) {
     return alpha ? new CatmullRomOpen(context, alpha) : new CardinalOpen(context, 0);
   }
 
-  catmullRom$$1.alpha = function(alpha) {
+  catmullRom.alpha = function(alpha) {
     return custom(+alpha);
   };
 
-  return catmullRom$$1;
+  return catmullRom;
 })(0.5);
 
 function LinearClosed(context) {
@@ -1894,46 +1894,37 @@ function reverse(series) {
 
 exports.arc = arc;
 exports.area = area;
-exports.line = line;
-exports.pie = pie;
 exports.areaRadial = areaRadial;
-exports.radialArea = areaRadial;
-exports.lineRadial = lineRadial$1;
-exports.radialLine = lineRadial$1;
-exports.pointRadial = pointRadial;
-exports.linkHorizontal = linkHorizontal;
-exports.linkVertical = linkVertical;
-exports.linkRadial = linkRadial;
-exports.symbol = symbol;
-exports.symbols = symbols;
-exports.symbolCircle = circle;
-exports.symbolCross = cross;
-exports.symbolDiamond = diamond;
-exports.symbolSquare = square;
-exports.symbolStar = star;
-exports.symbolTriangle = triangle;
-exports.symbolWye = wye;
+exports.curveBasis = basis;
 exports.curveBasisClosed = basisClosed;
 exports.curveBasisOpen = basisOpen;
-exports.curveBasis = basis;
 exports.curveBundle = bundle;
+exports.curveCardinal = cardinal;
 exports.curveCardinalClosed = cardinalClosed;
 exports.curveCardinalOpen = cardinalOpen;
-exports.curveCardinal = cardinal;
+exports.curveCatmullRom = catmullRom;
 exports.curveCatmullRomClosed = catmullRomClosed;
 exports.curveCatmullRomOpen = catmullRomOpen;
-exports.curveCatmullRom = catmullRom;
-exports.curveLinearClosed = linearClosed;
 exports.curveLinear = curveLinear;
+exports.curveLinearClosed = linearClosed;
 exports.curveMonotoneX = monotoneX;
 exports.curveMonotoneY = monotoneY;
 exports.curveNatural = natural;
 exports.curveStep = step;
 exports.curveStepAfter = stepAfter;
 exports.curveStepBefore = stepBefore;
+exports.line = line;
+exports.lineRadial = lineRadial$1;
+exports.linkHorizontal = linkHorizontal;
+exports.linkRadial = linkRadial;
+exports.linkVertical = linkVertical;
+exports.pie = pie;
+exports.pointRadial = pointRadial;
+exports.radialArea = areaRadial;
+exports.radialLine = lineRadial$1;
 exports.stack = stack;
-exports.stackOffsetExpand = expand;
 exports.stackOffsetDiverging = diverging;
+exports.stackOffsetExpand = expand;
 exports.stackOffsetNone = none;
 exports.stackOffsetSilhouette = silhouette;
 exports.stackOffsetWiggle = wiggle;
@@ -1943,7 +1934,16 @@ exports.stackOrderDescending = descending$1;
 exports.stackOrderInsideOut = insideOut;
 exports.stackOrderNone = none$1;
 exports.stackOrderReverse = reverse;
+exports.symbol = symbol;
+exports.symbolCircle = circle;
+exports.symbolCross = cross;
+exports.symbolDiamond = diamond;
+exports.symbolSquare = square;
+exports.symbolStar = star;
+exports.symbolTriangle = triangle;
+exports.symbolWye = wye;
+exports.symbols = symbols;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
