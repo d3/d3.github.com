@@ -1,4 +1,4 @@
-// https://d3js.org/d3-path/ v1.0.8 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-path/ v1.0.9 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
