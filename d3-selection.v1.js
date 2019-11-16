@@ -1,9 +1,9 @@
-// https://d3js.org/d3-selection/ v1.4.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-selection/ v1.4.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -269,9 +269,9 @@ function selection_join(onenter, onupdate, onexit) {
   return enter && update ? enter.merge(update).order() : update;
 }
 
-function selection_merge(selection$$1) {
+function selection_merge(selection) {
 
-  for (var groups0 = this._groups, groups1 = selection$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+  for (var groups0 = this._groups, groups1 = selection._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
     for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
       if (node = group0[i] || group1[i]) {
         merge[i] = node;
@@ -667,11 +667,13 @@ function selection_remove() {
 }
 
 function selection_cloneShallow() {
-  return this.parentNode.insertBefore(this.cloneNode(false), this.nextSibling);
+  var clone = this.cloneNode(false), parent = this.parentNode;
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
 }
 
 function selection_cloneDeep() {
-  return this.parentNode.insertBefore(this.cloneNode(true), this.nextSibling);
+  var clone = this.cloneNode(true), parent = this.parentNode;
+  return parent ? parent.insertBefore(clone, this.nextSibling) : clone;
 }
 
 function selection_clone(deep) {
@@ -963,14 +965,15 @@ function touches(node, touches) {
   return points;
 }
 
+exports.clientPoint = point;
 exports.create = create;
 exports.creator = creator;
+exports.customEvent = customEvent;
 exports.local = local;
 exports.matcher = matcher;
 exports.mouse = mouse;
 exports.namespace = namespace;
 exports.namespaces = namespaces;
-exports.clientPoint = point;
 exports.select = select;
 exports.selectAll = selectAll;
 exports.selection = selection;
@@ -980,8 +983,7 @@ exports.style = styleValue;
 exports.touch = touch;
 exports.touches = touches;
 exports.window = defaultView;
-exports.customEvent = customEvent;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
