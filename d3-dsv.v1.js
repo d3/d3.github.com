@@ -1,9 +1,9 @@
-// https://d3js.org/d3-dsv/ v1.1.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-dsv/ v1.1.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 var EOL = {},
     EOF = {},
@@ -13,7 +13,7 @@ var EOL = {},
 
 function objectConverter(columns) {
   return new Function("d", "return {" + columns.map(function(name, i) {
-    return JSON.stringify(name) + ": d[" + i + "]";
+    return JSON.stringify(name) + ": d[" + i + "] || \"\"";
   }).join(",") + "}");
 }
 
@@ -57,7 +57,7 @@ function formatDate(date) {
       seconds = date.getUTCSeconds(),
       milliseconds = date.getUTCMilliseconds();
   return isNaN(date) ? "Invalid Date"
-      : formatYear(date.getUTCFullYear(), 4) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
+      : formatYear(date.getUTCFullYear()) + "-" + pad(date.getUTCMonth() + 1, 2) + "-" + pad(date.getUTCDate(), 2)
       + (milliseconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "." + pad(milliseconds, 3) + "Z"
       : seconds ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + ":" + pad(seconds, 2) + "Z"
       : minutes || hours ? "T" + pad(hours, 2) + ":" + pad(minutes, 2) + "Z"
@@ -186,32 +186,38 @@ var tsvFormatRows = tsv.formatRows;
 
 function autoType(object) {
   for (var key in object) {
-    var value = object[key].trim(), number;
+    var value = object[key].trim(), number, m;
     if (!value) value = null;
     else if (value === "true") value = true;
     else if (value === "false") value = false;
     else if (value === "NaN") value = NaN;
     else if (!isNaN(number = +value)) value = number;
-    else if (/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/.test(value)) value = new Date(value);
+    else if (m = value.match(/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/)) {
+      if (fixtz && !!m[4] && !m[7]) value = value.replace(/-/g, "/").replace(/T/, " ");
+      value = new Date(value);
+    }
     else continue;
     object[key] = value;
   }
   return object;
 }
 
-exports.dsvFormat = dsv;
-exports.csvParse = csvParse;
-exports.csvParseRows = csvParseRows;
+// https://github.com/d3/d3-dsv/issues/45
+var fixtz = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();
+
+exports.autoType = autoType;
 exports.csvFormat = csvFormat;
 exports.csvFormatBody = csvFormatBody;
 exports.csvFormatRows = csvFormatRows;
-exports.tsvParse = tsvParse;
-exports.tsvParseRows = tsvParseRows;
+exports.csvParse = csvParse;
+exports.csvParseRows = csvParseRows;
+exports.dsvFormat = dsv;
 exports.tsvFormat = tsvFormat;
 exports.tsvFormatBody = tsvFormatBody;
 exports.tsvFormatRows = tsvFormatRows;
-exports.autoType = autoType;
+exports.tsvParse = tsvParse;
+exports.tsvParseRows = tsvParseRows;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
