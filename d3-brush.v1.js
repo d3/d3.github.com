@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v1.1.3 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-brush/ v1.1.4 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -178,7 +178,7 @@ function brush$1(dim) {
       filter = defaultFilter,
       touchable = defaultTouchable,
       keys = true,
-      listeners = d3Dispatch.dispatch(brush, "start", "brush", "end"),
+      listeners = d3Dispatch.dispatch("start", "brush", "end"),
       handleSize = 6,
       touchending;
 
