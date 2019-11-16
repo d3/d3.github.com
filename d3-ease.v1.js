@@ -1,9 +1,9 @@
-// https://d3js.org/d3-ease/ v1.0.5 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-ease/ v1.0.6 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 function linear(t) {
   return +t;
@@ -216,44 +216,44 @@ var elasticInOut = (function custom(a, p) {
   return elasticInOut;
 })(amplitude, period);
 
-exports.easeLinear = linear;
-exports.easeQuad = quadInOut;
-exports.easeQuadIn = quadIn;
-exports.easeQuadOut = quadOut;
-exports.easeQuadInOut = quadInOut;
-exports.easeCubic = cubicInOut;
-exports.easeCubicIn = cubicIn;
-exports.easeCubicOut = cubicOut;
-exports.easeCubicInOut = cubicInOut;
-exports.easePoly = polyInOut;
-exports.easePolyIn = polyIn;
-exports.easePolyOut = polyOut;
-exports.easePolyInOut = polyInOut;
-exports.easeSin = sinInOut;
-exports.easeSinIn = sinIn;
-exports.easeSinOut = sinOut;
-exports.easeSinInOut = sinInOut;
-exports.easeExp = expInOut;
-exports.easeExpIn = expIn;
-exports.easeExpOut = expOut;
-exports.easeExpInOut = expInOut;
-exports.easeCircle = circleInOut;
-exports.easeCircleIn = circleIn;
-exports.easeCircleOut = circleOut;
-exports.easeCircleInOut = circleInOut;
-exports.easeBounce = bounceOut;
-exports.easeBounceIn = bounceIn;
-exports.easeBounceOut = bounceOut;
-exports.easeBounceInOut = bounceInOut;
 exports.easeBack = backInOut;
 exports.easeBackIn = backIn;
-exports.easeBackOut = backOut;
 exports.easeBackInOut = backInOut;
+exports.easeBackOut = backOut;
+exports.easeBounce = bounceOut;
+exports.easeBounceIn = bounceIn;
+exports.easeBounceInOut = bounceInOut;
+exports.easeBounceOut = bounceOut;
+exports.easeCircle = circleInOut;
+exports.easeCircleIn = circleIn;
+exports.easeCircleInOut = circleInOut;
+exports.easeCircleOut = circleOut;
+exports.easeCubic = cubicInOut;
+exports.easeCubicIn = cubicIn;
+exports.easeCubicInOut = cubicInOut;
+exports.easeCubicOut = cubicOut;
 exports.easeElastic = elasticOut;
 exports.easeElasticIn = elasticIn;
-exports.easeElasticOut = elasticOut;
 exports.easeElasticInOut = elasticInOut;
+exports.easeElasticOut = elasticOut;
+exports.easeExp = expInOut;
+exports.easeExpIn = expIn;
+exports.easeExpInOut = expInOut;
+exports.easeExpOut = expOut;
+exports.easeLinear = linear;
+exports.easePoly = polyInOut;
+exports.easePolyIn = polyIn;
+exports.easePolyInOut = polyInOut;
+exports.easePolyOut = polyOut;
+exports.easeQuad = quadInOut;
+exports.easeQuadIn = quadIn;
+exports.easeQuadInOut = quadInOut;
+exports.easeQuadOut = quadOut;
+exports.easeSin = sinInOut;
+exports.easeSinIn = sinIn;
+exports.easeSinInOut = sinInOut;
+exports.easeSinOut = sinOut;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
