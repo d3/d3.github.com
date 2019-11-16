@@ -1,9 +1,9 @@
-// https://d3js.org/d3-transition/ v1.2.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-transition/ v1.2.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-timer'), require('d3-color'), require('d3-interpolate'), require('d3-selection'), require('d3-ease')) :
-typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-timer', 'd3-color', 'd3-interpolate', 'd3-selection', 'd3-ease'], factory) :
-(factory((global.d3 = global.d3 || {}),global.d3,global.d3,global.d3,global.d3,global.d3,global.d3));
-}(this, (function (exports,d3Dispatch,d3Timer,d3Color,d3Interpolate,d3Selection,d3Ease) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
+(global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3, global.d3));
+}(this, function (exports, d3Selection, d3Dispatch, d3Timer, d3Interpolate, d3Color, d3Ease) { 'use strict';
 
 var emptyOn = d3Dispatch.dispatch("start", "end", "cancel", "interrupt");
 var emptyTween = [];
@@ -158,7 +158,7 @@ function create(node, id, self) {
 
 function interrupt(node, name) {
   var schedules = node.__transition,
-      schedule$$1,
+      schedule,
       active,
       empty = true,
       i;
@@ -168,11 +168,11 @@ function interrupt(node, name) {
   name = name == null ? null : name + "";
 
   for (i in schedules) {
-    if ((schedule$$1 = schedules[i]).name !== name) { empty = false; continue; }
-    active = schedule$$1.state > STARTING && schedule$$1.state < ENDING;
-    schedule$$1.state = ENDED;
-    schedule$$1.timer.stop();
-    schedule$$1.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule$$1.index, schedule$$1.group);
+    if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
+    active = schedule.state > STARTING && schedule.state < ENDING;
+    schedule.state = ENDED;
+    schedule.timer.stop();
+    schedule.on.call(active ? "interrupt" : "cancel", node, node.__data__, schedule.index, schedule.group);
     delete schedules[i];
   }
 
@@ -188,8 +188,8 @@ function selection_interrupt(name) {
 function tweenRemove(id, name) {
   var tween0, tween1;
   return function() {
-    var schedule$$1 = set(this, id),
-        tween = schedule$$1.tween;
+    var schedule = set(this, id),
+        tween = schedule.tween;
 
     // If this node shared tween with the previous node,
     // just assign the updated shared tween and we’re done!
@@ -205,7 +205,7 @@ function tweenRemove(id, name) {
       }
     }
 
-    schedule$$1.tween = tween1;
+    schedule.tween = tween1;
   };
 }
 
@@ -213,8 +213,8 @@ function tweenFunction(id, name, value) {
   var tween0, tween1;
   if (typeof value !== "function") throw new Error;
   return function() {
-    var schedule$$1 = set(this, id),
-        tween = schedule$$1.tween;
+    var schedule = set(this, id),
+        tween = schedule.tween;
 
     // If this node shared tween with the previous node,
     // just assign the updated shared tween and we’re done!
@@ -230,7 +230,7 @@ function tweenFunction(id, name, value) {
       if (i === n) tween1.push(t);
     }
 
-    schedule$$1.tween = tween1;
+    schedule.tween = tween1;
   };
 }
 
@@ -256,8 +256,8 @@ function tweenValue(transition, name, value) {
   var id = transition._id;
 
   transition.each(function() {
-    var schedule$$1 = set(this, id);
-    (schedule$$1.value || (schedule$$1.value = {}))[name] = value.apply(this, arguments);
+    var schedule = set(this, id);
+    (schedule.value || (schedule.value = {}))[name] = value.apply(this, arguments);
   });
 
   return function(node) {
@@ -285,7 +285,7 @@ function attrRemoveNS(fullname) {
   };
 }
 
-function attrConstant(name, interpolate$$1, value1) {
+function attrConstant(name, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -293,11 +293,11 @@ function attrConstant(name, interpolate$$1, value1) {
     var string0 = this.getAttribute(name);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function attrConstantNS(fullname, interpolate$$1, value1) {
+function attrConstantNS(fullname, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -305,11 +305,11 @@ function attrConstantNS(fullname, interpolate$$1, value1) {
     var string0 = this.getAttributeNS(fullname.space, fullname.local);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function attrFunction(name, interpolate$$1, value) {
+function attrFunction(name, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -320,11 +320,11 @@ function attrFunction(name, interpolate$$1, value) {
     string1 = value1 + "";
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
-function attrFunctionNS(fullname, interpolate$$1, value) {
+function attrFunctionNS(fullname, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -335,7 +335,7 @@ function attrFunctionNS(fullname, interpolate$$1, value) {
     string1 = value1 + "";
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
@@ -463,10 +463,10 @@ function transition_filter(match) {
   return new Transition(subgroups, this._parents, this._name, this._id);
 }
 
-function transition_merge(transition$$1) {
-  if (transition$$1._id !== this._id) throw new Error;
+function transition_merge(transition) {
+  if (transition._id !== this._id) throw new Error;
 
-  for (var groups0 = this._groups, groups1 = transition$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+  for (var groups0 = this._groups, groups1 = transition._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
     for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
       if (node = group0[i] || group1[i]) {
         merge[i] = node;
@@ -492,15 +492,15 @@ function start(name) {
 function onFunction(id, name, listener) {
   var on0, on1, sit = start(name) ? init : set;
   return function() {
-    var schedule$$1 = sit(this, id),
-        on = schedule$$1.on;
+    var schedule = sit(this, id),
+        on = schedule.on;
 
     // If this node shared a dispatch with the previous node,
     // just assign the updated shared dispatch and we’re done!
     // Otherwise, copy-on-write.
     if (on !== on0) (on1 = (on0 = on).copy()).on(name, listener);
 
-    schedule$$1.on = on1;
+    schedule.on = on1;
   };
 }
 
@@ -572,7 +572,7 @@ function transition_selection() {
   return new Selection(this._groups, this._parents);
 }
 
-function styleNull(name, interpolate$$1) {
+function styleNull(name, interpolate) {
   var string00,
       string10,
       interpolate0;
@@ -581,7 +581,7 @@ function styleNull(name, interpolate$$1) {
         string1 = (this.style.removeProperty(name), d3Selection.style(this, name));
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, string10 = string1);
+        : interpolate0 = interpolate(string00 = string0, string10 = string1);
   };
 }
 
@@ -591,7 +591,7 @@ function styleRemove(name) {
   };
 }
 
-function styleConstant(name, interpolate$$1, value1) {
+function styleConstant(name, interpolate, value1) {
   var string00,
       string1 = value1 + "",
       interpolate0;
@@ -599,11 +599,11 @@ function styleConstant(name, interpolate$$1, value1) {
     var string0 = d3Selection.style(this, name);
     return string0 === string1 ? null
         : string0 === string00 ? interpolate0
-        : interpolate0 = interpolate$$1(string00 = string0, value1);
+        : interpolate0 = interpolate(string00 = string0, value1);
   };
 }
 
-function styleFunction(name, interpolate$$1, value) {
+function styleFunction(name, interpolate, value) {
   var string00,
       string10,
       interpolate0;
@@ -614,23 +614,23 @@ function styleFunction(name, interpolate$$1, value) {
     if (value1 == null) string1 = value1 = (this.style.removeProperty(name), d3Selection.style(this, name));
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
-        : (string10 = string1, interpolate0 = interpolate$$1(string00 = string0, value1));
+        : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
   };
 }
 
 function styleMaybeRemove(id, name) {
   var on0, on1, listener0, key = "style." + name, event = "end." + key, remove;
   return function() {
-    var schedule$$1 = set(this, id),
-        on = schedule$$1.on,
-        listener = schedule$$1.value[key] == null ? remove || (remove = styleRemove(name)) : undefined;
+    var schedule = set(this, id),
+        on = schedule.on,
+        listener = schedule.value[key] == null ? remove || (remove = styleRemove(name)) : undefined;
 
     // If this node shared a dispatch with the previous node,
     // just assign the updated shared dispatch and we’re done!
     // Otherwise, copy-on-write.
     if (on !== on0 || listener0 !== listener) (on1 = (on0 = on).copy()).on(event, listener0 = listener);
 
-    schedule$$1.on = on1;
+    schedule.on = on1;
   };
 }
 
@@ -720,8 +720,8 @@ function transition_end() {
         end = {value: function() { if (--size === 0) resolve(); }};
 
     that.each(function() {
-      var schedule$$1 = set(this, id),
-          on = schedule$$1.on;
+      var schedule = set(this, id),
+          on = schedule.on;
 
       // If this node shared a dispatch with the previous node,
       // just assign the updated shared dispatch and we’re done!
@@ -733,7 +733,7 @@ function transition_end() {
         on1._.end.push(end);
       }
 
-      schedule$$1.on = on1;
+      schedule.on = on1;
     });
   });
 }
@@ -830,13 +830,13 @@ var root = [null];
 
 function active(node, name) {
   var schedules = node.__transition,
-      schedule$$1,
+      schedule,
       i;
 
   if (schedules) {
     name = name == null ? null : name + "";
     for (i in schedules) {
-      if ((schedule$$1 = schedules[i]).state > SCHEDULED && schedule$$1.name === name) {
+      if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
         return new Transition([[node]], root, name, +i);
       }
     }
@@ -845,10 +845,10 @@ function active(node, name) {
   return null;
 }
 
-exports.transition = transition;
 exports.active = active;
 exports.interrupt = interrupt;
+exports.transition = transition;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
