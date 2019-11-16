@@ -1,9 +1,9 @@
-// https://d3js.org/d3-polygon/ v1.0.5 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-polygon/ v1.0.6 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 function area(polygon) {
   var i = -1,
@@ -141,10 +141,10 @@ function length(polygon) {
 
 exports.polygonArea = area;
 exports.polygonCentroid = centroid;
-exports.polygonHull = hull;
 exports.polygonContains = contains;
+exports.polygonHull = hull;
 exports.polygonLength = length;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
