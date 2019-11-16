@@ -1,9 +1,9 @@
-// https://d3js.org/d3-quadtree/ v1.0.6 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-quadtree/ v1.0.7 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(factory((global.d3 = global.d3 || {})));
-}(this, (function (exports) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}));
+}(this, function (exports) { 'use strict';
 
 function tree_add(d) {
   var x = +this._x.call(null, d),
@@ -416,4 +416,4 @@ exports.quadtree = quadtree;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
