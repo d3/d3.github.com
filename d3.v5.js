@@ -1,11 +1,11 @@
-// https://d3js.org v5.13.1 Copyright 2019 Mike Bostock
+// https://d3js.org v5.14.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}));
 }(this, function (exports) { 'use strict';
 
-var version = "5.13.1";
+var version = "5.14.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -3912,6 +3912,31 @@ function transition_text(value) {
       : textConstant$1(value == null ? "" : value + ""));
 }
 
+function textInterpolate(i) {
+  return function(t) {
+    this.textContent = i(t);
+  };
+}
+
+function textTween(value) {
+  var t0, i0;
+  function tween() {
+    var i = value.apply(this, arguments);
+    if (i !== i0) t0 = (i0 = i) && textInterpolate(i);
+    return t0;
+  }
+  tween._value = value;
+  return tween;
+}
+
+function transition_textTween(value) {
+  var key = "text";
+  if (arguments.length < 1) return (key = this.tween(key)) && key._value;
+  if (value == null) return this.tween(key, null);
+  if (typeof value !== "function") throw new Error;
+  return this.tween(key, textTween(value));
+}
+
 function transition_transition() {
   var name = this._name,
       id0 = this._id,
@@ -3998,6 +4023,7 @@ Transition.prototype = transition.prototype = {
   style: transition_style,
   styleTween: transition_styleTween,
   text: transition_text,
+  textTween: transition_textTween,
   remove: transition_remove,
   tween: transition_tween,
   delay: transition_delay,
@@ -16407,12 +16433,12 @@ function diverging$1(series, order) {
   if (!((n = series.length) > 0)) return;
   for (var i, j = 0, d, dy, yp, yn, n, m = series[order[0]].length; j < m; ++j) {
     for (yp = yn = 0, i = 0; i < n; ++i) {
-      if ((dy = (d = series[order[i]][j])[1] - d[0]) >= 0) {
+      if ((dy = (d = series[order[i]][j])[1] - d[0]) > 0) {
         d[0] = yp, d[1] = yp += dy;
       } else if (dy < 0) {
         d[1] = yn, d[0] = yn += dy;
       } else {
-        d[0] = yp;
+        d[0] = 0, d[1] = dy;
       }
     }
   }
