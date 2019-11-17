@@ -1,11 +1,11 @@
-// https://d3js.org v5.14.0 Copyright 2019 Mike Bostock
+// https://d3js.org v5.14.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}));
 }(this, function (exports) { 'use strict';
 
-var version = "5.14.0";
+var version = "5.14.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -3570,13 +3570,13 @@ function transition_attr(name, value) {
 
 function attrInterpolate(name, i) {
   return function(t) {
-    this.setAttribute(name, i(t));
+    this.setAttribute(name, i.call(this, t));
   };
 }
 
 function attrInterpolateNS(fullname, i) {
   return function(t) {
-    this.setAttributeNS(fullname.space, fullname.local, i(t));
+    this.setAttributeNS(fullname.space, fullname.local, i.call(this, t));
   };
 }
 
@@ -3870,7 +3870,7 @@ function transition_style(name, value, priority) {
 
 function styleInterpolate(name, i, priority) {
   return function(t) {
-    this.style.setProperty(name, i(t), priority);
+    this.style.setProperty(name, i.call(this, t), priority);
   };
 }
 
@@ -3914,7 +3914,7 @@ function transition_text(value) {
 
 function textInterpolate(i) {
   return function(t) {
-    this.textContent = i(t);
+    this.textContent = i.call(this, t);
   };
 }
 
