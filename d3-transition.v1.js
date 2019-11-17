@@ -1,4 +1,4 @@
-// https://d3js.org/d3-transition/ v1.3.0 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-transition/ v1.3.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
@@ -349,13 +349,13 @@ function transition_attr(name, value) {
 
 function attrInterpolate(name, i) {
   return function(t) {
-    this.setAttribute(name, i(t));
+    this.setAttribute(name, i.call(this, t));
   };
 }
 
 function attrInterpolateNS(fullname, i) {
   return function(t) {
-    this.setAttributeNS(fullname.space, fullname.local, i(t));
+    this.setAttributeNS(fullname.space, fullname.local, i.call(this, t));
   };
 }
 
@@ -649,7 +649,7 @@ function transition_style(name, value, priority) {
 
 function styleInterpolate(name, i, priority) {
   return function(t) {
-    this.style.setProperty(name, i(t), priority);
+    this.style.setProperty(name, i.call(this, t), priority);
   };
 }
 
@@ -693,7 +693,7 @@ function transition_text(value) {
 
 function textInterpolate(i) {
   return function(t) {
-    this.textContent = i(t);
+    this.textContent = i.call(this, t);
   };
 }
 
