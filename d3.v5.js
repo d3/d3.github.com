@@ -1,11 +1,11 @@
-// https://d3js.org v5.14.1 Copyright 2019 Mike Bostock
+// https://d3js.org v5.14.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = global || self, factory(global.d3 = global.d3 || {}));
 }(this, function (exports) { 'use strict';
 
-var version = "5.14.1";
+var version = "5.14.2";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -4883,6 +4883,10 @@ function brush$1(dim) {
 
   brush.filter = function(_) {
     return arguments.length ? (filter = typeof _ === "function" ? _ : constant$4(!!_), brush) : filter;
+  };
+
+  brush.touchable = function(_) {
+    return arguments.length ? (touchable = typeof _ === "function" ? _ : constant$4(!!_), brush) : touchable;
   };
 
   brush.handleSize = function(_) {
