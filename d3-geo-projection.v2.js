@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.7.1 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.8.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -425,13 +425,72 @@ function hammer() {
     .scale(169.529);
 }
 
+// Approximate Newton-Raphson
+// Solve f(x) = y, start from x
+function solve(f, y, x) {
+  var steps = 100, delta, f0, f1;
+  x = x === undefined ? 0 : +x;
+  y = +y;
+  do {
+    f0 = f(x);
+    f1 = f(x + epsilon);
+    if (f0 === f1) f1 = f0 + epsilon;
+    x -= delta = (-1 * epsilon * (f0 - y)) / (f0 - f1);
+  } while (steps-- > 0 && abs(delta) > epsilon);
+  return steps < 0 ? NaN : x;
+}
+
+// Approximate Newton-Raphson in 2D
+// Solve f(a,b) = [x,y]
+function solve2d(f, MAX_ITERATIONS = 40, eps = epsilon2) {
+  return function(x, y, a = 0, b = 0) {
+    var err2, da, db;
+    for (var i = 0; i < MAX_ITERATIONS; i++) {
+      var p = f(a, b),
+        // diffs
+        tx = p[0] - x,
+        ty = p[1] - y;
+      if (abs(tx) < eps && abs(ty) < eps) break; // we're there!
+
+      // backtrack if we overshot
+      var h = tx * tx + ty * ty;
+      if (h > err2) {
+        a -= da /= 2;
+        b -= db /= 2;
+        continue;
+      }
+      err2 = h;
+
+      // partial derivatives
+      var ea = (a > 0 ? -1 : 1) * eps,
+        eb = (b > 0 ? -1 : 1) * eps,
+        pa = f(a + ea, b),
+        pb = f(a, b + eb),
+        dxa = (pa[0] - p[0]) / ea,
+        dya = (pa[1] - p[1]) / ea,
+        dxb = (pb[0] - p[0]) / eb,
+        dyb = (pb[1] - p[1]) / eb,
+        // determinant
+        D = dyb * dxa - dya * dxb,
+        // newton step — or half-step for small D
+        l = (abs(D) < 0.5 ? 0.5 : 1) / D;
+      da = (ty * dxb - tx * dyb) * l;
+      db = (tx * dya - ty * dxa) * l;
+      a += da;
+      b += db;
+      if (abs(da) < eps && abs(db) < eps) break; // we're crawling
+    }
+    return [a, b];
+  };
+}
+
 // Bertin 1953 as a modified Briesemeister
 // https://bl.ocks.org/Fil/5b9ee9636dfb6ffa53443c9006beb642
 function bertin1953Raw() {
   var hammer$$1 = hammerRaw(1.68, 2),
       fu = 1.4, k = 12;
 
-  return function(lambda, phi) {
+  function forward(lambda, phi) {
 
     if (lambda + phi < -fu) {
       var u = (lambda - phi + 1.6) * (lambda + phi + fu) / 8;
@@ -451,16 +510,16 @@ function bertin1953Raw() {
     }
 
     return r;
-  };
+  }
+  
+  forward.invert = solve2d(forward);
+  return forward;
 }
 
 function bertin() {
-  var p = d3Geo.geoProjection(bertin1953Raw());
-
-  p.rotate([-16.5, -42]);
-  delete p.rotate;
-
-  return p
+  // this projection should not be rotated
+  return d3Geo.geoProjection(bertin1953Raw())
+    .rotate([-16.5, -42])
     .scale(176.57)
     .center([7.93, 0.09]);
 }
@@ -707,7 +766,9 @@ function chamberlin(p0, p1, p2) { // TODO order matters!
   var c = d3Geo.geoCentroid({type: "MultiPoint", coordinates: [p0, p1, p2]}),
       R = [-c[0], -c[1]],
       r = d3Geo.geoRotation(R),
-      p = d3Geo.geoProjection(chamberlinRaw(pointRadians(r(p0)), pointRadians(r(p1)), pointRadians(r(p2)))).rotate(R),
+      f = chamberlinRaw(pointRadians(r(p0)), pointRadians(r(p1)), pointRadians(r(p2)));
+  f.invert = solve2d(f);
+  var p = d3Geo.geoProjection(f).rotate(R),
       center = p.center;
 
   delete p.rotate;
@@ -1051,21 +1112,6 @@ foucautRaw.invert = function(x, y) {
 function foucaut() {
   return d3Geo.geoProjection(foucautRaw)
       .scale(135.264);
-}
-
-// Newton-Raphson
-// Solve f(x) = y, start from x
-function solve(f, y, x) {
-  var steps = 100, delta, f0, f1;
-  x = x === undefined ? 0 : +x;
-  y = +y;
-  do {
-    f0 = f(x);
-    f1 = f(x + epsilon);
-    if (f0 === f1) f1 = f0 + epsilon;
-    x -= delta = (-1 * epsilon * (f0 - y)) / (f0 - f1);
-  } while (steps-- > 0 && abs(delta) > epsilon);
-  return steps < 0 ? NaN : x;
 }
 
 function foucautSinusoidalRaw(alpha) {
@@ -2384,7 +2430,7 @@ function interpolateSphere(lobes) {
   };
 }
 
-function interrupt(project, lobes) {
+function interrupt(project, lobes, inverse) {
   var sphere, bounds;
 
   function forward(lambda, phi) {
@@ -2395,18 +2441,21 @@ function interrupt(project, lobes) {
     return p;
   }
 
-  // Assumes mutually exclusive bounding boxes for lobes.
-  if (project.invert) forward.invert = function(x, y) {
-    var bound = bounds[+(y < 0)], lobe = lobes[+(y < 0)];
-    for (var i = 0, n = bound.length; i < n; ++i) {
-      var b = bound[i];
-      if (b[0][0] <= x && x < b[1][0] && b[0][1] <= y && y < b[1][1]) {
-        var p = project.invert(x - project(lobe[i][1][0], 0)[0], y);
-        p[0] += lobe[i][1][0];
-        return pointEqual(forward(p[0], p[1]), [x, y]) ? p : null;
+  if (inverse) {
+    forward.invert = inverse(forward);
+  } else if (project.invert) {
+    forward.invert = function(x, y) {
+      var bound = bounds[+(y < 0)], lobe = lobes[+(y < 0)];
+      for (var i = 0, n = bound.length; i < n; ++i) {
+        var b = bound[i];
+        if (b[0][0] <= x && x < b[1][0] && b[0][1] <= y && y < b[1][1]) {
+          var p = project.invert(x - project(lobe[i][1][0], 0)[0], y);
+          p[0] += lobe[i][1][0];
+          return pointEqual(forward(p[0], p[1]), [x, y]) ? p : null;
+        }
       }
-    }
-  };
+    };
+  }
 
   var p = d3Geo.geoProjection(forward),
       stream_ = p.stream;
@@ -2532,7 +2581,7 @@ var lobes$4 = [[ // northern hemisphere
 ]];
 
 function sinuMollweide$1() {
-  return interrupt(sinuMollweideRaw, lobes$4)
+  return interrupt(sinuMollweideRaw, lobes$4, solve2d)
       .rotate([-20, -55])
       .scale(164.263)
       .center([0, -5.4036]);
@@ -2835,9 +2884,10 @@ var alaska = [[0.9972523, 0], [0.0052513, -0.0041175], [0.0074606, 0.0048125], [
 
 function modifiedStereographicAlaska() {
   return modifiedStereographic(alaska, [152, -64])
-      .scale(1500)
+      .scale(1400)
       .center([-160.908, 62.4864])
-      .clipAngle(25);
+      .clipAngle(30)
+      .angle(7.8);
 }
 
 function modifiedStereographicGs48() {
@@ -4657,6 +4707,15 @@ function wagner() {
     .scale(163.775);
 }
 
+function wagner7() {
+  return wagner()
+      .poleline(65)
+      .parallels(60)
+      .inflation(0)
+      .ratio(200)
+      .scale(172.633);
+}
+
 var A = 4 * pi + 3 * sqrt(3),
     B = 2 * sqrt(2 * pi * sqrt(3) / A);
 
@@ -4678,32 +4737,6 @@ wagner6Raw.invert = function(x, y) {
 function wagner6() {
   return d3Geo.geoProjection(wagner6Raw)
       .scale(152.63);
-}
-
-function wagner7Raw(lambda, phi) {
-  var s = 0.90631 * sin(phi),
-      c0 = sqrt(1 - s * s),
-      c1 = sqrt(2 / (1 + c0 * cos(lambda /= 3)));
-  return [
-    2.66723 * c0 * c1 * sin(lambda),
-    1.24104 * s * c1
-  ];
-}
-
-wagner7Raw.invert = function(x, y) {
-  var t1 = x / 2.66723,
-      t2 = y / 1.24104,
-      p = sqrt(t1 * t1 + t2 * t2),
-      c = 2 * asin(p / 2);
-  return [
-    3 * atan2(x * tan(c), 2.66723 * p),
-    p && asin(y * sin(c) / (1.24104 * 0.90631 * p))
-  ];
-};
-
-function wagner7() {
-  return d3Geo.geoProjection(wagner7Raw)
-      .scale(172.632);
 }
 
 function wiechelRaw(lambda, phi) {
@@ -4953,13 +4986,12 @@ exports.geoVanDerGrinten3Raw = vanDerGrinten3Raw;
 exports.geoVanDerGrinten4 = vanDerGrinten4;
 exports.geoVanDerGrinten4Raw = vanDerGrinten4Raw;
 exports.geoWagner = wagner;
+exports.geoWagner7 = wagner7;
 exports.geoWagnerRaw = wagnerRaw;
 exports.geoWagner4 = wagner4;
 exports.geoWagner4Raw = wagner4Raw;
 exports.geoWagner6 = wagner6;
 exports.geoWagner6Raw = wagner6Raw;
-exports.geoWagner7 = wagner7;
-exports.geoWagner7Raw = wagner7Raw;
 exports.geoWiechel = wiechel;
 exports.geoWiechelRaw = wiechelRaw;
 exports.geoWinkel3 = winkel3;
