@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.8.0 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.8.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -442,9 +442,13 @@ function solve(f, y, x) {
 
 // Approximate Newton-Raphson in 2D
 // Solve f(a,b) = [x,y]
-function solve2d(f, MAX_ITERATIONS = 40, eps = epsilon2) {
-  return function(x, y, a = 0, b = 0) {
+function solve2d(f, MAX_ITERATIONS, eps) {
+  if (MAX_ITERATIONS === undefined) MAX_ITERATIONS = 40;
+  if (eps === undefined) eps = epsilon2;
+  return function(x, y, a, b) {
     var err2, da, db;
+    a = a === undefined ? 0 : +a;
+    b = b === undefined ? 0 : +b;
     for (var i = 0; i < MAX_ITERATIONS; i++) {
       var p = f(a, b),
         // diffs
