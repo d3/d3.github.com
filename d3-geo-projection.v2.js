@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo-projection/ v2.8.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-geo-projection/ v2.9.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-geo'), require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-geo', 'd3-array'], factory) :
@@ -91,9 +91,9 @@ function airyRaw(beta) {
       var z_2 = z / 2,
           cosz_2 = cos(z_2),
           sinz_2 = sin(z_2),
-          tanz_2 = tan(z_2),
-          lnsecz_2 = log(1 / cosz_2);
-      z -= delta = (2 / tanz_2 * lnsecz_2 - b * tanz_2 - r) / (-lnsecz_2 / (sinz_2 * sinz_2) + 1 - b / (2 * cosz_2 * cosz_2));
+          tanz_2 = sinz_2 / cosz_2,
+          lnsecz_2 = -log(abs(cosz_2));
+      z -= delta = (2 / tanz_2 * lnsecz_2 - b * tanz_2 - r) / (-lnsecz_2 / (sinz_2 * sinz_2) + 1 - b / (2 * cosz_2 * cosz_2)) * (cosz_2 < 0 ? 0.7 : 1);
     } while (abs(delta) > epsilon && --i > 0);
     var sinz = sin(z);
     return [atan2(x * sinz, r * cos(z)), asin(y * sinz / r)];
@@ -194,6 +194,7 @@ function armadilloRaw(phi0) {
           denominator = dxdPhi * dydLambda - dydPhi * dxdLambda,
           dLambda = (fy * dxdPhi - fx * dydPhi) / denominator / 2,
           dPhi = (fx * dydLambda - fy * dxdLambda) / denominator;
+      if (abs(dPhi) > 2) dPhi /= 2;
       lambda -= dLambda, phi -= dPhi;
     } while ((abs(dLambda) > epsilon || abs(dPhi) > epsilon) && --i > 0);
     return sPhi0 * phi > -atan2(cos(lambda), tanPhi0) - 1e-3 ? [lambda * 2, phi] : null;
@@ -2692,7 +2693,7 @@ larriveeRaw.invert = function(x, y) {
         f1 = phi / (cosPhi_2 * cosLambda_6) - y0,
         df0dPhi = sqrtcosPhi ? -0.25 * lambda * sinPhi / sqrtcosPhi : 0,
         df0dLambda = 0.5 * (1 + sqrtcosPhi),
-        df1dPhi = (1 +0.5 * phi * sinPhi_2 / cosPhi_2) / (cosPhi_2 * cosLambda_6),
+        df1dPhi = (1 + 0.5 * phi * sinPhi_2 / cosPhi_2) / (cosPhi_2 * cosLambda_6),
         df1dLambda = (phi / cosPhi_2) * (sinLambda_6 / 6) / (cosLambda_6 * cosLambda_6),
         denom = df0dPhi * df1dLambda - df1dPhi * df0dLambda,
         dPhi = (f0 * df1dLambda - f1 * df0dLambda) / denom,
@@ -3204,7 +3205,7 @@ polyconicRaw.invert = function(x, y) {
   } while (abs(delta) > epsilon && --i > 0);
   tanPhi = tan(phi);
   return [
-    (abs(y) < abs(phi + 1 / tanPhi) ? asin(x * tanPhi) : sign(x) * (acos(abs(x * tanPhi)) + halfPi)) / sin(phi),
+    (abs(y) < abs(phi + 1 / tanPhi) ? asin(x * tanPhi) : sign(y) * sign(x) * (acos(abs(x * tanPhi)) + halfPi)) / sin(phi),
     phi
   ];
 };
