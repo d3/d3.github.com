@@ -1,9 +1,9 @@
-// https://d3js.org/d3-fetch/ v1.1.2 Copyright 2018 Mike Bostock
+// https://d3js.org/d3-fetch/ v1.2.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dsv'], factory) :
-(factory((global.d3 = global.d3 || {}),global.d3));
-}(this, (function (exports,d3Dsv) { 'use strict';
+(global = global || self, factory(global.d3 = global.d3 || {}, global.d3));
+}(this, function (exports, d3Dsv) { 'use strict';
 
 function responseBlob(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText);
@@ -64,6 +64,7 @@ function image(input, init) {
 
 function responseJson(response) {
   if (!response.ok) throw new Error(response.status + " " + response.statusText);
+  if (response.status === 204 || response.status === 205) return;
   return response.json();
 }
 
@@ -73,8 +74,8 @@ function json(input, init) {
 
 function parser(type) {
   return function(input, init)  {
-    return text(input, init).then(function(text$$1) {
-      return (new DOMParser).parseFromString(text$$1, type);
+    return text(input, init).then(function(text) {
+      return (new DOMParser).parseFromString(text, type);
     });
   };
 }
@@ -87,16 +88,16 @@ var svg = parser("image/svg+xml");
 
 exports.blob = blob;
 exports.buffer = buffer;
-exports.dsv = dsv;
 exports.csv = csv;
-exports.tsv = tsv;
+exports.dsv = dsv;
+exports.html = html;
 exports.image = image;
 exports.json = json;
-exports.text = text;
-exports.xml = xml;
-exports.html = html;
 exports.svg = svg;
+exports.text = text;
+exports.tsv = tsv;
+exports.xml = xml;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
