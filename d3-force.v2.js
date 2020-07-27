@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ v2.1.0-rc.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-force/ v2.0.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-dispatch'), require('d3-timer')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-dispatch', 'd3-timer'], factory) :
@@ -6,12 +6,12 @@ typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', '
 }(this, function (exports, d3Quadtree, d3Dispatch, d3Timer) { 'use strict';
 
 function center(x, y) {
-  var nodes, strength = 0.05;
+  var nodes;
 
   if (x == null) x = 0;
   if (y == null) y = 0;
 
-  function force(alpha) {
+  function force() {
     var i,
         n = nodes.length,
         node,
@@ -22,10 +22,8 @@ function center(x, y) {
       node = nodes[i], sx += node.x, sy += node.y;
     }
 
-    sx = (sx / n - x) * alpha * strength;
-    sy = (sy / n - y) * alpha * strength;
-    for (i = 0; i < n; ++i) {
-      node = nodes[i], node.vx -= sx, node.vy -= sy;
+    for (sx = sx / n - x, sy = sy / n - y, i = 0; i < n; ++i) {
+      node = nodes[i], node.x -= sx, node.y -= sy;
     }
   }
 
@@ -50,14 +48,8 @@ function constant(x) {
   };
 }
 
-// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
-const a = 1664525,
-      c = 1013904223,
-      m = 4294967296;
-let s = 1;
-function jiggle(seed) {
-  if (seed) s = Math.abs(a * seed);
-  return ((s = (a * s + c) % m) / m - 0.5) * 1e-6;
+function jiggle() {
+  return (Math.random() - 0.5) * 1e-6;
 }
 
 function x(d) {
@@ -288,7 +280,6 @@ function simulation(nodes) {
       velocityDecay = 0.6,
       forces = new Map(),
       stepper = d3Timer.timer(step),
-      started = stepper.stop() || 0,
       event = d3Dispatch.dispatch("tick", "end");
 
   if (nodes == null) nodes = [];
@@ -412,9 +403,7 @@ function simulation(nodes) {
     },
 
     on: function(name, _) {
-      return arguments.length > 1
-        ? (event.on(name, _), started++ || stepper.restart(step), simulation)
-        : event.on(name);
+      return arguments.length > 1 ? (event.on(name, _), simulation) : event.on(name);
     }
   };
 }
