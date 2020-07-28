@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ v2.0.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-force/ v2.1.0-rc.2 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-dispatch'), require('d3-timer')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-dispatch', 'd3-timer'], factory) :
@@ -48,8 +48,14 @@ function constant(x) {
   };
 }
 
-function jiggle() {
-  return (Math.random() - 0.5) * 1e-6;
+// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+const a = 1664525,
+      c = 1013904223,
+      m = 4294967296;
+let s = 1;
+function jiggle(seed) {
+  if (seed) s = Math.abs(a * seed);
+  return ((s = (a * s + c) % m) / m - 0.5) * 1e-6;
 }
 
 function x(d) {
