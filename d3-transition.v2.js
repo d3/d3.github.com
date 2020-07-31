@@ -1,4 +1,4 @@
-// https://d3js.org/d3-transition/ v2.0.0-rc.4 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-transition/ v2.0.0-rc.5 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
@@ -752,7 +752,7 @@ function transition_transition() {
 }
 
 function transition_end() {
-  var on0, on1, that = this, id = that._id, size = that.selection().size();
+  var on0, on1, that = this, id = that._id, size = that.size();
   return new Promise(function(resolve, reject) {
     var cancel = {value: reject},
         end = {value: function() { if (--size === 0) resolve(); }};
@@ -825,7 +825,8 @@ Transition.prototype = transition.prototype = {
   duration: transition_duration,
   ease: transition_ease,
   easeVarying: transition_easeVarying,
-  end: transition_end
+  end: transition_end,
+  [Symbol.iterator]: selection_prototype[Symbol.iterator]
 };
 
 var defaultTiming = {
