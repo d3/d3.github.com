@@ -1,4 +1,4 @@
-// https://d3js.org/d3-selection/ v2.0.0-rc.3 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-selection/ v2.0.0-rc.4 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -896,7 +896,15 @@ Local.prototype = local.prototype = {
   }
 };
 
-function pointer(event, node = event.currentTarget) {
+function sourceEvent(event) {
+  let sourceEvent;
+  while (sourceEvent = event.sourceEvent) event = sourceEvent;
+  return event;
+}
+
+function pointer(event, node) {
+  event = sourceEvent(event);
+  if (node === undefined) node = event.currentTarget;
   if (node) {
     var svg = node.ownerSVGElement || node;
     if (svg.createSVGPoint) {
@@ -913,6 +921,16 @@ function pointer(event, node = event.currentTarget) {
   return [event.pageX, event.pageY];
 }
 
+function pointers(events, node) {
+  if (events.target) { // i.e., instanceof Event, not TouchList or iterable
+    events = sourceEvent(events);
+    if (node === undefined) node = events.currentTarget;
+    events = events.touches || [events];
+  }
+console.warn({events, node});
+  return Array.from(events, event => pointer(event, node));
+}
+
 function selectAll(selector) {
   return typeof selector === "string"
       ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
@@ -926,6 +944,7 @@ exports.matcher = matcher;
 exports.namespace = namespace;
 exports.namespaces = namespaces;
 exports.pointer = pointer;
+exports.pointers = pointers;
 exports.select = select;
 exports.selectAll = selectAll;
 exports.selection = selection;
