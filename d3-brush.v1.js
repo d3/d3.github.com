@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v1.1.5 Copyright 2019 Mike Bostock
+// https://d3js.org/d3-brush/ v1.1.6 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -307,14 +307,16 @@ function brush$1(dim) {
   }
 
   function emitter(that, args, clean) {
-    return (!clean && that.__brush.emitter) || new Emitter(that, args);
+    var emit = that.__brush.emitter;
+    return emit && (!clean || !emit.clean) ? emit : new Emitter(that, args, clean);
   }
 
-  function Emitter(that, args) {
+  function Emitter(that, args, clean) {
     this.that = that;
     this.args = args;
     this.state = that.__brush;
     this.active = 0;
+    this.clean = clean;
   }
 
   Emitter.prototype = {
