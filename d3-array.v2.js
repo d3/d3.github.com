@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.5.0 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-array/ v2.5.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -173,7 +173,7 @@ function extent(values, valueof) {
 // https://github.com/python/cpython/blob/a74eea238f5baba15797e2e8b570d153bc8690a7/Modules/mathmodule.c#L1423
 class Adder {
   constructor() {
-    this._partials = new Float64Array(32).fill(0);
+    this._partials = new Float64Array(32);
     this._n = 0;
   }
   add(x) {
@@ -317,8 +317,8 @@ function ticks(start, stop, count) {
     while (++i < n) ticks[i] = (start + i) * step;
   } else {
     step = -step;
-    start = Math.floor(start * step);
-    stop = Math.ceil(stop * step);
+    start = Math.ceil(start * step);
+    stop = Math.floor(stop * step);
     ticks = new Array(n = Math.ceil(stop - start + 1));
     while (++i < n) ticks[i] = (start + i) / step;
   }
