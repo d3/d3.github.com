@@ -1,4 +1,4 @@
-// https://d3js.org/d3-force/ v2.1.0-rc.2 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-force/ v2.1.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-dispatch'), require('d3-timer')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', 'd3-dispatch', 'd3-timer'], factory) :
@@ -6,7 +6,7 @@ typeof define === 'function' && define.amd ? define(['exports', 'd3-quadtree', '
 }(this, function (exports, d3Quadtree, d3Dispatch, d3Timer) { 'use strict';
 
 function center(x, y) {
-  var nodes;
+  var nodes, strength = 1;
 
   if (x == null) x = 0;
   if (y == null) y = 0;
@@ -22,7 +22,7 @@ function center(x, y) {
       node = nodes[i], sx += node.x, sy += node.y;
     }
 
-    for (sx = sx / n - x, sy = sy / n - y, i = 0; i < n; ++i) {
+    for (sx = (sx / n - x) * strength, sy = (sy / n - y) * strength, i = 0; i < n; ++i) {
       node = nodes[i], node.x -= sx, node.y -= sy;
     }
   }
@@ -39,6 +39,10 @@ function center(x, y) {
     return arguments.length ? (y = +_, force) : y;
   };
 
+  force.strength = function(_) {
+    return arguments.length ? (strength = +_, force) : strength;
+  };
+
   return force;
 }
 
@@ -48,14 +52,8 @@ function constant(x) {
   };
 }
 
-// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
-const a = 1664525,
-      c = 1013904223,
-      m = 4294967296;
-let s = 1;
-function jiggle(seed) {
-  if (seed) s = Math.abs(a * seed);
-  return ((s = (a * s + c) % m) / m - 0.5) * 1e-6;
+function jiggle(random) {
+  return (random() - 0.5) * 1e-6;
 }
 
 function x(d) {
@@ -69,6 +67,7 @@ function y(d) {
 function collide(radius) {
   var nodes,
       radii,
+      random,
       strength = 1,
       iterations = 1;
 
@@ -102,8 +101,8 @@ function collide(radius) {
               y = yi - data.y - data.vy,
               l = x * x + y * y;
           if (l < r * r) {
-            if (x === 0) x = jiggle(), l += x * x;
-            if (y === 0) y = jiggle(), l += y * y;
+            if (x === 0) x = jiggle(random), l += x * x;
+            if (y === 0) y = jiggle(random), l += y * y;
             l = (r - (l = Math.sqrt(l))) / l * strength;
             node.vx += (x *= l) * (r = (rj *= rj) / (ri2 + rj));
             node.vy += (y *= l) * r;
@@ -133,8 +132,9 @@ function collide(radius) {
     for (i = 0; i < n; ++i) node = nodes[i], radii[node.index] = +radius(node, i, nodes);
   }
 
-  force.initialize = function(_) {
-    nodes = _;
+  force.initialize = function(_nodes, _random) {
+    nodes = _nodes;
+    random = _random;
     initialize();
   };
 
@@ -172,6 +172,7 @@ function link(links) {
       nodes,
       count,
       bias,
+      random,
       iterations = 1;
 
   if (links == null) links = [];
@@ -184,8 +185,8 @@ function link(links) {
     for (var k = 0, n = links.length; k < iterations; ++k) {
       for (var i = 0, link, source, target, x, y, l, b; i < n; ++i) {
         link = links[i], source = link.source, target = link.target;
-        x = target.x + target.vx - source.x - source.vx || jiggle();
-        y = target.y + target.vy - source.y - source.vy || jiggle();
+        x = target.x + target.vx - source.x - source.vx || jiggle(random);
+        y = target.y + target.vy - source.y - source.vy || jiggle(random);
         l = Math.sqrt(x * x + y * y);
         l = (l - distances[i]) / l * alpha * strengths[i];
         x *= l, y *= l;
@@ -238,8 +239,9 @@ function link(links) {
     }
   }
 
-  force.initialize = function(_) {
-    nodes = _;
+  force.initialize = function(_nodes, _random) {
+    nodes = _nodes;
+    random = _random;
     initialize();
   };
 
@@ -266,6 +268,16 @@ function link(links) {
   return force;
 }
 
+// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+const a = 1664525;
+const c = 1013904223;
+const m = 4294967296; // 2^32
+
+function lcg() {
+  let s = 1;
+  return () => (s = (a * s + c) % m) / m;
+}
+
 function x$1(d) {
   return d.x;
 }
@@ -286,7 +298,8 @@ function simulation(nodes) {
       velocityDecay = 0.6,
       forces = new Map(),
       stepper = d3Timer.timer(step),
-      event = d3Dispatch.dispatch("tick", "end");
+      event = d3Dispatch.dispatch("tick", "end"),
+      random = lcg();
 
   if (nodes == null) nodes = [];
 
@@ -340,7 +353,7 @@ function simulation(nodes) {
   }
 
   function initializeForce(force) {
-    if (force.initialize) force.initialize(nodes);
+    if (force.initialize) force.initialize(nodes, random);
     return force;
   }
 
@@ -381,6 +394,10 @@ function simulation(nodes) {
       return arguments.length ? (velocityDecay = 1 - _, simulation) : 1 - velocityDecay;
     },
 
+    randomSource: function(_) {
+      return arguments.length ? (random = _, forces.forEach(initializeForce), simulation) : random;
+    },
+
     force: function(name, _) {
       return arguments.length > 1 ? ((_ == null ? forces.delete(name) : forces.set(name, initializeForce(_))), simulation) : forces.get(name);
     },
@@ -417,6 +434,7 @@ function simulation(nodes) {
 function manyBody() {
   var nodes,
       node,
+      random,
       alpha,
       strength = constant(-30),
       strengths,
@@ -474,8 +492,8 @@ function manyBody() {
     // Limit forces for very close nodes; randomize direction if coincident.
     if (w * w / theta2 < l) {
       if (l < distanceMax2) {
-        if (x === 0) x = jiggle(), l += x * x;
-        if (y === 0) y = jiggle(), l += y * y;
+        if (x === 0) x = jiggle(random), l += x * x;
+        if (y === 0) y = jiggle(random), l += y * y;
         if (l < distanceMin2) l = Math.sqrt(distanceMin2 * l);
         node.vx += x * quad.value * alpha / l;
         node.vy += y * quad.value * alpha / l;
@@ -488,8 +506,8 @@ function manyBody() {
 
     // Limit forces for very close nodes; randomize direction if coincident.
     if (quad.data !== node || quad.next) {
-      if (x === 0) x = jiggle(), l += x * x;
-      if (y === 0) y = jiggle(), l += y * y;
+      if (x === 0) x = jiggle(random), l += x * x;
+      if (y === 0) y = jiggle(random), l += y * y;
       if (l < distanceMin2) l = Math.sqrt(distanceMin2 * l);
     }
 
@@ -500,8 +518,9 @@ function manyBody() {
     } while (quad = quad.next);
   }
 
-  force.initialize = function(_) {
-    nodes = _;
+  force.initialize = function(_nodes, _random) {
+    nodes = _nodes;
+    random = _random;
     initialize();
   };
 
