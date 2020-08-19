@@ -1,4 +1,4 @@
-// https://d3js.org/d3-polygon/ v2.0.0-rc.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-polygon/ v2.0.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
