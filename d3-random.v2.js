@@ -1,4 +1,4 @@
-// https://d3js.org/d3-random/ v2.1.0 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-random/ v2.2.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -324,6 +324,17 @@ var poisson = (function sourceRandomPoisson(source) {
   return randomPoisson;
 })(defaultSource);
 
+// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+const a = 1664525;
+const c = 1013904223;
+const m = 4294967296; // 2^32
+
+function lcg(s = Math.random()) {
+  if (!(0 <= s && s < 1)) throw new RangeError("invalid seed");
+  s = Math.floor(m * s);
+  return () => (s = (a * s + c) % m) / m;
+}
+
 exports.randomBates = bates;
 exports.randomBernoulli = bernoulli;
 exports.randomBeta = beta;
@@ -334,6 +345,7 @@ exports.randomGamma = gamma;
 exports.randomGeometric = geometric;
 exports.randomInt = int;
 exports.randomIrwinHall = irwinHall;
+exports.randomLcg = lcg;
 exports.randomLogNormal = logNormal;
 exports.randomLogistic = logistic;
 exports.randomNormal = normal;
