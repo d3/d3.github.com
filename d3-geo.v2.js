@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ v2.0.0-rc.2 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-geo/ v2.0.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -21,6 +21,7 @@ var atan2 = Math.atan2;
 var cos = Math.cos;
 var ceil = Math.ceil;
 var exp = Math.exp;
+var hypot = Math.hypot;
 var log = Math.log;
 var pow = Math.pow;
 var sin = Math.sin;
@@ -489,7 +490,7 @@ function centroidRingPoint(lambda, phi) {
       cx = y0 * z - z0 * y,
       cy = z0 * x - x0 * z,
       cz = x0 * y - y0 * x,
-      m = sqrt(cx * cx + cy * cy + cz * cz),
+      m = hypot(cx, cy, cz),
       w = asin(m), // line weight = angle
       v = m && -w / m; // area weight multiplier
   X2.add(v * cx);
@@ -514,19 +515,19 @@ function centroid(object) {
   var x = +X2,
       y = +Y2,
       z = +Z2,
-      m = x * x + y * y + z * z;
+      m = hypot(x, y, z);
 
   // If the area-weighted ccentroid is undefined, fall back to length-weighted ccentroid.
   if (m < epsilon2) {
     x = X1, y = Y1, z = Z1;
     // If the feature has zero length, fall back to arithmetic mean of point vectors.
     if (W1 < epsilon) x = X0, y = Y0, z = Z0;
-    m = x * x + y * y + z * z;
+    m = hypot(x, y, z);
     // If the feature still has an undefined ccentroid, then return.
-    if (m < epsilon2 * epsilon2) return [NaN, NaN];
+    if (m < epsilon2) return [NaN, NaN];
   }
 
-  return [atan2(y, x) * degrees, asin(z / sqrt(m)) * degrees];
+  return [atan2(y, x) * degrees, asin(z / m) * degrees];
 }
 
 function constant(x) {
