@@ -1,4 +1,4 @@
-// https://d3js.org/d3-selection/ v2.0.0-rc.4 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-selection/ v2.0.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -110,6 +110,46 @@ function matcher(selector) {
   return function() {
     return this.matches(selector);
   };
+}
+
+function childMatcher(selector) {
+  return function(node) {
+    return node.matches(selector);
+  };
+}
+
+var find = Array.prototype.find;
+
+function childFind(match) {
+  return function() {
+    return find.call(this.children, match);
+  };
+}
+
+function childFirst() {
+  return this.firstElementChild;
+}
+
+function selection_selectChild(match) {
+  return this.select(match == null ? childFirst
+      : childFind(typeof match === "function" ? match : childMatcher(match)));
+}
+
+var filter = Array.prototype.filter;
+
+function children() {
+  return this.children;
+}
+
+function childrenFilter(match) {
+  return function() {
+    return filter.call(this.children, match);
+  };
+}
+
+function selection_selectChildren(match) {
+  return this.selectAll(match == null ? children
+      : childrenFilter(typeof match === "function" ? match : childMatcher(match)));
 }
 
 function selection_filter(match) {
@@ -825,6 +865,8 @@ Selection.prototype = selection.prototype = {
   constructor: Selection,
   select: selection_select,
   selectAll: selection_selectAll,
+  selectChild: selection_selectChild,
+  selectChildren: selection_selectChildren,
   filter: selection_filter,
   data: selection_data,
   enter: selection_enter,
@@ -927,7 +969,6 @@ function pointers(events, node) {
     if (node === undefined) node = events.currentTarget;
     events = events.touches || [events];
   }
-console.warn({events, node});
   return Array.from(events, event => pointer(event, node));
 }
 
