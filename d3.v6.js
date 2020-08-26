@@ -1,46 +1,59 @@
-// https://d3js.org v6.0.0-rc.4 Copyright 2020 Mike Bostock
+// https://d3js.org v6.0.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(global = global || self, factory(global.d3 = global.d3 || {}));
-}(this, function (exports) { 'use strict';
+(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
+}(this, (function (exports) { 'use strict';
 
-var version = "6.0.0-rc.4";
+var version = "6.0.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
-function bisector(compare) {
-  if (compare.length === 1) compare = ascendingComparator(compare);
-  return {
-    left: function(a, x, lo, hi) {
-      if (lo == null) lo = 0;
-      if (hi == null) hi = a.length;
-      while (lo < hi) {
-        var mid = lo + hi >>> 1;
-        if (compare(a[mid], x) < 0) lo = mid + 1;
-        else hi = mid;
-      }
-      return lo;
-    },
-    right: function(a, x, lo, hi) {
-      if (lo == null) lo = 0;
-      if (hi == null) hi = a.length;
-      while (lo < hi) {
-        var mid = lo + hi >>> 1;
-        if (compare(a[mid], x) > 0) hi = mid;
-        else lo = mid + 1;
-      }
-      return lo;
+function bisector(f) {
+  let delta = f;
+  let compare = f;
+
+  if (f.length === 1) {
+    delta = (d, x) => f(d) - x;
+    compare = ascendingComparator(f);
+  }
+
+  function left(a, x, lo, hi) {
+    if (lo == null) lo = 0;
+    if (hi == null) hi = a.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (compare(a[mid], x) < 0) lo = mid + 1;
+      else hi = mid;
     }
-  };
+    return lo;
+  }
+
+  function right(a, x, lo, hi) {
+    if (lo == null) lo = 0;
+    if (hi == null) hi = a.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (compare(a[mid], x) > 0) hi = mid;
+      else lo = mid + 1;
+    }
+    return lo;
+  }
+
+  function center(a, x, lo, hi) {
+    if (lo == null) lo = 0;
+    if (hi == null) hi = a.length;
+    const i = left(a, x, lo, hi);
+    return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
+  }
+
+  return {left, center, right};
 }
 
 function ascendingComparator(f) {
-  return function(d, x) {
-    return ascending(f(d), x);
-  };
+  return (d, x) => ascending(f(d), x);
 }
 
 var ascendingBisect = bisector(ascending);
@@ -175,7 +188,7 @@ function extent(values, valueof) {
 // https://github.com/python/cpython/blob/a74eea238f5baba15797e2e8b570d153bc8690a7/Modules/mathmodule.c#L1423
 class Adder {
   constructor() {
-    this._partials = new Float64Array(32).fill(0);
+    this._partials = new Float64Array(32);
     this._n = 0;
   }
   add(x) {
@@ -253,6 +266,19 @@ function rollups(values, reduce, ...keys) {
   return nest(values, Array.from, reduce, keys);
 }
 
+function index(values, ...keys) {
+  return nest(values, identity, unique, keys);
+}
+
+function indexes(values, ...keys) {
+  return nest(values, Array.from, unique, keys);
+}
+
+function unique(values) {
+  if (values.length !== 1) throw new Error("duplicate key");
+  return values[0];
+}
+
 function nest(values, map, reduce, keys) {
   return (function regroup(values, i) {
     if (i >= keys.length) return reduce(values);
@@ -319,8 +345,8 @@ function ticks(start, stop, count) {
     while (++i < n) ticks[i] = (start + i) * step;
   } else {
     step = -step;
-    start = Math.floor(start * step);
-    stop = Math.ceil(stop * step);
+    start = Math.ceil(start * step);
+    stop = Math.floor(stop * step);
     ticks = new Array(n = Math.ceil(stop - start + 1));
     while (++i < n) ticks[i] = (start + i) / step;
   }
@@ -4647,6 +4673,7 @@ function BrushEvent(type, {
   sourceEvent,
   target,
   selection,
+  mode,
   dispatch
 }) {
   Object.defineProperties(this, {
@@ -4654,6 +4681,7 @@ function BrushEvent(type, {
     sourceEvent: {value: sourceEvent, enumerable: true, configurable: true},
     target: {value: target, enumerable: true, configurable: true},
     selection: {value: selection, enumerable: true, configurable: true},
+    mode: {value: mode, enumerable: true, configurable: true},
     _: {value: dispatch}
   });
 }
@@ -4961,20 +4989,20 @@ function brush$1(dim) {
       if (++this.active === 1) this.state.emitter = this, this.starting = true;
       return this;
     },
-    start: function(event) {
-      if (this.starting) this.starting = false, this.emit("start", event);
+    start: function(event, mode) {
+      if (this.starting) this.starting = false, this.emit("start", event, mode);
       else this.emit("brush", event);
       return this;
     },
-    brush: function(event) {
-      this.emit("brush", event);
+    brush: function(event, mode) {
+      this.emit("brush", event, mode);
       return this;
     },
-    end: function(event) {
-      if (--this.active === 0) delete this.state.emitter, this.emit("end", event);
+    end: function(event, mode) {
+      if (--this.active === 0) delete this.state.emitter, this.emit("end", event, mode);
       return this;
     },
-    emit: function(type, event) {
+    emit: function(type, event, mode) {
       var d = select(this.that).datum();
       listeners.call(
         type,
@@ -4983,6 +5011,7 @@ function brush$1(dim) {
           sourceEvent: event,
           target: brush,
           selection: dim.output(this.state.selection),
+          mode,
           dispatch: listeners
         }),
         d
@@ -5067,7 +5096,7 @@ function brush$1(dim) {
     }
 
     redraw.call(that);
-    emit.start();
+    emit.start(event, mode.name);
 
     function moved(event) {
       for (const p of event.changedTouches || [event]) {
@@ -5145,7 +5174,7 @@ function brush$1(dim) {
           || selection[1][1] !== s1) {
         state.selection = [[w1, n1], [e1, s1]];
         redraw.call(that);
-        emit.brush(event);
+        emit.brush(event, mode.name);
       }
     }
 
@@ -5163,7 +5192,7 @@ function brush$1(dim) {
       overlay.attr("cursor", cursors.overlay);
       if (state.selection) selection = state.selection; // May be set by brush.move (on start)!
       if (empty$2(selection)) state.selection = null, redraw.call(that);
-      emit.end(event);
+      emit.end(event, mode.name);
     }
 
     function keydowned(event) {
@@ -8038,7 +8067,7 @@ function collide(radius) {
   return force;
 }
 
-function index(d) {
+function index$1(d) {
   return d.index;
 }
 
@@ -8049,7 +8078,7 @@ function find$1(nodeById, nodeId) {
 }
 
 function link(links) {
-  var id = index,
+  var id = index$1,
       strength = defaultStrength,
       strengths,
       distance = constant$7(30),
@@ -11009,7 +11038,7 @@ function circle$1(radius) {
       + "z";
 }
 
-function index$1(projection, context) {
+function index$2(projection, context) {
   var pointRadius = 4.5,
       projectionStream,
       contextStream;
@@ -12552,7 +12581,7 @@ function defaultRadius$1(d) {
   return Math.sqrt(d.value);
 }
 
-function index$2() {
+function index$3() {
   var radius = null,
       dx = 1,
       dy = 1,
@@ -13080,7 +13109,7 @@ var squarify = (function custom(ratio) {
   return squarify;
 })(phi);
 
-function index$3() {
+function index$4() {
   var tile = squarify,
       round = false,
       dx = 1,
@@ -13708,14 +13737,14 @@ var poisson = (function sourceRandomPoisson(source) {
 })(defaultSource$1);
 
 // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
-const a$1 = 1664525;
-const c$1 = 1013904223;
-const m$1 = 4294967296; // 2^32
+const mul = 0x19660D;
+const inc = 0x3C6EF35F;
+const eps = 1/0x100000000;
 
-function lcg$1(s = Math.random()) {
-  if (!(0 <= s && s < 1)) throw new RangeError("invalid seed");
-  s = Math.floor(m$1 * s);
-  return () => (s = (a$1 * s + c$1) % m$1) / m$1;
+function lcg$1(seed = Math.random()) {
+  if (!(0 <= seed && seed < 1)) throw new RangeError("invalid seed");
+  let state = seed / eps | 0;
+  return () => (state = mul * state + inc | 0, eps * (state >>> 0));
 }
 
 function initRange(domain, range) {
@@ -16355,28 +16384,28 @@ var warm = cubehelixLong(cubehelix(-100, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
 
 var cool = cubehelixLong(cubehelix(260, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
 
-var c$2 = cubehelix();
+var c$1 = cubehelix();
 
 function rainbow(t) {
   if (t < 0 || t > 1) t -= Math.floor(t);
   var ts = Math.abs(t - 0.5);
-  c$2.h = 360 * t - 100;
-  c$2.s = 1.5 - 1.5 * ts;
-  c$2.l = 0.8 - 0.9 * ts;
-  return c$2 + "";
+  c$1.h = 360 * t - 100;
+  c$1.s = 1.5 - 1.5 * ts;
+  c$1.l = 0.8 - 0.9 * ts;
+  return c$1 + "";
 }
 
-var c$3 = rgb(),
+var c$2 = rgb(),
     pi_1_3 = Math.PI / 3,
     pi_2_3 = Math.PI * 2 / 3;
 
 function sinebow(t) {
   var x;
   t = (0.5 - t) * Math.PI;
-  c$3.r = 255 * (x = Math.sin(t)) * x;
-  c$3.g = 255 * (x = Math.sin(t + pi_1_3)) * x;
-  c$3.b = 255 * (x = Math.sin(t + pi_2_3)) * x;
-  return c$3 + "";
+  c$2.r = 255 * (x = Math.sin(t)) * x;
+  c$2.g = 255 * (x = Math.sin(t + pi_1_3)) * x;
+  c$2.b = 255 * (x = Math.sin(t + pi_2_3)) * x;
+  return c$2 + "";
 }
 
 function turbo(t) {
@@ -17222,14 +17251,14 @@ var triangle = {
   }
 };
 
-var c$4 = -0.5,
+var c$3 = -0.5,
     s = Math.sqrt(3) / 2,
     k = 1 / Math.sqrt(12),
-    a$2 = (k / 2 + 1) * 3;
+    a$1 = (k / 2 + 1) * 3;
 
 var wye = {
   draw: function(context, size) {
-    var r = Math.sqrt(size / a$2),
+    var r = Math.sqrt(size / a$1),
         x0 = r / 2,
         y0 = r * k,
         x1 = x0,
@@ -17239,12 +17268,12 @@ var wye = {
     context.moveTo(x0, y0);
     context.lineTo(x1, y1);
     context.lineTo(x2, y2);
-    context.lineTo(c$4 * x0 - s * y0, s * x0 + c$4 * y0);
-    context.lineTo(c$4 * x1 - s * y1, s * x1 + c$4 * y1);
-    context.lineTo(c$4 * x2 - s * y2, s * x2 + c$4 * y2);
-    context.lineTo(c$4 * x0 + s * y0, c$4 * y0 - s * x0);
-    context.lineTo(c$4 * x1 + s * y1, c$4 * y1 - s * x1);
-    context.lineTo(c$4 * x2 + s * y2, c$4 * y2 - s * x2);
+    context.lineTo(c$3 * x0 - s * y0, s * x0 + c$3 * y0);
+    context.lineTo(c$3 * x1 - s * y1, s * x1 + c$3 * y1);
+    context.lineTo(c$3 * x2 - s * y2, s * x2 + c$3 * y2);
+    context.lineTo(c$3 * x0 + s * y0, c$3 * y0 - s * x0);
+    context.lineTo(c$3 * x1 + s * y1, c$3 * y1 - s * x1);
+    context.lineTo(c$3 * x2 + s * y2, c$3 * y2 - s * x2);
     context.closePath();
   }
 };
@@ -18976,7 +19005,7 @@ exports.geoNaturalEarth1 = naturalEarth1;
 exports.geoNaturalEarth1Raw = naturalEarth1Raw;
 exports.geoOrthographic = orthographic;
 exports.geoOrthographicRaw = orthographicRaw;
-exports.geoPath = index$1;
+exports.geoPath = index$2;
 exports.geoProjection = projection;
 exports.geoProjectionMutator = projectionMutator;
 exports.geoRotation = rotation;
@@ -18997,6 +19026,8 @@ exports.histogram = bin;
 exports.hsl = hsl;
 exports.html = html;
 exports.image = image;
+exports.index = index;
+exports.indexes = indexes;
 exports.interpolate = interpolate;
 exports.interpolateArray = array$2;
 exports.interpolateBasis = basis$1;
@@ -19086,7 +19117,7 @@ exports.minIndex = minIndex;
 exports.namespace = namespace;
 exports.namespaces = namespaces;
 exports.now = now;
-exports.pack = index$2;
+exports.pack = index$3;
 exports.packEnclose = enclose;
 exports.packSiblings = siblings;
 exports.pairs = pairs;
@@ -19280,7 +19311,7 @@ exports.timerFlush = timerFlush;
 exports.transition = transition;
 exports.transpose = transpose;
 exports.tree = tree;
-exports.treemap = index$3;
+exports.treemap = index$4;
 exports.treemapBinary = binary;
 exports.treemapDice = treemapDice;
 exports.treemapResquarify = resquarify;
@@ -19336,4 +19367,4 @@ exports.zoomTransform = transform$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
