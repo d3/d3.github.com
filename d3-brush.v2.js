@@ -1,4 +1,4 @@
-// https://d3js.org/d3-brush/ v2.0.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-brush/ v2.1.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -11,6 +11,7 @@ function BrushEvent(type, {
   sourceEvent,
   target,
   selection,
+  mode,
   dispatch
 }) {
   Object.defineProperties(this, {
@@ -18,6 +19,7 @@ function BrushEvent(type, {
     sourceEvent: {value: sourceEvent, enumerable: true, configurable: true},
     target: {value: target, enumerable: true, configurable: true},
     selection: {value: selection, enumerable: true, configurable: true},
+    mode: {value: mode, enumerable: true, configurable: true},
     _: {value: dispatch}
   });
 }
@@ -325,20 +327,20 @@ function brush$1(dim) {
       if (++this.active === 1) this.state.emitter = this, this.starting = true;
       return this;
     },
-    start: function(event) {
-      if (this.starting) this.starting = false, this.emit("start", event);
+    start: function(event, mode) {
+      if (this.starting) this.starting = false, this.emit("start", event, mode);
       else this.emit("brush", event);
       return this;
     },
-    brush: function(event) {
-      this.emit("brush", event);
+    brush: function(event, mode) {
+      this.emit("brush", event, mode);
       return this;
     },
-    end: function(event) {
-      if (--this.active === 0) delete this.state.emitter, this.emit("end", event);
+    end: function(event, mode) {
+      if (--this.active === 0) delete this.state.emitter, this.emit("end", event, mode);
       return this;
     },
-    emit: function(type, event) {
+    emit: function(type, event, mode) {
       var d = d3Selection.select(this.that).datum();
       listeners.call(
         type,
@@ -347,6 +349,7 @@ function brush$1(dim) {
           sourceEvent: event,
           target: brush,
           selection: dim.output(this.state.selection),
+          mode,
           dispatch: listeners
         }),
         d
@@ -431,7 +434,7 @@ function brush$1(dim) {
     }
 
     redraw.call(that);
-    emit.start(event);
+    emit.start(event, mode.name);
 
     function moved(event) {
       for (const p of event.changedTouches || [event]) {
@@ -509,7 +512,7 @@ function brush$1(dim) {
           || selection[1][1] !== s1) {
         state.selection = [[w1, n1], [e1, s1]];
         redraw.call(that);
-        emit.brush(event);
+        emit.brush(event, mode.name);
       }
     }
 
@@ -527,7 +530,7 @@ function brush$1(dim) {
       overlay.attr("cursor", cursors.overlay);
       if (state.selection) selection = state.selection; // May be set by brush.move (on start)!
       if (empty(selection)) state.selection = null, redraw.call(that);
-      emit.end(event);
+      emit.end(event, mode.name);
     }
 
     function keydowned(event) {
