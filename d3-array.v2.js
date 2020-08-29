@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.6.0 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-array/ v2.7.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -43,7 +43,7 @@ function bisector(f) {
   function center(a, x, lo, hi) {
     if (lo == null) lo = 0;
     if (hi == null) hi = a.length;
-    const i = left(a, x, lo, hi);
+    const i = left(a, x, lo, hi - 1);
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
 
@@ -54,9 +54,31 @@ function ascendingComparator(f) {
   return (d, x) => ascending(f(d), x);
 }
 
-var ascendingBisect = bisector(ascending);
-var bisectRight = ascendingBisect.right;
-var bisectLeft = ascendingBisect.left;
+function number(x) {
+  return x === null ? NaN : +x;
+}
+
+function* numbers(values, valueof) {
+  if (valueof === undefined) {
+    for (let value of values) {
+      if (value != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  }
+}
+
+const ascendingBisect = bisector(ascending);
+const bisectRight = ascendingBisect.right;
+const bisectLeft = ascendingBisect.left;
+const bisectCenter = bisector(number).center;
 
 function count(values, valueof) {
   let count = 0;
@@ -531,27 +553,6 @@ function swap(array, i, j) {
   array[j] = t;
 }
 
-function number(x) {
-  return x === null ? NaN : +x;
-}
-
-function* numbers(values, valueof) {
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  } else {
-    let index = -1;
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  }
-}
-
 function quantile(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
   if (!(n = values.length)) return;
@@ -780,19 +781,18 @@ function scan(values, compare) {
   return index < 0 ? undefined : index;
 }
 
-function shuffle(array, i0 = 0, i1 = array.length) {
-  var m = i1 - (i0 = +i0),
-      t,
-      i;
+var shuffle = shuffler(Math.random);
 
-  while (m) {
-    i = Math.random() * m-- | 0;
-    t = array[m + i0];
-    array[m + i0] = array[i + i0];
-    array[i + i0] = t;
-  }
-
-  return array;
+function shuffler(random) {
+  return function shuffle(array, i0 = 0, i1 = array.length) {
+    let m = i1 - (i0 = +i0);
+    while (m) {
+      const i = random() * m-- | 0, t = array[m + i0];
+      array[m + i0] = array[i + i0];
+      array[i + i0] = t;
+    }
+    return array;
+  };
 }
 
 function sum(values, valueof) {
@@ -836,6 +836,7 @@ exports.Adder = Adder;
 exports.ascending = ascending;
 exports.bin = bin;
 exports.bisect = bisectRight;
+exports.bisectCenter = bisectCenter;
 exports.bisectLeft = bisectLeft;
 exports.bisectRight = bisectRight;
 exports.bisector = bisector;
@@ -872,6 +873,7 @@ exports.rollup = rollup;
 exports.rollups = rollups;
 exports.scan = scan;
 exports.shuffle = shuffle;
+exports.shuffler = shuffler;
 exports.sum = sum;
 exports.thresholdFreedmanDiaconis = freedmanDiaconis;
 exports.thresholdScott = scott;
