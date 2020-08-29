@@ -1,9 +1,9 @@
-// https://d3js.org/d3-random/ v2.2.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-random/ v2.2.2 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(global = global || self, factory(global.d3 = global.d3 || {}));
-}(this, function (exports) { 'use strict';
+(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
+}(this, (function (exports) { 'use strict';
 
 var defaultSource = Math.random;
 
@@ -327,11 +327,10 @@ var poisson = (function sourceRandomPoisson(source) {
 // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
 const mul = 0x19660D;
 const inc = 0x3C6EF35F;
-const eps = 1/0x100000000;
+const eps = 1 / 0x100000000;
 
 function lcg(seed = Math.random()) {
-  if (!(0 <= seed && seed < 1)) throw new RangeError("invalid seed");
-  let state = seed / eps | 0;
+  let state = (0 <= seed && seed < 1 ? seed / eps : Math.abs(seed)) | 0;
   return () => (state = mul * state + inc | 0, eps * (state >>> 0));
 }
 
@@ -356,4 +355,4 @@ exports.randomWeibull = weibull;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
