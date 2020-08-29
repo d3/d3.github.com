@@ -1,11 +1,11 @@
-// https://d3js.org v6.0.0 Copyright 2020 Mike Bostock
+// https://d3js.org v6.1.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "6.0.0";
+var version = "6.1.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -45,7 +45,7 @@ function bisector(f) {
   function center(a, x, lo, hi) {
     if (lo == null) lo = 0;
     if (hi == null) hi = a.length;
-    const i = left(a, x, lo, hi);
+    const i = left(a, x, lo, hi - 1);
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
 
@@ -56,9 +56,31 @@ function ascendingComparator(f) {
   return (d, x) => ascending(f(d), x);
 }
 
-var ascendingBisect = bisector(ascending);
-var bisectRight = ascendingBisect.right;
-var bisectLeft = ascendingBisect.left;
+function number(x) {
+  return x === null ? NaN : +x;
+}
+
+function* numbers(values, valueof) {
+  if (valueof === undefined) {
+    for (let value of values) {
+      if (value != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+        yield value;
+      }
+    }
+  }
+}
+
+const ascendingBisect = bisector(ascending);
+const bisectRight = ascendingBisect.right;
+const bisectLeft = ascendingBisect.left;
+const bisectCenter = bisector(number).center;
 
 function count(values, valueof) {
   let count = 0;
@@ -533,27 +555,6 @@ function swap(array, i, j) {
   array[j] = t;
 }
 
-function number(x) {
-  return x === null ? NaN : +x;
-}
-
-function* numbers(values, valueof) {
-  if (valueof === undefined) {
-    for (let value of values) {
-      if (value != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  } else {
-    let index = -1;
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
-        yield value;
-      }
-    }
-  }
-}
-
 function quantile(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
   if (!(n = values.length)) return;
@@ -782,19 +783,18 @@ function scan(values, compare) {
   return index < 0 ? undefined : index;
 }
 
-function shuffle(array, i0 = 0, i1 = array.length) {
-  var m = i1 - (i0 = +i0),
-      t,
-      i;
+var shuffle = shuffler(Math.random);
 
-  while (m) {
-    i = Math.random() * m-- | 0;
-    t = array[m + i0];
-    array[m + i0] = array[i + i0];
-    array[i + i0] = t;
-  }
-
-  return array;
+function shuffler(random) {
+  return function shuffle(array, i0 = 0, i1 = array.length) {
+    let m = i1 - (i0 = +i0);
+    while (m) {
+      const i = random() * m-- | 0, t = array[m + i0];
+      array[m + i0] = array[i + i0];
+      array[i + i0] = t;
+    }
+    return array;
+  };
 }
 
 function sum(values, valueof) {
@@ -13739,11 +13739,10 @@ var poisson = (function sourceRandomPoisson(source) {
 // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
 const mul = 0x19660D;
 const inc = 0x3C6EF35F;
-const eps = 1/0x100000000;
+const eps = 1 / 0x100000000;
 
 function lcg$1(seed = Math.random()) {
-  if (!(0 <= seed && seed < 1)) throw new RangeError("invalid seed");
-  let state = seed / eps | 0;
+  let state = (0 <= seed && seed < 1 ? seed / eps : Math.abs(seed)) | 0;
   return () => (state = mul * state + inc | 0, eps * (state >>> 0));
 }
 
@@ -18860,6 +18859,7 @@ exports.axisRight = axisRight;
 exports.axisTop = axisTop;
 exports.bin = bin;
 exports.bisect = bisectRight;
+exports.bisectCenter = bisectCenter;
 exports.bisectLeft = bisectLeft;
 exports.bisectRight = bisectRight;
 exports.bisector = bisector;
@@ -19239,6 +19239,7 @@ exports.selection = selection;
 exports.selector = selector;
 exports.selectorAll = selectorAll;
 exports.shuffle = shuffle;
+exports.shuffler = shuffler;
 exports.stack = stack;
 exports.stackOffsetDiverging = diverging$1;
 exports.stackOffsetExpand = expand;
