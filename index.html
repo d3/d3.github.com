@@ -383,7 +383,7 @@ data.forEach(function(d, i) {
   d.j = i / 10 | 0;
 });
 
-d3.shuffler(d3.randomLcg(d3.timeHour(new Date)))(data);
+d3.shuffler(d3.randomLcg(d3.utcHour()))(data);
 
 var height = 460,
     imageWidth = 132,
