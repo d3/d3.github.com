@@ -1,11 +1,11 @@
-// https://d3js.org v6.1.0 Copyright 2020 Mike Bostock
+// https://d3js.org v6.1.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "6.1.0";
+var version = "6.1.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -330,20 +330,6 @@ function constant(x) {
   };
 }
 
-function sequence(start, stop, step) {
-  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
-
-  var i = -1,
-      n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
-      range = new Array(n);
-
-  while (++i < n) {
-    range[i] = start + i * step;
-  }
-
-  return range;
-}
-
 var e10 = Math.sqrt(50),
     e5 = Math.sqrt(10),
     e2 = Math.sqrt(2);
@@ -425,8 +411,8 @@ function bin() {
 
     // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
-      tz = tickStep(x0, x1, tz);
-      tz = sequence(Math.ceil(x0 / tz) * tz, x1, tz); // exclusive
+      tz = ticks(x0, x1, tz);
+      if (tz[tz.length - 1] === x1) tz.pop(); // exclusive
     }
 
     // Remove any thresholds outside the domain.
@@ -686,6 +672,20 @@ function pair(a, b) {
 
 function permute(source, keys) {
   return Array.from(keys, key => source[key]);
+}
+
+function sequence(start, stop, step) {
+  start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
+
+  var i = -1,
+      n = Math.max(0, Math.ceil((stop - start) / step)) | 0,
+      range = new Array(n);
+
+  while (++i < n) {
+    range[i] = start + i * step;
+  }
+
+  return range;
 }
 
 function least(values, compare = ascending) {
