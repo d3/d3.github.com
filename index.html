@@ -177,6 +177,22 @@ pre {
   padding-left: 18px;
   margin: 2em 0 2em -20px;
 }
+  
+.community ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.community li {
+  display: flex;
+  align-items: center;
+}
+
+.community li img {
+  width: 16px;
+  margin-right: 0.5em;
+}
 
 .html .string,
 .javascript .string,
@@ -519,7 +535,29 @@ function moved() {
 
 <div class="column">
 
-<aside>See <a href="https://observablehq.com/@d3/gallery">more examples</a>.</aside>
+<aside class="community">
+  <ul>
+    <li>
+      <img src="https://static.observablehq.com/favicon-512.e85350a27dfadeea7c7c78c797c24419525df5579de174d86d258c40ae57473a.png" />
+      <a href="https://observablehq.com/@d3/gallery">See more examples.</a></li>
+    <li>
+      <img src="https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196" /> 
+      <a href="https://stackoverflow.com/questions/tagged/d3.js">Ask for help.</a>
+    </li>
+    <li>
+      <img src="https://a.slack-edge.com/80588/marketing/img/meta/favicon-32.png" />
+      <a href="https://d3-slackin.herokuapp.com/">Chat with the community.</a>
+    </li>
+    <li>
+      <img src="https://abs.twimg.com/favicons/twitter.ico" />
+      <a href="https://twitter.com/d3js_org">Follow announcements.</a>
+    </li>
+    <li>
+      <img src="https://github.githubassets.com/favicons/favicon.png" />
+      <a href="https://github.com/d3/d3">Report a bug.</a>
+    </li>
+  </ul>  
+</aside>
 
 <p><b>D3.js</b> is a JavaScript library for manipulating documents based on data. <b>D3</b> helps you bring data to life using HTML, SVG, and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.
 
