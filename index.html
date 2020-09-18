@@ -177,21 +177,10 @@ pre {
   padding-left: 18px;
   margin: 2em 0 2em -20px;
 }
-  
-.community ul {
-  list-style: none;
+
+aside ul {
   padding-left: 0;
   margin: 0;
-}
-
-.community li {
-  display: flex;
-  align-items: center;
-}
-
-.community li img {
-  width: 14px;
-  margin-right: 0.5em;
 }
 
 .html .string,
@@ -535,28 +524,34 @@ function moved() {
 
 <div class="column">
 
-<aside class="community">
+<aside>
   <ul>
-    <li>
-      <img src="icon-observable.svg" />
-      <a href="https://observablehq.com/@d3/gallery">See more examples</a></li>
-      <li>
-        <img src="icon-slack.svg" />
-        <a href="https://d3-slackin.herokuapp.com/">Chat with the community</a>
-      </li>
-      <li>
-        <img src="icon-twitter.svg" />
-        <a href="https://twitter.com/d3js_org">Follow announcements</a>
-      </li>
-      <li>
-        <img src="icon-github.svg" />
-        <a href="https://github.com/d3/d3">Report a bug</a>
-      </li>
-      <li>
-        <img src="icon-stackoverflow.svg" /> 
-        <a href="https://stackoverflow.com/questions/tagged/d3.js">Ask for help</a>
-      </li>
-  </ul>  
+    <li style="list-style-image: url('icon-observable.svg');">
+      <a href="https://observablehq.com/@d3/gallery" title="D3 Gallery">
+        See more examples
+      </a>
+    </li>
+    <li style="list-style-image: url('icon-slack.svg');">
+      <a href="https://d3-slackin.herokuapp.com/" title="D3 Slack">
+        Chat with the community
+      </a>
+    </li>
+    <li style="list-style-image: url('icon-twitter.svg');">
+      <a href="https://twitter.com/d3js_org" title="D3 Twitter">
+        Follow announcements
+      </a>
+    </li>
+    <li style="list-style-image: url('icon-github.svg');">
+      <a href="https://github.com/d3/d3" title="D3 GitHub">
+        Report a bug
+      </a>
+    </li>
+    <li style="list-style-image: url('icon-stackoverflow.svg');">
+      <a href="https://stackoverflow.com/questions/tagged/d3.js" title="D3 Stack Overflow">
+        Ask for help
+      </a>
+    </li>
+  </ul>
 </aside>
 
 <p><b>D3.js</b> is a JavaScript library for manipulating documents based on data. <b>D3</b> helps you bring data to life using HTML, SVG, and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.
