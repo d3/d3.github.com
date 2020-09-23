@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale/ v3.2.2 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-scale/ v3.2.3 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
@@ -175,7 +175,7 @@ function point() {
   return pointish(band.apply(null, arguments).paddingInner(1));
 }
 
-function constant(x) {
+function constants(x) {
   return function() {
     return x;
   };
@@ -194,7 +194,7 @@ function identity(x) {
 function normalize(a, b) {
   return (b -= (a = +a))
       ? function(x) { return (x - a) / b; }
-      : constant(isNaN(b) ? NaN : 0.5);
+      : constants(isNaN(b) ? NaN : 0.5);
 }
 
 function clamper(a, b) {
@@ -732,7 +732,7 @@ function quantile() {
   function rescale() {
     var i = 0, n = Math.max(1, range.length);
     thresholds = new Array(n - 1);
-    while (++i < n) thresholds[i - 1] = d3Array.quantile(domain, i / n);
+    while (++i < n) thresholds[i - 1] = d3Array.quantileSorted(domain, i / n);
     return scale;
   }
 
