@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.7.1 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-array/ v2.8.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -381,6 +381,23 @@ function tickStep(start, stop, count) {
   return stop < start ? -step1 : step1;
 }
 
+function nice(start, stop, count) {
+  let prestep;
+  while (true) {
+    const step = tickIncrement(start, stop, count);
+    if (step === prestep || step === 0 || !isFinite(step)) {
+      return [start, stop];
+    } else if (step > 0) {
+      start = Math.floor(start / step) * step;
+      stop = Math.ceil(stop / step) * step;
+    } else if (step < 0) {
+      start = Math.ceil(start * step) / step;
+      stop = Math.floor(stop * step) / step;
+    }
+    prestep = step;
+  }
+}
+
 function sturges(values) {
   return Math.ceil(Math.log(count(values)) / Math.LN2) + 1;
 }
@@ -407,8 +424,11 @@ function bin() {
         x1 = xz[1],
         tz = threshold(values, x0, x1);
 
-    // Convert number of thresholds into uniform thresholds.
+    // Convert number of thresholds into uniform thresholds,
+    // and nice the default domain accordingly.
     if (!Array.isArray(tz)) {
+      tz = +tz;
+      if (domain === extent) [x0, x1] = nice(x0, x1, tz);
       tz = ticks(x0, x1, tz);
       if (tz[tz.length - 1] === x1) tz.pop(); // exclusive
     }
@@ -832,6 +852,141 @@ function zip() {
   return transpose(arguments);
 }
 
+function every(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  let index = -1;
+  for (const value of values) {
+    if (!test(value, ++index, values)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function some(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  let index = -1;
+  for (const value of values) {
+    if (test(value, ++index, values)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function filter(values, test) {
+  if (typeof test !== "function") throw new TypeError("test is not a function");
+  const array = [];
+  let index = -1;
+  for (const value of values) {
+    if (test(value, ++index, values)) {
+      array.push(value);
+    }
+  }
+  return array;
+}
+
+function map(values, mapper) {
+  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
+  if (typeof mapper !== "function") throw new TypeError("mapper is not a function");
+  return Array.from(values, (value, index) => mapper(value, index, values));
+}
+
+function reduce(values, reducer, value) {
+  if (typeof reducer !== "function") throw new TypeError("reducer is not a function");
+  const iterator = values[Symbol.iterator]();
+  let done, next, index = -1;
+  if (arguments.length < 3) {
+    ({done, value} = iterator.next());
+    if (done) return;
+    ++index;
+  }
+  while (({done, value: next} = iterator.next()), !done) {
+    value = reducer(value, next, ++index, values);
+  }
+  return value;
+}
+
+function reverse(values) {
+  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
+  return Array.from(values).reverse();
+}
+
+function sort(values, comparator = ascending) {
+  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
+  return Array.from(values).sort(comparator);
+}
+
+function difference(values, ...others) {
+  values = new Set(values);
+  for (const other of others) {
+    for (const value of other) {
+      values.delete(value);
+    }
+  }
+  return values;
+}
+
+function disjoint(values, other) {
+  const iterator = other[Symbol.iterator](), set = new Set();
+  for (const v of values) {
+    if (set.has(v)) return false;
+    let value, done;
+    while (({value, done} = iterator.next())) {
+      if (done) break;
+      if (Object.is(v, value)) return false;
+      set.add(value);
+    }
+  }
+  return true;
+}
+
+function set(values) {
+  return values instanceof Set ? values : new Set(values);
+}
+
+function intersection(values, ...others) {
+  values = new Set(values);
+  others = others.map(set);
+  out: for (const value of values) {
+    for (const other of others) {
+      if (!other.has(value)) {
+        values.delete(value);
+        continue out;
+      }
+    }
+  }
+  return values;
+}
+
+function superset(values, other) {
+  const iterator = values[Symbol.iterator](), set = new Set();
+  for (const o of other) {
+    if (set.has(o)) continue;
+    let value, done;
+    while (({value, done} = iterator.next())) {
+      if (done) return false;
+      set.add(value);
+      if (Object.is(o, value)) break;
+    }
+  }
+  return true;
+}
+
+function subset(values, other) {
+  return superset(other, values);
+}
+
+function union(...others) {
+  const set = new Set();
+  for (const other of others) {
+    for (const o of other) {
+      set.add(o);
+    }
+  }
+  return set;
+}
+
 exports.Adder = Adder;
 exports.ascending = ascending;
 exports.bin = bin;
@@ -845,7 +1000,11 @@ exports.cross = cross;
 exports.cumsum = cumsum;
 exports.descending = descending;
 exports.deviation = deviation;
+exports.difference = difference;
+exports.disjoint = disjoint;
+exports.every = every;
 exports.extent = extent;
+exports.filter = filter;
 exports.fsum = fsum;
 exports.greatest = greatest;
 exports.greatestIndex = greatestIndex;
@@ -854,8 +1013,10 @@ exports.groups = groups;
 exports.histogram = bin;
 exports.index = index;
 exports.indexes = indexes;
+exports.intersection = intersection;
 exports.least = least;
 exports.leastIndex = leastIndex;
+exports.map = map;
 exports.max = max;
 exports.maxIndex = maxIndex;
 exports.mean = mean;
@@ -863,18 +1024,25 @@ exports.median = median;
 exports.merge = merge;
 exports.min = min;
 exports.minIndex = minIndex;
+exports.nice = nice;
 exports.pairs = pairs;
 exports.permute = permute;
 exports.quantile = quantile;
 exports.quantileSorted = quantileSorted;
 exports.quickselect = quickselect;
 exports.range = range;
+exports.reduce = reduce;
+exports.reverse = reverse;
 exports.rollup = rollup;
 exports.rollups = rollups;
 exports.scan = scan;
 exports.shuffle = shuffle;
 exports.shuffler = shuffler;
+exports.some = some;
+exports.sort = sort;
+exports.subset = subset;
 exports.sum = sum;
+exports.superset = superset;
 exports.thresholdFreedmanDiaconis = freedmanDiaconis;
 exports.thresholdScott = scott;
 exports.thresholdSturges = sturges;
@@ -882,6 +1050,7 @@ exports.tickIncrement = tickIncrement;
 exports.tickStep = tickStep;
 exports.ticks = ticks;
 exports.transpose = transpose;
+exports.union = union;
 exports.variance = variance;
 exports.zip = zip;
 
