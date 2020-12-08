@@ -1,11 +1,11 @@
-// https://d3js.org v6.3.0 Copyright 2020 Mike Bostock
+// https://d3js.org v6.3.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "6.3.0";
+var version = "6.3.1";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -437,15 +437,17 @@ function bin() {
       // last bin will be zero-width. If the default domain is used, and this
       // last threshold is coincident with the maximum input value, we can
       // extend the niced upper bound by one tick to ensure uniform bin widths;
-      // otherwise, we simply remove the last threshold.
-      if (tz[tz.length - 1] === x1) {
-        if (x1 === max && domain === extent) {
+      // otherwise, we simply remove the last threshold. Note that we don’t
+      // coerce values or the domain to numbers, and thus must be careful to
+      // compare order (>=) rather than strict equality (===)!
+      if (tz[tz.length - 1] >= x1) {
+        if (max >= x1 && domain === extent) {
           const step = tickIncrement(x0, x1, tn);
           if (isFinite(step)) {
             if (step > 0) {
               x1 = (Math.floor(x1 / step) + 1) * step;
             } else if (step < 0) {
-              x1 = (Math.ceil(x1 * step) + 1) / step;
+              x1 = (Math.ceil(x1 * -step) + 1) / -step;
             }
           }
         } else {
