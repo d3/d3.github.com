@@ -1,11 +1,11 @@
-// https://d3js.org v6.3.1 Copyright 2020 Mike Bostock
+// https://d3js.org v6.4.0 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "6.3.1";
+var version = "6.4.0";
 
 function ascending(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -268,6 +268,68 @@ function fsum(values, valueof) {
   return +adder;
 }
 
+class InternMap extends Map {
+  constructor(entries = [], key = keyof) {
+    super();
+    Object.defineProperties(this, {_intern: {value: new Map()}, _key: {value: key}});
+    for (const [key, value] of entries) this.set(key, value);
+  }
+  get(key) {
+    return super.get(intern_get(this, key));
+  }
+  has(key) {
+    return super.has(intern_get(this, key));
+  }
+  set(key, value) {
+    return super.set(intern_set(this, key), value);
+  }
+  delete(key) {
+    return super.delete(intern_delete(this, key));
+  }
+}
+
+class InternSet extends Set {
+  constructor(values = [], key = keyof) {
+    super();
+    Object.defineProperties(this, {_intern: {value: new Map()}, _key: {value: key}});
+    for (const value of values) this.add(value);
+  }
+  has(value) {
+    return super.has(intern_get(this, value));
+  }
+  add(value) {
+    return super.add(intern_set(this, value));
+  }
+  delete(value) {
+    return super.delete(intern_delete(this, value));
+  }
+}
+
+function intern_get({_intern, _key}, value) {
+  const key = _key(value);
+  return _intern.has(key) ? _intern.get(key) : value;
+}
+
+function intern_set({_intern, _key}, value) {
+  const key = _key(value);
+  if (_intern.has(key)) return _intern.get(key);
+  _intern.set(key, value);
+  return value;
+}
+
+function intern_delete({_intern, _key}, value) {
+  const key = _key(value);
+  if (_intern.has(key)) {
+    value = _intern.get(value);
+    _intern.delete(key);
+  }
+  return value;
+}
+
+function keyof(value) {
+  return value !== null && typeof value === "object" ? value.valueOf() : value;
+}
+
 function identity(x) {
   return x;
 }
@@ -304,7 +366,7 @@ function unique(values) {
 function nest(values, map, reduce, keys) {
   return (function regroup(values, i) {
     if (i >= keys.length) return reduce(values);
-    const groups = new Map();
+    const groups = new InternMap();
     const keyof = keys[i++];
     let index = -1;
     for (const value of values) {
@@ -19027,6 +19089,8 @@ function zoom() {
 exports.Adder = Adder;
 exports.Delaunay = Delaunay;
 exports.FormatSpecifier = FormatSpecifier;
+exports.InternMap = InternMap;
+exports.InternSet = InternSet;
 exports.Voronoi = Voronoi;
 exports.active = active;
 exports.arc = arc;
