@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v2.11.0 Copyright 2021 Mike Bostock
+// https://d3js.org/d3-array/ v2.12.0 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -99,7 +99,7 @@ function count(values, valueof) {
   return count;
 }
 
-function length(array) {
+function length$1(array) {
   return array.length | 0;
 }
 
@@ -118,7 +118,7 @@ function reducer(reduce) {
 function cross(...values) {
   const reduce = typeof values[values.length - 1] === "function" && reducer(values.pop());
   values = values.map(arrayify);
-  const lengths = values.map(length);
+  const lengths = values.map(length$1);
   const j = values.length - 1;
   const index = new Array(j + 1).fill(0);
   const product = [];
@@ -266,11 +266,20 @@ function fsum(values, valueof) {
   return +adder;
 }
 
+function fcumsum(values, valueof) {
+  const adder = new Adder();
+  let index = -1;
+  return Float64Array.from(values, valueof === undefined
+      ? v => adder.add(+v || 0)
+      : v => adder.add(+valueof(v, ++index, values) || 0)
+  );
+}
+
 class InternMap extends Map {
-  constructor(entries = [], key = keyof) {
+  constructor(entries, key = keyof) {
     super();
     Object.defineProperties(this, {_intern: {value: new Map()}, _key: {value: key}});
-    for (const [key, value] of entries) this.set(key, value);
+    if (entries != null) for (const [key, value] of entries) this.set(key, value);
   }
   get(key) {
     return super.get(intern_get(this, key));
@@ -287,10 +296,10 @@ class InternMap extends Map {
 }
 
 class InternSet extends Set {
-  constructor(values = [], key = keyof) {
+  constructor(values, key = keyof) {
     super();
     Object.defineProperties(this, {_intern: {value: new Map()}, _key: {value: key}});
-    for (const value of values) this.add(value);
+    if (values != null) for (const value of values) this.add(value);
   }
   has(value) {
     return super.has(intern_get(this, value));
@@ -949,7 +958,7 @@ function sum(values, valueof) {
 
 function transpose(matrix) {
   if (!(n = matrix.length)) return [];
-  for (var i = -1, m = min(matrix, length$1), transpose = new Array(m); ++i < m;) {
+  for (var i = -1, m = min(matrix, length), transpose = new Array(m); ++i < m;) {
     for (var j = -1, n, row = transpose[i] = new Array(n); ++j < n;) {
       row[j] = matrix[j][i];
     }
@@ -957,7 +966,7 @@ function transpose(matrix) {
   return transpose;
 }
 
-function length$1(d) {
+function length(d) {
   return d.length;
 }
 
@@ -1114,6 +1123,7 @@ exports.difference = difference;
 exports.disjoint = disjoint;
 exports.every = every;
 exports.extent = extent;
+exports.fcumsum = fcumsum;
 exports.filter = filter;
 exports.fsum = fsum;
 exports.greatest = greatest;
