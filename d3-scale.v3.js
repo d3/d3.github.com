@@ -1,9 +1,9 @@
-// https://d3js.org/d3-scale/ v3.2.3 Copyright 2020 Mike Bostock
+// https://d3js.org/d3-scale/ v3.2.4 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
-(global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3));
-}(this, function (exports, d3Array, d3Interpolate, d3Format, d3Time, d3TimeFormat) { 'use strict';
+(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3));
+}(this, (function (exports, d3Array, d3Interpolate, d3Format, d3Time, d3TimeFormat) { 'use strict';
 
 function initRange(domain, range) {
   switch (arguments.length) {
@@ -181,13 +181,13 @@ function constants(x) {
   };
 }
 
-function number(x) {
+function number$1(x) {
   return +x;
 }
 
 var unit = [0, 1];
 
-function identity(x) {
+function identity$1(x) {
   return x;
 }
 
@@ -235,7 +235,7 @@ function polymap(domain, range, interpolate) {
   };
 }
 
-function copy(source, target) {
+function copy$1(source, target) {
   return target
       .domain(source.domain())
       .range(source.range())
@@ -244,28 +244,28 @@ function copy(source, target) {
       .unknown(source.unknown());
 }
 
-function transformer() {
+function transformer$2() {
   var domain = unit,
       range = unit,
       interpolate = d3Interpolate.interpolate,
       transform,
       untransform,
       unknown,
-      clamp = identity,
+      clamp = identity$1,
       piecewise,
       output,
       input;
 
   function rescale() {
     var n = Math.min(domain.length, range.length);
-    if (clamp !== identity) clamp = clamper(domain[0], domain[n - 1]);
+    if (clamp !== identity$1) clamp = clamper(domain[0], domain[n - 1]);
     piecewise = n > 2 ? polymap : bimap;
     output = input = null;
     return scale;
   }
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
+    return x == null || isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
   }
 
   scale.invert = function(y) {
@@ -273,7 +273,7 @@ function transformer() {
   };
 
   scale.domain = function(_) {
-    return arguments.length ? (domain = Array.from(_, number), rescale()) : domain.slice();
+    return arguments.length ? (domain = Array.from(_, number$1), rescale()) : domain.slice();
   };
 
   scale.range = function(_) {
@@ -285,7 +285,7 @@ function transformer() {
   };
 
   scale.clamp = function(_) {
-    return arguments.length ? (clamp = _ ? true : identity, rescale()) : clamp !== identity;
+    return arguments.length ? (clamp = _ ? true : identity$1, rescale()) : clamp !== identity$1;
   };
 
   scale.interpolate = function(_) {
@@ -303,7 +303,7 @@ function transformer() {
 }
 
 function continuous() {
-  return transformer()(identity, identity);
+  return transformer$2()(identity$1, identity$1);
 }
 
 function tickFormat(start, stop, count, specifier) {
@@ -391,7 +391,7 @@ function linear() {
   var scale = continuous();
 
   scale.copy = function() {
-    return copy(scale, linear());
+    return copy$1(scale, linear());
   };
 
   initRange.apply(scale, arguments);
@@ -399,17 +399,17 @@ function linear() {
   return linearish(scale);
 }
 
-function identity$1(domain) {
+function identity(domain) {
   var unknown;
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : x;
+    return x == null || isNaN(x = +x) ? unknown : x;
   }
 
   scale.invert = scale;
 
   scale.domain = scale.range = function(_) {
-    return arguments.length ? (domain = Array.from(_, number), scale) : domain.slice();
+    return arguments.length ? (domain = Array.from(_, number$1), scale) : domain.slice();
   };
 
   scale.unknown = function(_) {
@@ -417,10 +417,10 @@ function identity$1(domain) {
   };
 
   scale.copy = function() {
-    return identity$1(domain).unknown(unknown);
+    return identity(domain).unknown(unknown);
   };
 
-  domain = arguments.length ? Array.from(domain, number) : [0, 1];
+  domain = arguments.length ? Array.from(domain, number$1) : [0, 1];
 
   return linearish(scale);
 }
@@ -574,10 +574,10 @@ function loggish(transform) {
 }
 
 function log() {
-  var scale = loggish(transformer()).domain([1, 10]);
+  var scale = loggish(transformer$2()).domain([1, 10]);
 
   scale.copy = function() {
-    return copy(scale, log()).base(scale.base());
+    return copy$1(scale, log()).base(scale.base());
   };
 
   initRange.apply(scale, arguments);
@@ -608,10 +608,10 @@ function symlogish(transform) {
 }
 
 function symlog() {
-  var scale = symlogish(transformer());
+  var scale = symlogish(transformer$2());
 
   scale.copy = function() {
-    return copy(scale, symlog()).constant(scale.constant());
+    return copy$1(scale, symlog()).constant(scale.constant());
   };
 
   return initRange.apply(scale, arguments);
@@ -632,11 +632,11 @@ function transformSquare(x) {
 }
 
 function powish(transform) {
-  var scale = transform(identity, identity),
+  var scale = transform(identity$1, identity$1),
       exponent = 1;
 
   function rescale() {
-    return exponent === 1 ? transform(identity, identity)
+    return exponent === 1 ? transform(identity$1, identity$1)
         : exponent === 0.5 ? transform(transformSqrt, transformSquare)
         : transform(transformPow(exponent), transformPow(1 / exponent));
   }
@@ -649,10 +649,10 @@ function powish(transform) {
 }
 
 function pow() {
-  var scale = powish(transformer());
+  var scale = powish(transformer$2());
 
   scale.copy = function() {
-    return copy(scale, pow()).exponent(scale.exponent());
+    return copy$1(scale, pow()).exponent(scale.exponent());
   };
 
   initRange.apply(scale, arguments);
@@ -692,7 +692,7 @@ function radial() {
   };
 
   scale.range = function(_) {
-    return arguments.length ? (squared.range((range = Array.from(_, number)).map(square)), scale) : range.slice();
+    return arguments.length ? (squared.range((range = Array.from(_, number$1)).map(square)), scale) : range.slice();
   };
 
   scale.rangeRound = function(_) {
@@ -737,7 +737,7 @@ function quantile() {
   }
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : range[d3Array.bisect(thresholds, x)];
+    return x == null || isNaN(x = +x) ? unknown : range[d3Array.bisect(thresholds, x)];
   }
 
   scale.invertExtent = function(y) {
@@ -787,7 +787,7 @@ function quantize() {
       unknown;
 
   function scale(x) {
-    return x <= x ? range[d3Array.bisect(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[d3Array.bisect(domain, x, 0, n)] : unknown;
   }
 
   function rescale() {
@@ -838,7 +838,7 @@ function threshold() {
       n = 1;
 
   function scale(x) {
-    return x <= x ? range[d3Array.bisect(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[d3Array.bisect(domain, x, 0, n)] : unknown;
   }
 
   scale.domain = function(_) {
@@ -880,7 +880,7 @@ function date(t) {
   return new Date(t);
 }
 
-function number$1(t) {
+function number(t) {
   return t instanceof Date ? +t : +new Date(+t);
 }
 
@@ -961,7 +961,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.domain = function(_) {
-    return arguments.length ? domain(Array.from(_, number$1)) : domain().map(date);
+    return arguments.length ? domain(Array.from(_, number)) : domain().map(date);
   };
 
   scale.ticks = function(interval) {
@@ -988,7 +988,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.copy = function() {
-    return copy(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format));
+    return copy$1(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format));
   };
 
   return scale;
@@ -1009,12 +1009,12 @@ function transformer$1() {
       t1,
       k10,
       transform,
-      interpolator = identity,
+      interpolator = identity$1,
       clamp = false,
       unknown;
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t0) * k10, clamp ? Math.max(0, Math.min(1, x)) : x));
+    return x == null || isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t0) * k10, clamp ? Math.max(0, Math.min(1, x)) : x));
   }
 
   scale.domain = function(_) {
@@ -1050,7 +1050,7 @@ function transformer$1() {
   };
 }
 
-function copy$1(source, target) {
+function copy(source, target) {
   return target
       .domain(source.domain())
       .interpolator(source.interpolator())
@@ -1059,10 +1059,10 @@ function copy$1(source, target) {
 }
 
 function sequential() {
-  var scale = linearish(transformer$1()(identity));
+  var scale = linearish(transformer$1()(identity$1));
 
   scale.copy = function() {
-    return copy$1(scale, sequential());
+    return copy(scale, sequential());
   };
 
   return initInterpolator.apply(scale, arguments);
@@ -1072,7 +1072,7 @@ function sequentialLog() {
   var scale = loggish(transformer$1()).domain([1, 10]);
 
   scale.copy = function() {
-    return copy$1(scale, sequentialLog()).base(scale.base());
+    return copy(scale, sequentialLog()).base(scale.base());
   };
 
   return initInterpolator.apply(scale, arguments);
@@ -1082,7 +1082,7 @@ function sequentialSymlog() {
   var scale = symlogish(transformer$1());
 
   scale.copy = function() {
-    return copy$1(scale, sequentialSymlog()).constant(scale.constant());
+    return copy(scale, sequentialSymlog()).constant(scale.constant());
   };
 
   return initInterpolator.apply(scale, arguments);
@@ -1092,7 +1092,7 @@ function sequentialPow() {
   var scale = powish(transformer$1());
 
   scale.copy = function() {
-    return copy$1(scale, sequentialPow()).exponent(scale.exponent());
+    return copy(scale, sequentialPow()).exponent(scale.exponent());
   };
 
   return initInterpolator.apply(scale, arguments);
@@ -1104,10 +1104,10 @@ function sequentialSqrt() {
 
 function sequentialQuantile() {
   var domain = [],
-      interpolator = identity;
+      interpolator = identity$1;
 
   function scale(x) {
-    if (!isNaN(x = +x)) return interpolator((d3Array.bisect(domain, x, 1) - 1) / (domain.length - 1));
+    if (x != null && !isNaN(x = +x)) return interpolator((d3Array.bisect(domain, x, 1) - 1) / (domain.length - 1));
   }
 
   scale.domain = function(_) {
@@ -1137,7 +1137,7 @@ function sequentialQuantile() {
   return initInterpolator.apply(scale, arguments);
 }
 
-function transformer$2() {
+function transformer() {
   var x0 = 0,
       x1 = 0.5,
       x2 = 1,
@@ -1147,7 +1147,7 @@ function transformer$2() {
       t2,
       k10,
       k21,
-      interpolator = identity,
+      interpolator = identity$1,
       transform,
       clamp = false,
       unknown;
@@ -1190,40 +1190,40 @@ function transformer$2() {
 }
 
 function diverging() {
-  var scale = linearish(transformer$2()(identity));
+  var scale = linearish(transformer()(identity$1));
 
   scale.copy = function() {
-    return copy$1(scale, diverging());
+    return copy(scale, diverging());
   };
 
   return initInterpolator.apply(scale, arguments);
 }
 
 function divergingLog() {
-  var scale = loggish(transformer$2()).domain([0.1, 1, 10]);
+  var scale = loggish(transformer()).domain([0.1, 1, 10]);
 
   scale.copy = function() {
-    return copy$1(scale, divergingLog()).base(scale.base());
+    return copy(scale, divergingLog()).base(scale.base());
   };
 
   return initInterpolator.apply(scale, arguments);
 }
 
 function divergingSymlog() {
-  var scale = symlogish(transformer$2());
+  var scale = symlogish(transformer());
 
   scale.copy = function() {
-    return copy$1(scale, divergingSymlog()).constant(scale.constant());
+    return copy(scale, divergingSymlog()).constant(scale.constant());
   };
 
   return initInterpolator.apply(scale, arguments);
 }
 
 function divergingPow() {
-  var scale = powish(transformer$2());
+  var scale = powish(transformer());
 
   scale.copy = function() {
-    return copy$1(scale, divergingPow()).exponent(scale.exponent());
+    return copy(scale, divergingPow()).exponent(scale.exponent());
   };
 
   return initInterpolator.apply(scale, arguments);
@@ -1239,7 +1239,7 @@ exports.scaleDivergingLog = divergingLog;
 exports.scaleDivergingPow = divergingPow;
 exports.scaleDivergingSqrt = divergingSqrt;
 exports.scaleDivergingSymlog = divergingSymlog;
-exports.scaleIdentity = identity$1;
+exports.scaleIdentity = identity;
 exports.scaleImplicit = implicit;
 exports.scaleLinear = linear;
 exports.scaleLog = log;
@@ -1264,4 +1264,4 @@ exports.tickFormat = tickFormat;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
