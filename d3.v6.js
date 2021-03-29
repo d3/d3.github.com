@@ -1,11 +1,11 @@
-// https://d3js.org v6.6.1 Copyright 2021 Mike Bostock
+// https://d3js.org v6.6.2 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "6.6.1";
+var version = "6.6.2";
 
 function ascending$3(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -14285,7 +14285,7 @@ function transformer$2() {
   }
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
+    return x == null || isNaN(x = +x) ? unknown : (output || (output = piecewise(domain.map(transform), range, interpolate)))(transform(clamp(x)));
   }
 
   scale.invert = function(y) {
@@ -14423,7 +14423,7 @@ function identity$2(domain) {
   var unknown;
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : x;
+    return x == null || isNaN(x = +x) ? unknown : x;
   }
 
   scale.invert = scale;
@@ -14757,7 +14757,7 @@ function quantile() {
   }
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : range[bisectRight(thresholds, x)];
+    return x == null || isNaN(x = +x) ? unknown : range[bisectRight(thresholds, x)];
   }
 
   scale.invertExtent = function(y) {
@@ -14807,7 +14807,7 @@ function quantize() {
       unknown;
 
   function scale(x) {
-    return x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
   }
 
   function rescale() {
@@ -14858,7 +14858,7 @@ function threshold() {
       n = 1;
 
   function scale(x) {
-    return x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
   }
 
   scale.domain = function(_) {
@@ -16062,7 +16062,7 @@ function transformer$1() {
       unknown;
 
   function scale(x) {
-    return isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t0) * k10, clamp ? Math.max(0, Math.min(1, x)) : x));
+    return x == null || isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t0) * k10, clamp ? Math.max(0, Math.min(1, x)) : x));
   }
 
   scale.domain = function(_) {
@@ -16155,7 +16155,7 @@ function sequentialQuantile() {
       interpolator = identity$3;
 
   function scale(x) {
-    if (!isNaN(x = +x)) return interpolator((bisectRight(domain, x, 1) - 1) / (domain.length - 1));
+    if (x != null && !isNaN(x = +x)) return interpolator((bisectRight(domain, x, 1) - 1) / (domain.length - 1));
   }
 
   scale.domain = function(_) {
