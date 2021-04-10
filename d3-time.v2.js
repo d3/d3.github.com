@@ -1,4 +1,4 @@
-// https://d3js.org/d3-time/ v2.1.0 Copyright 2021 Mike Bostock
+// https://d3js.org/d3-time/ v2.1.1 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -332,7 +332,7 @@ function ticker(year, month, week, day, hour, minute) {
     const reverse = stop < start;
     if (reverse) [start, stop] = [stop, start];
     const interval = count && typeof count.range === "function" ? count : tickInterval(start, stop, count);
-    const ticks = interval.range(start, +stop + 1); // inclusive stop
+    const ticks = interval ? interval.range(start, +stop + 1) : []; // inclusive stop
     return reverse ? ticks.reverse() : ticks;
   }
 
