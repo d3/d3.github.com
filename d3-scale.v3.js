@@ -1,4 +1,4 @@
-// https://d3js.org/d3-scale/ v3.2.4 Copyright 2021 Mike Bostock
+// https://d3js.org/d3-scale/ v3.3.0 Copyright 2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
@@ -868,14 +868,6 @@ function threshold() {
   return initRange.apply(scale, arguments);
 }
 
-var durationSecond = 1000,
-    durationMinute = durationSecond * 60,
-    durationHour = durationMinute * 60,
-    durationDay = durationHour * 24,
-    durationWeek = durationDay * 7,
-    durationMonth = durationDay * 30,
-    durationYear = durationDay * 365;
-
 function date(t) {
   return new Date(t);
 }
@@ -884,7 +876,7 @@ function number(t) {
   return t instanceof Date ? +t : +new Date(+t);
 }
 
-function calendar(year, month, week, day, hour, minute, second, millisecond, format) {
+function calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format) {
   var scale = continuous(),
       invert = scale.invert,
       domain = scale.domain;
@@ -898,27 +890,6 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
       formatMonth = format("%B"),
       formatYear = format("%Y");
 
-  var tickIntervals = [
-    [second,  1,      durationSecond],
-    [second,  5,  5 * durationSecond],
-    [second, 15, 15 * durationSecond],
-    [second, 30, 30 * durationSecond],
-    [minute,  1,      durationMinute],
-    [minute,  5,  5 * durationMinute],
-    [minute, 15, 15 * durationMinute],
-    [minute, 30, 30 * durationMinute],
-    [  hour,  1,      durationHour  ],
-    [  hour,  3,  3 * durationHour  ],
-    [  hour,  6,  6 * durationHour  ],
-    [  hour, 12, 12 * durationHour  ],
-    [   day,  1,      durationDay   ],
-    [   day,  2,  2 * durationDay   ],
-    [  week,  1,      durationWeek  ],
-    [ month,  1,      durationMonth ],
-    [ month,  3,  3 * durationMonth ],
-    [  year,  1,      durationYear  ]
-  ];
-
   function tickFormat(date) {
     return (second(date) < date ? formatMillisecond
         : minute(date) < date ? formatSecond
@@ -927,33 +898,6 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
         : month(date) < date ? (week(date) < date ? formatDay : formatWeek)
         : year(date) < date ? formatMonth
         : formatYear)(date);
-  }
-
-  function tickInterval(interval, start, stop) {
-    if (interval == null) interval = 10;
-
-    // If a desired tick count is specified, pick a reasonable tick interval
-    // based on the extent of the domain and a rough estimate of tick size.
-    // Otherwise, assume interval is already a time interval and use it.
-    if (typeof interval === "number") {
-      var target = Math.abs(stop - start) / interval,
-          i = d3Array.bisector(function(i) { return i[2]; }).right(tickIntervals, target),
-          step;
-      if (i === tickIntervals.length) {
-        step = d3Array.tickStep(start / durationYear, stop / durationYear, interval);
-        interval = year;
-      } else if (i) {
-        i = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
-        step = i[1];
-        interval = i[0];
-      } else {
-        step = Math.max(d3Array.tickStep(start, stop, interval), 1);
-        interval = millisecond;
-      }
-      return interval.every(step);
-    }
-
-    return interval;
   }
 
   scale.invert = function(y) {
@@ -965,15 +909,8 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.ticks = function(interval) {
-    var d = domain(),
-        t0 = d[0],
-        t1 = d[d.length - 1],
-        r = t1 < t0,
-        t;
-    if (r) t = t0, t0 = t1, t1 = t;
-    t = tickInterval(interval, t0, t1);
-    t = t ? t.range(t0, t1 + 1) : []; // inclusive stop
-    return r ? t.reverse() : t;
+    var d = domain();
+    return ticks(d[0], d[d.length - 1], interval == null ? 10 : interval);
   };
 
   scale.tickFormat = function(count, specifier) {
@@ -982,24 +919,23 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
 
   scale.nice = function(interval) {
     var d = domain();
-    return (interval = tickInterval(interval, d[0], d[d.length - 1]))
-        ? domain(nice(d, interval))
-        : scale;
+    if (!interval || typeof interval.range !== "function") interval = tickInterval(d[0], d[d.length - 1], interval == null ? 10 : interval);
+    return interval ? domain(nice(d, interval)) : scale;
   };
 
   scale.copy = function() {
-    return copy$1(scale, calendar(year, month, week, day, hour, minute, second, millisecond, format));
+    return copy$1(scale, calendar(ticks, tickInterval, year, month, week, day, hour, minute, second, format));
   };
 
   return scale;
 }
 
 function time() {
-  return initRange.apply(calendar(d3Time.timeYear, d3Time.timeMonth, d3Time.timeWeek, d3Time.timeDay, d3Time.timeHour, d3Time.timeMinute, d3Time.timeSecond, d3Time.timeMillisecond, d3TimeFormat.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(d3Time.timeTicks, d3Time.timeTickInterval, d3Time.timeYear, d3Time.timeMonth, d3Time.timeWeek, d3Time.timeDay, d3Time.timeHour, d3Time.timeMinute, d3Time.timeSecond, d3TimeFormat.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
 }
 
 function utcTime() {
-  return initRange.apply(calendar(d3Time.utcYear, d3Time.utcMonth, d3Time.utcWeek, d3Time.utcDay, d3Time.utcHour, d3Time.utcMinute, d3Time.utcSecond, d3Time.utcMillisecond, d3TimeFormat.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(d3Time.utcTicks, d3Time.utcTickInterval, d3Time.utcYear, d3Time.utcMonth, d3Time.utcWeek, d3Time.utcDay, d3Time.utcHour, d3Time.utcMinute, d3Time.utcSecond, d3TimeFormat.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
 }
 
 function transformer$1() {
