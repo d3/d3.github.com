@@ -1,4 +1,4 @@
-// https://d3js.org/d3-ease/ v3.0.0 Copyright 2021 Mike Bostock
+// https://d3js.org/d3-ease/ v3.0.1 Copyright 2010-2021 Mike Bostock, 2001 Robert Penner
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
