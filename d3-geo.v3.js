@@ -1,4 +1,4 @@
-// https://d3js.org/d3-geo/ v3.0.0 Copyright 2021 Mike Bostock
+// https://d3js.org/d3-geo/ v3.0.1 Copyright 2010-2021 Mike Bostock, 2008-2012 Charles Karney
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
