@@ -274,7 +274,7 @@ aside ul {
 </a>
 
 
-<script src="d3.v6.min.js" charset="utf-8"></script>
+<script src="d3.v7.min.js" charset="utf-8"></script>
 <script>
 
 /* https://github.com/d3/d3-plugins/tree/master/hexbin Copyright 2013 Michael Bostock. */
@@ -559,19 +559,19 @@ function moved() {
 <p>Download the latest version <span id="version"></span> here:
 
 <ul>
-  <li><a id="download" href="https://github.com/d3/d3/releases/latest">d3.zip</a>
+  <li><a id="download" href="https://github.com/d3/d3/releases/latest">d3.tgz</a>
 </ul>
 
 <script>
 
-d3.select("#download").attr("href", "https://github.com/d3/d3/releases/download/v" + d3.version + "/d3.zip");
+d3.select("#download").attr("href", "https://registry.npmjs.org/d3/-/d3-" + d3.version + ".tgz").text("d3-" + d3.version + ".tgz");
 d3.select("#version").text(" (" + d3.version + ")");
 
 </script>
 
 <p>To link directly to the latest release, copy this snippet:
 
-<pre><code class="html">&lt;script src="https://d3js.org/d3.v6.min.js">&lt;/script></code></pre>
+<pre><code class="html">&lt;script src="https://d3js.org/d3.v7.min.js">&lt;/script></code></pre>
 
 <p>The <a href="https://github.com/d3/d3">full source and tests</a> are also available <a href="https://github.com/d3/d3/zipball/master">for download</a> on GitHub.
 
