@@ -1,63 +1,57 @@
-// https://d3js.org v7.0.0 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.0.1 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "7.0.0";
+var version = "7.0.1";
 
 function ascending$3(a, b) {
-  return a == null || b == null ? NaN
-    : a < b ? -1
-    : a > b ? 1
-    : a >= b ? 0
-    : NaN;
+  return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
 function bisector(f) {
   let delta = f;
-  let compare = f;
+  let compare1 = f;
+  let compare2 = f;
 
   if (f.length === 1) {
     delta = (d, x) => f(d) - x;
-    compare = ascendingComparator(f);
+    compare1 = ascending$3;
+    compare2 = (d, x) => ascending$3(f(d), x);
   }
 
-  function left(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >>> 1;
-      if (compare(a[mid], x) < 0) lo = mid + 1;
-      else hi = mid;
+  function left(a, x, lo = 0, hi = a.length) {
+    if (lo < hi) {
+      if (compare1(x, x) !== 0) return hi;
+      do {
+        const mid = (lo + hi) >>> 1;
+        if (compare2(a[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
 
-  function right(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >>> 1;
-      if (compare(a[mid], x) > 0) hi = mid;
-      else lo = mid + 1;
+  function right(a, x, lo = 0, hi = a.length) {
+    if (lo < hi) {
+      if (compare1(x, x) !== 0) return hi;
+      do {
+        const mid = (lo + hi) >>> 1;
+        if (compare2(a[mid], x) <= 0) lo = mid + 1;
+        else hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
 
-  function center(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
+  function center(a, x, lo = 0, hi = a.length) {
     const i = left(a, x, lo, hi - 1);
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
 
   return {left, center, right};
-}
-
-function ascendingComparator(f) {
-  return (d, x) => ascending$3(f(d), x);
 }
 
 function number$3(x) {
@@ -85,6 +79,7 @@ const ascendingBisect = bisector(ascending$3);
 const bisectRight = ascendingBisect.right;
 const bisectLeft = ascendingBisect.left;
 const bisectCenter = bisector(number$3).center;
+var bisect = bisectRight;
 
 function count$1(values, valueof) {
   let count = 0;
@@ -421,24 +416,37 @@ function permute(source, keys) {
 function sort(values, ...F) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
   values = Array.from(values);
-  let [f = ascending$3] = F;
-  if (f.length === 1 || F.length > 1) {
+  let [f] = F;
+  if ((f && f.length === 1) || F.length > 1) {
     const index = Uint32Array.from(values, (d, i) => i);
     if (F.length > 1) {
       F = F.map(f => values.map(f));
       index.sort((i, j) => {
         for (const f of F) {
-          const c = ascending$3(f[i], f[j]);
+          const c = ascendingDefined(f[i], f[j]);
           if (c) return c;
         }
       });
     } else {
       f = values.map(f);
-      index.sort((i, j) => ascending$3(f[i], f[j]));
+      index.sort((i, j) => ascendingDefined(f[i], f[j]));
     }
     return permute(values, index);
   }
-  return values.sort(f);
+  return values.sort(f === undefined ? ascendingDefined : compareDefined(f));
+}
+
+function compareDefined(compare) {
+  if (typeof compare !== "function") throw new TypeError("compare is not a function");
+  return (a, b) => {
+    const x = compare(a, b);
+    if (x || x === 0) return x;
+    return (compare(b, b) === 0) - (compare(a, a) === 0);
+  };
+}
+
+function ascendingDefined(a, b) {
+  return (a == null || !(a >= a)) - (b == null || !(b >= b)) || (a < b ? -1 : a > b ? 1 : 0);
 }
 
 function groupSort(values, reduce, key) {
@@ -453,9 +461,7 @@ var array$5 = Array.prototype;
 var slice$3 = array$5.slice;
 
 function constant$b(x) {
-  return function() {
-    return x;
-  };
+  return () => x;
 }
 
 var e10 = Math.sqrt(50),
@@ -605,7 +611,7 @@ function bin() {
     for (i = 0; i < n; ++i) {
       x = values[i];
       if (x != null && x0 <= x && x <= x1) {
-        bins[bisectRight(tz, x, 0, m)].push(data[i]);
+        bins[bisect(tz, x, 0, m)].push(data[i]);
       }
     }
 
@@ -671,7 +677,9 @@ function min$2(values, valueof) {
 
 // Based on https://github.com/mourner/quickselect
 // ISC license, Copyright 2018 Vladimir Agafonkin.
-function quickselect(array, k, left = 0, right = array.length - 1, compare = ascending$3) {
+function quickselect(array, k, left = 0, right = array.length - 1, compare) {
+  compare = compare === undefined ? ascendingDefined : compareDefined(compare);
+
   while (right > left) {
     if (right - left > 600) {
       const n = right - left + 1;
@@ -737,11 +745,11 @@ function quantileSorted(values, p, valueof = number$3) {
   return value0 + (value1 - value0) * (i - i0);
 }
 
-function freedmanDiaconis(values, min, max) {
+function thresholdFreedmanDiaconis(values, min, max) {
   return Math.ceil((max - min) / (2 * (quantile$1(values, 0.75) - quantile$1(values, 0.25)) * Math.pow(count$1(values), -1 / 3)));
 }
 
-function scott(values, min, max) {
+function thresholdScott(values, min, max) {
   return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(count$1(values), -1 / 3)));
 }
 
@@ -868,7 +876,7 @@ function pair(a, b) {
   return [a, b];
 }
 
-function sequence(start, stop, step) {
+function range$2(start, stop, step) {
   start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
   var i = -1,
@@ -6405,7 +6413,7 @@ function density() {
     if (!Array.isArray(tz)) {
       var stop = max$3(values0);
       tz = tickStep(0, stop, tz);
-      tz = sequence(0, Math.floor(stop / tz) * tz, tz);
+      tz = range$2(0, Math.floor(stop / tz) * tz, tz);
       tz.shift();
     }
 
@@ -9766,22 +9774,22 @@ var lambda0$1, phi0, lambda1, phi1, // bounds
     ranges,
     range;
 
-var boundsStream$1 = {
+var boundsStream$2 = {
   point: boundsPoint$1,
   lineStart: boundsLineStart,
   lineEnd: boundsLineEnd,
   polygonStart: function() {
-    boundsStream$1.point = boundsRingPoint;
-    boundsStream$1.lineStart = boundsRingStart;
-    boundsStream$1.lineEnd = boundsRingEnd;
+    boundsStream$2.point = boundsRingPoint;
+    boundsStream$2.lineStart = boundsRingStart;
+    boundsStream$2.lineEnd = boundsRingEnd;
     deltaSum = new Adder();
     areaStream$1.polygonStart();
   },
   polygonEnd: function() {
     areaStream$1.polygonEnd();
-    boundsStream$1.point = boundsPoint$1;
-    boundsStream$1.lineStart = boundsLineStart;
-    boundsStream$1.lineEnd = boundsLineEnd;
+    boundsStream$2.point = boundsPoint$1;
+    boundsStream$2.lineStart = boundsLineStart;
+    boundsStream$2.lineEnd = boundsLineEnd;
     if (areaRingSum$1 < 0) lambda0$1 = -(lambda1 = 180), phi0 = -(phi1 = 90);
     else if (deltaSum > epsilon$1) phi1 = 90;
     else if (deltaSum < -epsilon$1) phi0 = -90;
@@ -9848,12 +9856,12 @@ function linePoint(lambda, phi) {
 }
 
 function boundsLineStart() {
-  boundsStream$1.point = linePoint;
+  boundsStream$2.point = linePoint;
 }
 
 function boundsLineEnd() {
   range[0] = lambda0$1, range[1] = lambda1;
-  boundsStream$1.point = boundsPoint$1;
+  boundsStream$2.point = boundsPoint$1;
   p0 = null;
 }
 
@@ -9900,7 +9908,7 @@ function bounds(feature) {
 
   phi1 = lambda1 = -(lambda0$1 = phi0 = Infinity);
   ranges = [];
-  geoStream(feature, boundsStream$1);
+  geoStream(feature, boundsStream$2);
 
   // First, sort ranges by their minimum longitudes.
   if (n = ranges.length) {
@@ -11214,12 +11222,12 @@ function contains$1(object, point) {
 }
 
 function graticuleX(y0, y1, dy) {
-  var y = sequence(y0, y1 - epsilon$1, dy).concat(y1);
+  var y = range$2(y0, y1 - epsilon$1, dy).concat(y1);
   return function(x) { return y.map(function(y) { return [x, y]; }); };
 }
 
 function graticuleY(x0, x1, dx) {
-  var x = sequence(x0, x1 - epsilon$1, dx).concat(x1);
+  var x = range$2(x0, x1 - epsilon$1, dx).concat(x1);
   return function(y) { return x.map(function(x) { return [x, y]; }); };
 }
 
@@ -11235,10 +11243,10 @@ function graticule() {
   }
 
   function lines() {
-    return sequence(ceil(X0 / DX) * DX, X1, DX).map(X)
-        .concat(sequence(ceil(Y0 / DY) * DY, Y1, DY).map(Y))
-        .concat(sequence(ceil(x0 / dx) * dx, x1, dx).filter(function(x) { return abs$1(x % DX) > epsilon$1; }).map(x))
-        .concat(sequence(ceil(y0 / dy) * dy, y1, dy).filter(function(y) { return abs$1(y % DY) > epsilon$1; }).map(y));
+    return range$2(ceil(X0 / DX) * DX, X1, DX).map(X)
+        .concat(range$2(ceil(Y0 / DY) * DY, Y1, DY).map(Y))
+        .concat(range$2(ceil(x0 / dx) * dx, x1, dx).filter(function(x) { return abs$1(x % DX) > epsilon$1; }).map(x))
+        .concat(range$2(ceil(y0 / dy) * dy, y1, dy).filter(function(y) { return abs$1(y % DY) > epsilon$1; }).map(y));
   }
 
   graticule.lines = function() {
@@ -11398,6 +11406,8 @@ function areaRingEnd() {
   areaPoint(x00$2, y00$2);
 }
 
+var pathArea = areaStream;
+
 var x0$2 = Infinity,
     y0$2 = x0$2,
     x1 = -x0$2,
@@ -11422,6 +11432,8 @@ function boundsPoint(x, y) {
   if (y < y0$2) y0$2 = y;
   if (y > y1) y1 = y;
 }
+
+var boundsStream$1 = boundsStream;
 
 // TODO Enforce positive area for exterior, negative area for interior?
 
@@ -11520,6 +11532,8 @@ function centroidPointRing(x, y) {
   centroidPoint(x0$1 = x, y0$1 = y);
 }
 
+var pathCentroid = centroidStream;
+
 function PathContext(context) {
   this._context = context;
 }
@@ -11603,6 +11617,8 @@ function lengthPoint(x, y) {
   x0 = x, y0 = y;
 }
 
+var pathMeasure = lengthStream;
+
 function PathString() {
   this._string = [];
 }
@@ -11677,23 +11693,23 @@ function index$2(projection, context) {
   }
 
   path.area = function(object) {
-    geoStream(object, projectionStream(areaStream));
-    return areaStream.result();
+    geoStream(object, projectionStream(pathArea));
+    return pathArea.result();
   };
 
   path.measure = function(object) {
-    geoStream(object, projectionStream(lengthStream));
-    return lengthStream.result();
+    geoStream(object, projectionStream(pathMeasure));
+    return pathMeasure.result();
   };
 
   path.bounds = function(object) {
-    geoStream(object, projectionStream(boundsStream));
-    return boundsStream.result();
+    geoStream(object, projectionStream(boundsStream$1));
+    return boundsStream$1.result();
   };
 
   path.centroid = function(object) {
-    geoStream(object, projectionStream(centroidStream));
-    return centroidStream.result();
+    geoStream(object, projectionStream(pathCentroid));
+    return pathCentroid.result();
   };
 
   path.projection = function(_) {
@@ -11747,8 +11763,8 @@ function fit(projection, fitBounds, object) {
   var clip = projection.clipExtent && projection.clipExtent();
   projection.scale(150).translate([0, 0]);
   if (clip != null) projection.clipExtent(null);
-  geoStream(object, projection.stream(boundsStream));
-  fitBounds(boundsStream.result());
+  geoStream(object, projection.stream(boundsStream$1));
+  fitBounds(boundsStream$1.result());
   if (clip != null) projection.clipExtent(clip);
   return projection;
 }
@@ -14467,7 +14483,7 @@ function band() {
     start += (stop - start - step * (n - paddingInner)) * align;
     bandwidth = step * (1 - paddingInner);
     if (round) start = Math.round(start), bandwidth = Math.round(bandwidth);
-    var values = sequence(n).map(function(i) { return start + step * i; });
+    var values = range$2(n).map(function(i) { return start + step * i; });
     return ordinalRange(reverse ? values.reverse() : values);
   }
 
@@ -14595,7 +14611,7 @@ function polymap(domain, range, interpolate) {
   }
 
   return function(x) {
-    var i = bisectRight(domain, x, 1, j) - 1;
+    var i = bisect(domain, x, 1, j) - 1;
     return r[i](d[i](x));
   };
 }
@@ -15102,7 +15118,7 @@ function quantile() {
   }
 
   function scale(x) {
-    return x == null || isNaN(x = +x) ? unknown : range[bisectRight(thresholds, x)];
+    return x == null || isNaN(x = +x) ? unknown : range[bisect(thresholds, x)];
   }
 
   scale.invertExtent = function(y) {
@@ -15152,7 +15168,7 @@ function quantize() {
       unknown;
 
   function scale(x) {
-    return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[bisect(domain, x, 0, n)] : unknown;
   }
 
   function rescale() {
@@ -15203,7 +15219,7 @@ function threshold() {
       n = 1;
 
   function scale(x) {
-    return x != null && x <= x ? range[bisectRight(domain, x, 0, n)] : unknown;
+    return x != null && x <= x ? range[bisect(domain, x, 0, n)] : unknown;
   }
 
   scale.domain = function(_) {
@@ -15325,6 +15341,8 @@ millisecond.every = function(k) {
     return (end - start) / k;
   });
 };
+
+var millisecond$1 = millisecond;
 var milliseconds = millisecond.range;
 
 const durationSecond = 1000;
@@ -15344,6 +15362,8 @@ var second = newInterval(function(date) {
 }, function(date) {
   return date.getUTCSeconds();
 });
+
+var utcSecond = second;
 var seconds = second.range;
 
 var minute = newInterval(function(date) {
@@ -15355,6 +15375,8 @@ var minute = newInterval(function(date) {
 }, function(date) {
   return date.getMinutes();
 });
+
+var timeMinute = minute;
 var minutes = minute.range;
 
 var hour = newInterval(function(date) {
@@ -15366,6 +15388,8 @@ var hour = newInterval(function(date) {
 }, function(date) {
   return date.getHours();
 });
+
+var timeHour = hour;
 var hours = hour.range;
 
 var day = newInterval(
@@ -15374,6 +15398,8 @@ var day = newInterval(
   (start, end) => (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
   date => date.getDate() - 1
 );
+
+var timeDay = day;
 var days = day.range;
 
 function weekday(i) {
@@ -15413,6 +15439,8 @@ var month = newInterval(function(date) {
 }, function(date) {
   return date.getMonth();
 });
+
+var timeMonth = month;
 var months = month.range;
 
 var year = newInterval(function(date) {
@@ -15436,6 +15464,8 @@ year.every = function(k) {
     date.setFullYear(date.getFullYear() + step * k);
   });
 };
+
+var timeYear = year;
 var years = year.range;
 
 var utcMinute = newInterval(function(date) {
@@ -15447,6 +15477,8 @@ var utcMinute = newInterval(function(date) {
 }, function(date) {
   return date.getUTCMinutes();
 });
+
+var utcMinute$1 = utcMinute;
 var utcMinutes = utcMinute.range;
 
 var utcHour = newInterval(function(date) {
@@ -15458,6 +15490,8 @@ var utcHour = newInterval(function(date) {
 }, function(date) {
   return date.getUTCHours();
 });
+
+var utcHour$1 = utcHour;
 var utcHours = utcHour.range;
 
 var utcDay = newInterval(function(date) {
@@ -15469,6 +15503,8 @@ var utcDay = newInterval(function(date) {
 }, function(date) {
   return date.getUTCDate() - 1;
 });
+
+var utcDay$1 = utcDay;
 var utcDays = utcDay.range;
 
 function utcWeekday(i) {
@@ -15508,6 +15544,8 @@ var utcMonth = newInterval(function(date) {
 }, function(date) {
   return date.getUTCMonth();
 });
+
+var utcMonth$1 = utcMonth;
 var utcMonths = utcMonth.range;
 
 var utcYear = newInterval(function(date) {
@@ -15531,15 +15569,17 @@ utcYear.every = function(k) {
     date.setUTCFullYear(date.getUTCFullYear() + step * k);
   });
 };
+
+var utcYear$1 = utcYear;
 var utcYears = utcYear.range;
 
 function ticker(year, month, week, day, hour, minute) {
 
   const tickIntervals = [
-    [second,  1,      durationSecond],
-    [second,  5,  5 * durationSecond],
-    [second, 15, 15 * durationSecond],
-    [second, 30, 30 * durationSecond],
+    [utcSecond,  1,      durationSecond],
+    [utcSecond,  5,  5 * durationSecond],
+    [utcSecond, 15, 15 * durationSecond],
+    [utcSecond, 30, 30 * durationSecond],
     [minute,  1,      durationMinute],
     [minute,  5,  5 * durationMinute],
     [minute, 15, 15 * durationMinute],
@@ -15568,7 +15608,7 @@ function ticker(year, month, week, day, hour, minute) {
     const target = Math.abs(stop - start) / count;
     const i = bisector(([,, step]) => step).right(tickIntervals, target);
     if (i === tickIntervals.length) return year.every(tickStep(start / durationYear, stop / durationYear, count));
-    if (i === 0) return millisecond.every(Math.max(tickStep(start, stop, count), 1));
+    if (i === 0) return millisecond$1.every(Math.max(tickStep(start, stop, count), 1));
     const [t, step] = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
     return t.every(step);
   }
@@ -15576,8 +15616,8 @@ function ticker(year, month, week, day, hour, minute) {
   return [ticks, tickInterval];
 }
 
-const [utcTicks, utcTickInterval] = ticker(utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute);
-const [timeTicks, timeTickInterval] = ticker(year, month, sunday, day, hour, minute);
+const [utcTicks, utcTickInterval] = ticker(utcYear$1, utcMonth$1, utcSunday, utcDay$1, utcHour$1, utcMinute$1);
+const [timeTicks, timeTickInterval] = ticker(timeYear, timeMonth, sunday, timeDay, timeHour, timeMinute);
 
 function localDate(d) {
   if (0 <= d.y && d.y < 100) {
@@ -15767,7 +15807,7 @@ function formatLocale(locale) {
     return function(string) {
       var d = newDate(1900, undefined, 1),
           i = parseSpecifier(d, specifier, string += "", 0),
-          week, day$1;
+          week, day;
       if (i != string.length) return null;
 
       // If a UNIX timestamp is specified, return it.
@@ -15788,25 +15828,25 @@ function formatLocale(locale) {
         if (d.V < 1 || d.V > 53) return null;
         if (!("w" in d)) d.w = 1;
         if ("Z" in d) {
-          week = utcDate(newDate(d.y, 0, 1)), day$1 = week.getUTCDay();
-          week = day$1 > 4 || day$1 === 0 ? utcMonday.ceil(week) : utcMonday(week);
-          week = utcDay.offset(week, (d.V - 1) * 7);
+          week = utcDate(newDate(d.y, 0, 1)), day = week.getUTCDay();
+          week = day > 4 || day === 0 ? utcMonday.ceil(week) : utcMonday(week);
+          week = utcDay$1.offset(week, (d.V - 1) * 7);
           d.y = week.getUTCFullYear();
           d.m = week.getUTCMonth();
           d.d = week.getUTCDate() + (d.w + 6) % 7;
         } else {
-          week = localDate(newDate(d.y, 0, 1)), day$1 = week.getDay();
-          week = day$1 > 4 || day$1 === 0 ? monday.ceil(week) : monday(week);
-          week = day.offset(week, (d.V - 1) * 7);
+          week = localDate(newDate(d.y, 0, 1)), day = week.getDay();
+          week = day > 4 || day === 0 ? monday.ceil(week) : monday(week);
+          week = timeDay.offset(week, (d.V - 1) * 7);
           d.y = week.getFullYear();
           d.m = week.getMonth();
           d.d = week.getDate() + (d.w + 6) % 7;
         }
       } else if ("W" in d || "U" in d) {
         if (!("w" in d)) d.w = "u" in d ? d.u % 7 : "W" in d ? 1 : 0;
-        day$1 = "Z" in d ? utcDate(newDate(d.y, 0, 1)).getUTCDay() : localDate(newDate(d.y, 0, 1)).getDay();
+        day = "Z" in d ? utcDate(newDate(d.y, 0, 1)).getUTCDay() : localDate(newDate(d.y, 0, 1)).getDay();
         d.m = 0;
-        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day$1 + 5) % 7 : d.w + d.U * 7 - (day$1 + 6) % 7;
+        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day + 5) % 7 : d.w + d.U * 7 - (day + 6) % 7;
       }
 
       // If a time zone is specified, all fields are interpreted as UTC and then
@@ -16090,7 +16130,7 @@ function formatHour12(d, p) {
 }
 
 function formatDayOfYear(d, p) {
-  return pad(1 + day.count(year(d), d), p, 3);
+  return pad(1 + timeDay.count(timeYear(d), d), p, 3);
 }
 
 function formatMilliseconds(d, p) {
@@ -16119,7 +16159,7 @@ function formatWeekdayNumberMonday(d) {
 }
 
 function formatWeekNumberSunday(d, p) {
-  return pad(sunday.count(year(d) - 1, d), p, 2);
+  return pad(sunday.count(timeYear(d) - 1, d), p, 2);
 }
 
 function dISO(d) {
@@ -16129,7 +16169,7 @@ function dISO(d) {
 
 function formatWeekNumberISO(d, p) {
   d = dISO(d);
-  return pad(thursday.count(year(d), d) + (year(d).getDay() === 4), p, 2);
+  return pad(thursday.count(timeYear(d), d) + (timeYear(d).getDay() === 4), p, 2);
 }
 
 function formatWeekdayNumberSunday(d) {
@@ -16137,7 +16177,7 @@ function formatWeekdayNumberSunday(d) {
 }
 
 function formatWeekNumberMonday(d, p) {
-  return pad(monday.count(year(d) - 1, d), p, 2);
+  return pad(monday.count(timeYear(d) - 1, d), p, 2);
 }
 
 function formatYear(d, p) {
@@ -16179,7 +16219,7 @@ function formatUTCHour12(d, p) {
 }
 
 function formatUTCDayOfYear(d, p) {
-  return pad(1 + utcDay.count(utcYear(d), d), p, 3);
+  return pad(1 + utcDay$1.count(utcYear$1(d), d), p, 3);
 }
 
 function formatUTCMilliseconds(d, p) {
@@ -16208,7 +16248,7 @@ function formatUTCWeekdayNumberMonday(d) {
 }
 
 function formatUTCWeekNumberSunday(d, p) {
-  return pad(utcSunday.count(utcYear(d) - 1, d), p, 2);
+  return pad(utcSunday.count(utcYear$1(d) - 1, d), p, 2);
 }
 
 function UTCdISO(d) {
@@ -16218,7 +16258,7 @@ function UTCdISO(d) {
 
 function formatUTCWeekNumberISO(d, p) {
   d = UTCdISO(d);
-  return pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
+  return pad(utcThursday.count(utcYear$1(d), d) + (utcYear$1(d).getUTCDay() === 4), p, 2);
 }
 
 function formatUTCWeekdayNumberSunday(d) {
@@ -16226,7 +16266,7 @@ function formatUTCWeekdayNumberSunday(d) {
 }
 
 function formatUTCWeekNumberMonday(d, p) {
-  return pad(utcMonday.count(utcYear(d) - 1, d), p, 2);
+  return pad(utcMonday.count(utcYear$1(d) - 1, d), p, 2);
 }
 
 function formatUTCYear(d, p) {
@@ -16300,6 +16340,8 @@ var formatIso = Date.prototype.toISOString
     ? formatIsoNative
     : exports.utcFormat(isoSpecifier);
 
+var formatIso$1 = formatIso;
+
 function parseIsoNative(string) {
   var date = new Date(string);
   return isNaN(date) ? null : date;
@@ -16308,6 +16350,8 @@ function parseIsoNative(string) {
 var parseIso = +new Date("2000-01-01T00:00:00.000Z")
     ? parseIsoNative
     : exports.utcParse(isoSpecifier);
+
+var parseIso$1 = parseIso;
 
 function date(t) {
   return new Date(t);
@@ -16372,11 +16416,11 @@ function calendar(ticks, tickInterval, year, month, week, day, hour, minute, sec
 }
 
 function time() {
-  return initRange.apply(calendar(timeTicks, timeTickInterval, year, month, sunday, day, hour, minute, second, exports.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(timeTicks, timeTickInterval, timeYear, timeMonth, sunday, timeDay, timeHour, timeMinute, utcSecond, exports.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
 }
 
 function utcTime() {
-  return initRange.apply(calendar(utcTicks, utcTickInterval, utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute, second, exports.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(utcTicks, utcTickInterval, utcYear$1, utcMonth$1, utcSunday, utcDay$1, utcHour$1, utcMinute$1, utcSecond, exports.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
 }
 
 function transformer$1() {
@@ -16484,7 +16528,7 @@ function sequentialQuantile() {
       interpolator = identity$3;
 
   function scale(x) {
-    if (x != null && !isNaN(x = +x)) return interpolator((bisectRight(domain, x, 1) - 1) / (domain.length - 1));
+    if (x != null && !isNaN(x = +x)) return interpolator((bisect(domain, x, 1) - 1) / (domain.length - 1));
   }
 
   scale.domain = function(_) {
@@ -19520,7 +19564,7 @@ exports.axisLeft = axisLeft;
 exports.axisRight = axisRight;
 exports.axisTop = axisTop;
 exports.bin = bin;
-exports.bisect = bisectRight;
+exports.bisect = bisect;
 exports.bisectCenter = bisectCenter;
 exports.bisectLeft = bisectLeft;
 exports.bisectRight = bisectRight;
@@ -19766,8 +19810,8 @@ exports.interpolateZoom = interpolateZoom;
 exports.interrupt = interrupt;
 exports.intersection = intersection;
 exports.interval = interval;
-exports.isoFormat = formatIso;
-exports.isoParse = parseIso;
+exports.isoFormat = formatIso$1;
+exports.isoParse = parseIso$1;
 exports.json = json;
 exports.lab = lab$1;
 exports.lch = lch;
@@ -19838,7 +19882,7 @@ exports.randomPareto = pareto;
 exports.randomPoisson = poisson;
 exports.randomUniform = uniform;
 exports.randomWeibull = weibull;
-exports.range = sequence;
+exports.range = range$2;
 exports.reduce = reduce;
 exports.reverse = reverse$1;
 exports.rgb = rgb;
@@ -19948,33 +19992,33 @@ exports.symbolTriangle = triangle;
 exports.symbolWye = wye;
 exports.symbols = symbols;
 exports.text = text;
-exports.thresholdFreedmanDiaconis = freedmanDiaconis;
-exports.thresholdScott = scott;
+exports.thresholdFreedmanDiaconis = thresholdFreedmanDiaconis;
+exports.thresholdScott = thresholdScott;
 exports.thresholdSturges = thresholdSturges;
 exports.tickFormat = tickFormat;
 exports.tickIncrement = tickIncrement;
 exports.tickStep = tickStep;
 exports.ticks = ticks;
-exports.timeDay = day;
+exports.timeDay = timeDay;
 exports.timeDays = days;
 exports.timeFormatDefaultLocale = defaultLocale;
 exports.timeFormatLocale = formatLocale;
 exports.timeFriday = friday;
 exports.timeFridays = fridays;
-exports.timeHour = hour;
+exports.timeHour = timeHour;
 exports.timeHours = hours;
 exports.timeInterval = newInterval;
-exports.timeMillisecond = millisecond;
+exports.timeMillisecond = millisecond$1;
 exports.timeMilliseconds = milliseconds;
-exports.timeMinute = minute;
+exports.timeMinute = timeMinute;
 exports.timeMinutes = minutes;
 exports.timeMonday = monday;
 exports.timeMondays = mondays;
-exports.timeMonth = month;
+exports.timeMonth = timeMonth;
 exports.timeMonths = months;
 exports.timeSaturday = saturday;
 exports.timeSaturdays = saturdays;
-exports.timeSecond = second;
+exports.timeSecond = utcSecond;
 exports.timeSeconds = seconds;
 exports.timeSunday = sunday;
 exports.timeSundays = sundays;
@@ -19988,7 +20032,7 @@ exports.timeWednesday = wednesday;
 exports.timeWednesdays = wednesdays;
 exports.timeWeek = sunday;
 exports.timeWeeks = sundays;
-exports.timeYear = year;
+exports.timeYear = timeYear;
 exports.timeYears = years;
 exports.timeout = timeout;
 exports.timer = timer;
@@ -20012,23 +20056,23 @@ exports.tsvFormatValue = tsvFormatValue;
 exports.tsvParse = tsvParse;
 exports.tsvParseRows = tsvParseRows;
 exports.union = union;
-exports.utcDay = utcDay;
+exports.utcDay = utcDay$1;
 exports.utcDays = utcDays;
 exports.utcFriday = utcFriday;
 exports.utcFridays = utcFridays;
-exports.utcHour = utcHour;
+exports.utcHour = utcHour$1;
 exports.utcHours = utcHours;
-exports.utcMillisecond = millisecond;
+exports.utcMillisecond = millisecond$1;
 exports.utcMilliseconds = milliseconds;
-exports.utcMinute = utcMinute;
+exports.utcMinute = utcMinute$1;
 exports.utcMinutes = utcMinutes;
 exports.utcMonday = utcMonday;
 exports.utcMondays = utcMondays;
-exports.utcMonth = utcMonth;
+exports.utcMonth = utcMonth$1;
 exports.utcMonths = utcMonths;
 exports.utcSaturday = utcSaturday;
 exports.utcSaturdays = utcSaturdays;
-exports.utcSecond = second;
+exports.utcSecond = utcSecond;
 exports.utcSeconds = seconds;
 exports.utcSunday = utcSunday;
 exports.utcSundays = utcSundays;
@@ -20042,7 +20086,7 @@ exports.utcWednesday = utcWednesday;
 exports.utcWednesdays = utcWednesdays;
 exports.utcWeek = utcSunday;
 exports.utcWeeks = utcSundays;
-exports.utcYear = utcYear;
+exports.utcYear = utcYear$1;
 exports.utcYears = utcYears;
 exports.variance = variance;
 exports.version = version;
