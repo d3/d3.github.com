@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.0.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-array/ v3.0.2 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -6,56 +6,50 @@ typeof define === 'function' && define.amd ? define(['exports'], factory) :
 }(this, (function (exports) { 'use strict';
 
 function ascending(a, b) {
-  return a == null || b == null ? NaN
-    : a < b ? -1
-    : a > b ? 1
-    : a >= b ? 0
-    : NaN;
+  return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
 function bisector(f) {
   let delta = f;
-  let compare = f;
+  let compare1 = f;
+  let compare2 = f;
 
   if (f.length === 1) {
     delta = (d, x) => f(d) - x;
-    compare = ascendingComparator(f);
+    compare1 = ascending;
+    compare2 = (d, x) => ascending(f(d), x);
   }
 
-  function left(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >>> 1;
-      if (compare(a[mid], x) < 0) lo = mid + 1;
-      else hi = mid;
+  function left(a, x, lo = 0, hi = a.length) {
+    if (lo < hi) {
+      if (compare1(x, x) !== 0) return hi;
+      do {
+        const mid = (lo + hi) >>> 1;
+        if (compare2(a[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
 
-  function right(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >>> 1;
-      if (compare(a[mid], x) > 0) hi = mid;
-      else lo = mid + 1;
+  function right(a, x, lo = 0, hi = a.length) {
+    if (lo < hi) {
+      if (compare1(x, x) !== 0) return hi;
+      do {
+        const mid = (lo + hi) >>> 1;
+        if (compare2(a[mid], x) <= 0) lo = mid + 1;
+        else hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
 
-  function center(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
+  function center(a, x, lo = 0, hi = a.length) {
     const i = left(a, x, lo, hi - 1);
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
 
   return {left, center, right};
-}
-
-function ascendingComparator(f) {
-  return (d, x) => ascending(f(d), x);
 }
 
 function number(x) {
@@ -83,6 +77,7 @@ const ascendingBisect = bisector(ascending);
 const bisectRight = ascendingBisect.right;
 const bisectLeft = ascendingBisect.left;
 const bisectCenter = bisector(number).center;
+var bisect = bisectRight;
 
 function count(values, valueof) {
   let count = 0;
@@ -419,24 +414,37 @@ function permute(source, keys) {
 function sort(values, ...F) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
   values = Array.from(values);
-  let [f = ascending] = F;
-  if (f.length === 1 || F.length > 1) {
+  let [f] = F;
+  if ((f && f.length === 1) || F.length > 1) {
     const index = Uint32Array.from(values, (d, i) => i);
     if (F.length > 1) {
       F = F.map(f => values.map(f));
       index.sort((i, j) => {
         for (const f of F) {
-          const c = ascending(f[i], f[j]);
+          const c = ascendingDefined(f[i], f[j]);
           if (c) return c;
         }
       });
     } else {
       f = values.map(f);
-      index.sort((i, j) => ascending(f[i], f[j]));
+      index.sort((i, j) => ascendingDefined(f[i], f[j]));
     }
     return permute(values, index);
   }
-  return values.sort(f);
+  return values.sort(f === undefined ? ascendingDefined : compareDefined(f));
+}
+
+function compareDefined(compare) {
+  if (typeof compare !== "function") throw new TypeError("compare is not a function");
+  return (a, b) => {
+    const x = compare(a, b);
+    if (x || x === 0) return x;
+    return (compare(b, b) === 0) - (compare(a, a) === 0);
+  };
+}
+
+function ascendingDefined(a, b) {
+  return (a == null || !(a >= a)) - (b == null || !(b >= b)) || (a < b ? -1 : a > b ? 1 : 0);
 }
 
 function groupSort(values, reduce, key) {
@@ -451,9 +459,7 @@ var array = Array.prototype;
 var slice = array.slice;
 
 function constant(x) {
-  return function() {
-    return x;
-  };
+  return () => x;
 }
 
 var e10 = Math.sqrt(50),
@@ -528,14 +534,14 @@ function nice(start, stop, count) {
   }
 }
 
-function sturges(values) {
+function thresholdSturges(values) {
   return Math.ceil(Math.log(count(values)) / Math.LN2) + 1;
 }
 
 function bin() {
   var value = identity,
       domain = extent,
-      threshold = sturges;
+      threshold = thresholdSturges;
 
   function histogram(data) {
     if (!Array.isArray(data)) data = Array.from(data);
@@ -603,7 +609,7 @@ function bin() {
     for (i = 0; i < n; ++i) {
       x = values[i];
       if (x != null && x0 <= x && x <= x1) {
-        bins[bisectRight(tz, x, 0, m)].push(data[i]);
+        bins[bisect(tz, x, 0, m)].push(data[i]);
       }
     }
 
@@ -669,7 +675,9 @@ function min(values, valueof) {
 
 // Based on https://github.com/mourner/quickselect
 // ISC license, Copyright 2018 Vladimir Agafonkin.
-function quickselect(array, k, left = 0, right = array.length - 1, compare = ascending) {
+function quickselect(array, k, left = 0, right = array.length - 1, compare) {
+  compare = compare === undefined ? ascendingDefined : compareDefined(compare);
+
   while (right > left) {
     if (right - left > 600) {
       const n = right - left + 1;
@@ -735,11 +743,11 @@ function quantileSorted(values, p, valueof = number) {
   return value0 + (value1 - value0) * (i - i0);
 }
 
-function freedmanDiaconis(values, min, max) {
+function thresholdFreedmanDiaconis(values, min, max) {
   return Math.ceil((max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3)));
 }
 
-function scott(values, min, max) {
+function thresholdScott(values, min, max) {
   return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(count(values), -1 / 3)));
 }
 
@@ -1161,7 +1169,7 @@ exports.InternMap = InternMap;
 exports.InternSet = InternSet;
 exports.ascending = ascending;
 exports.bin = bin;
-exports.bisect = bisectRight;
+exports.bisect = bisect;
 exports.bisectCenter = bisectCenter;
 exports.bisectLeft = bisectLeft;
 exports.bisectRight = bisectRight;
@@ -1219,9 +1227,9 @@ exports.sort = sort;
 exports.subset = subset;
 exports.sum = sum;
 exports.superset = superset;
-exports.thresholdFreedmanDiaconis = freedmanDiaconis;
-exports.thresholdScott = scott;
-exports.thresholdSturges = sturges;
+exports.thresholdFreedmanDiaconis = thresholdFreedmanDiaconis;
+exports.thresholdScott = thresholdScott;
+exports.thresholdSturges = thresholdSturges;
 exports.tickIncrement = tickIncrement;
 exports.tickStep = tickStep;
 exports.ticks = ticks;
