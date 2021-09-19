@@ -1,11 +1,11 @@
-// https://d3js.org v7.0.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.0.2 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 }(this, (function (exports) { 'use strict';
 
-var version = "7.0.1";
+var version = "7.0.2";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -332,7 +332,7 @@ function intern_set({_intern, _key}, value) {
 function intern_delete({_intern, _key}, value) {
   const key = _key(value);
   if (_intern.has(key)) {
-    value = _intern.get(value);
+    value = _intern.get(key);
     _intern.delete(key);
   }
   return value;
@@ -1097,7 +1097,7 @@ function reverse$1(values) {
 }
 
 function difference(values, ...others) {
-  values = new Set(values);
+  values = new InternSet(values);
   for (const other of others) {
     for (const value of other) {
       values.delete(value);
@@ -1107,7 +1107,7 @@ function difference(values, ...others) {
 }
 
 function disjoint(values, other) {
-  const iterator = other[Symbol.iterator](), set = new Set();
+  const iterator = other[Symbol.iterator](), set = new InternSet();
   for (const v of values) {
     if (set.has(v)) return false;
     let value, done;
@@ -1120,12 +1120,8 @@ function disjoint(values, other) {
   return true;
 }
 
-function set$2(values) {
-  return values instanceof Set ? values : new Set(values);
-}
-
 function intersection(values, ...others) {
-  values = new Set(values);
+  values = new InternSet(values);
   others = others.map(set$2);
   out: for (const value of values) {
     for (const other of others) {
@@ -1138,18 +1134,28 @@ function intersection(values, ...others) {
   return values;
 }
 
+function set$2(values) {
+  return values instanceof InternSet ? values : new InternSet(values);
+}
+
 function superset(values, other) {
   const iterator = values[Symbol.iterator](), set = new Set();
   for (const o of other) {
-    if (set.has(o)) continue;
+    const io = intern(o);
+    if (set.has(io)) continue;
     let value, done;
     while (({value, done} = iterator.next())) {
       if (done) return false;
-      set.add(value);
-      if (Object.is(o, value)) break;
+      const ivalue = intern(value);
+      set.add(ivalue);
+      if (Object.is(io, ivalue)) break;
     }
   }
   return true;
+}
+
+function intern(value) {
+  return value !== null && typeof value === "object" ? value.valueOf() : value;
 }
 
 function subset(values, other) {
@@ -1157,7 +1163,7 @@ function subset(values, other) {
 }
 
 function union(...others) {
-  const set = new Set();
+  const set = new InternSet();
   for (const other of others) {
     for (const o of other) {
       set.add(o);
@@ -14848,28 +14854,26 @@ function pow10(x) {
 function powp(base) {
   return base === 10 ? pow10
       : base === Math.E ? Math.exp
-      : function(x) { return Math.pow(base, x); };
+      : x => Math.pow(base, x);
 }
 
 function logp(base) {
   return base === Math.E ? Math.log
       : base === 10 && Math.log10
       || base === 2 && Math.log2
-      || (base = Math.log(base), function(x) { return Math.log(x) / base; });
+      || (base = Math.log(base), x => Math.log(x) / base);
 }
 
 function reflect(f) {
-  return function(x) {
-    return -f(-x);
-  };
+  return (x, k) => -f(-x, k);
 }
 
 function loggish(transform) {
-  var scale = transform(transformLog, transformExp),
-      domain = scale.domain,
-      base = 10,
-      logs,
-      pows;
+  const scale = transform(transformLog, transformExp);
+  const domain = scale.domain;
+  let base = 10;
+  let logs;
+  let pows;
 
   function rescale() {
     logs = logp(base), pows = powp(base);
@@ -14890,34 +14894,33 @@ function loggish(transform) {
     return arguments.length ? (domain(_), rescale()) : domain();
   };
 
-  scale.ticks = function(count) {
-    var d = domain(),
-        u = d[0],
-        v = d[d.length - 1],
-        r;
+  scale.ticks = count => {
+    const d = domain();
+    let u = d[0];
+    let v = d[d.length - 1];
+    const r = v < u;
 
-    if (r = v < u) i = u, u = v, v = i;
+    if (r) ([u, v] = [v, u]);
 
-    var i = logs(u),
-        j = logs(v),
-        p,
-        k,
-        t,
-        n = count == null ? 10 : +count,
-        z = [];
+    let i = logs(u);
+    let j = logs(v);
+    let k;
+    let t;
+    const n = count == null ? 10 : +count;
+    let z = [];
 
     if (!(base % 1) && j - i < n) {
       i = Math.floor(i), j = Math.ceil(j);
       if (u > 0) for (; i <= j; ++i) {
-        for (k = 1, p = pows(i); k < base; ++k) {
-          t = p * k;
+        for (k = 1; k < base; ++k) {
+          t = i < 0 ? k / pows(-i) : k * pows(i);
           if (t < u) continue;
           if (t > v) break;
           z.push(t);
         }
       } else for (; i <= j; ++i) {
-        for (k = base - 1, p = pows(i); k >= 1; --k) {
-          t = p * k;
+        for (k = base - 1; k >= 1; --k) {
+          t = i > 0 ? k / pows(-i) : k * pows(i);
           if (t < u) continue;
           if (t > v) break;
           z.push(t);
@@ -14927,27 +14930,29 @@ function loggish(transform) {
     } else {
       z = ticks(i, j, Math.min(j - i, n)).map(pows);
     }
-
     return r ? z.reverse() : z;
   };
 
-  scale.tickFormat = function(count, specifier) {
-    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
-    if (typeof specifier !== "function") specifier = exports.format(specifier);
-    if (count === Infinity) return specifier;
+  scale.tickFormat = (count, specifier) => {
     if (count == null) count = 10;
-    var k = Math.max(1, base * count / scale.ticks().length); // TODO fast estimate?
-    return function(d) {
-      var i = d / pows(Math.round(logs(d)));
+    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+    if (typeof specifier !== "function") {
+      if (!(base % 1) && (specifier = formatSpecifier(specifier)).precision == null) specifier.trim = true;
+      specifier = exports.format(specifier);
+    }
+    if (count === Infinity) return specifier;
+    const k = Math.max(1, base * count / scale.ticks().length); // TODO fast estimate?
+    return d => {
+      let i = d / pows(Math.round(logs(d)));
       if (i * base < base - 0.5) i *= base;
       return i <= k ? specifier(d) : "";
     };
   };
 
-  scale.nice = function() {
+  scale.nice = () => {
     return domain(nice(domain(), {
-      floor: function(x) { return pows(Math.floor(logs(x))); },
-      ceil: function(x) { return pows(Math.ceil(logs(x))); }
+      floor: x => pows(Math.floor(logs(x))),
+      ceil: x => pows(Math.ceil(logs(x)))
     }));
   };
 
@@ -14955,14 +14960,9 @@ function loggish(transform) {
 }
 
 function log() {
-  var scale = loggish(transformer$2()).domain([1, 10]);
-
-  scale.copy = function() {
-    return copy$1(scale, log()).base(scale.base());
-  };
-
+  const scale = loggish(transformer$2()).domain([1, 10]);
+  scale.copy = () => copy$1(scale, log()).base(scale.base());
   initRange.apply(scale, arguments);
-
   return scale;
 }
 
