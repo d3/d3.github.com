@@ -1,9 +1,9 @@
-// https://d3js.org/d3-scale/ v4.0.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-scale/ v4.0.2 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3));
-}(this, (function (exports, d3Array, d3Interpolate, d3Format, d3Time, d3TimeFormat) { 'use strict';
+})(this, (function (exports, d3Array, d3Interpolate, d3Format, d3Time, d3TimeFormat) { 'use strict';
 
 function initRange(domain, range) {
   switch (arguments.length) {
@@ -547,7 +547,7 @@ function loggish(transform) {
 
   scale.tickFormat = (count, specifier) => {
     if (count == null) count = 10;
-    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+    if (specifier == null) specifier = base === 10 ? "s" : ",";
     if (typeof specifier !== "function") {
       if (!(base % 1) && (specifier = d3Format.formatSpecifier(specifier)).precision == null) specifier.trim = true;
       specifier = d3Format.format(specifier);
@@ -1193,4 +1193,4 @@ exports.tickFormat = tickFormat;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
