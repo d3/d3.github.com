@@ -1,11 +1,11 @@
-// https://d3js.org v7.0.3 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.0.4 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
-var version = "7.0.3";
+var version = "7.0.4";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -14935,7 +14935,7 @@ function loggish(transform) {
 
   scale.tickFormat = (count, specifier) => {
     if (count == null) count = 10;
-    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+    if (specifier == null) specifier = base === 10 ? "s" : ",";
     if (typeof specifier !== "function") {
       if (!(base % 1) && (specifier = formatSpecifier(specifier)).precision == null) specifier.trim = true;
       specifier = exports.format(specifier);
@@ -20099,4 +20099,4 @@ exports.zoomTransform = transform;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
