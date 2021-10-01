@@ -1,9 +1,9 @@
-// https://d3js.org/d3-array/ v3.0.4 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-array/ v3.1.0 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
 function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -888,6 +888,27 @@ function range(start, stop, step) {
   return range;
 }
 
+function rank(values, valueof) {
+  if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
+  values = Array.from(values, valueof);
+  const n = values.length;
+  const r = new Float64Array(n);
+  let last, l;
+  sort(range(n), (i) => values[i]).forEach((j, i) => {
+    const value = values[j];
+    if (value == null || !(value <= value)) {
+      r[j] = NaN;
+      return;
+    }
+    if (last === undefined || !(value <= last)) {
+      last = value;
+      l = i;
+    }
+    r[j] = l;
+  });
+  return r;
+}
+
 function least(values, compare = ascending) {
   let min;
   let defined = false;
@@ -1221,6 +1242,7 @@ exports.quantile = quantile;
 exports.quantileSorted = quantileSorted;
 exports.quickselect = quickselect;
 exports.range = range;
+exports.rank = rank;
 exports.reduce = reduce;
 exports.reverse = reverse;
 exports.rollup = rollup;
@@ -1246,4 +1268,4 @@ exports.zip = zip;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
