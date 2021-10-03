@@ -1,11 +1,11 @@
-// https://d3js.org v7.1.0 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.1.1 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.1.0";
+var version = "7.1.1";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -16,7 +16,7 @@ function bisector(f) {
   let compare1 = f;
   let compare2 = f;
 
-  if (f.length === 1) {
+  if (f.length !== 2) {
     delta = (d, x) => f(d) - x;
     compare1 = ascending$3;
     compare2 = (d, x) => ascending$3(f(d), x);
@@ -417,7 +417,7 @@ function sort(values, ...F) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
   values = Array.from(values);
   let [f] = F;
-  if ((f && f.length === 1) || F.length > 1) {
+  if ((f && f.length !== 2) || F.length > 1) {
     const index = Uint32Array.from(values, (d, i) => i);
     if (F.length > 1) {
       F = F.map(f => values.map(f));
@@ -433,10 +433,11 @@ function sort(values, ...F) {
     }
     return permute(values, index);
   }
-  return values.sort(f === undefined ? ascendingDefined : compareDefined(f));
+  return values.sort(compareDefined(f));
 }
 
-function compareDefined(compare) {
+function compareDefined(compare = ascending$3) {
+  if (compare === ascending$3) return ascendingDefined;
   if (typeof compare !== "function") throw new TypeError("compare is not a function");
   return (a, b) => {
     const x = compare(a, b);
@@ -450,7 +451,7 @@ function ascendingDefined(a, b) {
 }
 
 function groupSort(values, reduce, key) {
-  return (reduce.length === 1
+  return (reduce.length !== 2
     ? sort(rollup(values, reduce, key), (([ak, av], [bk, bv]) => ascending$3(av, bv) || ascending$3(ak, bk)))
     : sort(group(values, key), (([ak, av], [bk, bv]) => reduce(av, bv) || ascending$3(ak, bk))))
     .map(([key]) => key);
@@ -890,25 +891,26 @@ function range$2(start, stop, step) {
   return range;
 }
 
-function rank(values, valueof) {
+function rank(values, valueof = ascending$3) {
   if (typeof values[Symbol.iterator] !== "function") throw new TypeError("values is not iterable");
-  values = Array.from(values, valueof);
-  const n = values.length;
-  const r = new Float64Array(n);
-  let last, l;
-  sort(range$2(n), (i) => values[i]).forEach((j, i) => {
-    const value = values[j];
-    if (value == null || !(value <= value)) {
-      r[j] = NaN;
-      return;
-    }
-    if (last === undefined || !(value <= last)) {
-      last = value;
-      l = i;
-    }
-    r[j] = l;
-  });
-  return r;
+  let V = Array.from(values);
+  const R = new Float64Array(V.length);
+  if (valueof.length !== 2) V = V.map(valueof), valueof = ascending$3;
+  const compareIndex = (i, j) => valueof(V[i], V[j]);
+  let k, r;
+  Uint32Array
+    .from(V, (_, i) => i)
+    .sort(valueof === ascending$3 ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex))
+    .forEach((j, i) => {
+      const c = compareIndex(j, k === undefined ? j : k);
+      if (c >= 0) {
+        if (k === undefined || c > 0) k = j, r = i;
+        R[j] = r;
+      } else {
+        R[j] = NaN;
+      }
+    });
+  return R;
 }
 
 function least(values, compare = ascending$3) {
