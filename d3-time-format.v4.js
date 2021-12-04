@@ -1,9 +1,9 @@
-// https://d3js.org/d3-time-format/ v4.0.0 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-time-format/ v4.1.0 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}, global.d3));
-}(this, (function (exports, d3Time) { 'use strict';
+})(this, (function (exports, d3Time) { 'use strict';
 
 function localDate(d) {
   if (0 <= d.y && d.y < 100) {
@@ -742,4 +742,4 @@ exports.timeFormatLocale = formatLocale;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
