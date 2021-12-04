@@ -1,11 +1,11 @@
-// https://d3js.org v7.1.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.2.0 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.1.1";
+var version = "7.2.0";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -13394,7 +13394,8 @@ function partition() {
 }
 
 var preroot = {depth: -1},
-    ambiguous = {};
+    ambiguous = {},
+    imputed = {};
 
 function defaultId(d) {
   return d.id;
@@ -13406,11 +13407,14 @@ function defaultParentId(d) {
 
 function stratify() {
   var id = defaultId,
-      parentId = defaultParentId;
+      parentId = defaultParentId,
+      path;
 
   function stratify(data) {
     var nodes = Array.from(data),
-        n = nodes.length,
+        currentId = id,
+        currentParentId = parentId,
+        n,
         d,
         i,
         root,
@@ -13420,13 +13424,29 @@ function stratify() {
         nodeKey,
         nodeByKey = new Map;
 
-    for (i = 0; i < n; ++i) {
+    if (path != null) {
+      const I = nodes.map((d, i) => normalize$1(path(d, i, data)));
+      const P = I.map(parentof);
+      const S = new Set(I).add("");
+      for (const i of P) {
+        if (!S.has(i)) {
+          S.add(i);
+          I.push(i);
+          P.push(parentof(i));
+          nodes.push(imputed);
+        }
+      }
+      currentId = (_, i) => I[i];
+      currentParentId = (_, i) => P[i];
+    }
+
+    for (i = 0, n = nodes.length; i < n; ++i) {
       d = nodes[i], node = nodes[i] = new Node$1(d);
-      if ((nodeId = id(d, i, data)) != null && (nodeId += "")) {
+      if ((nodeId = currentId(d, i, data)) != null && (nodeId += "")) {
         nodeKey = node.id = nodeId;
         nodeByKey.set(nodeKey, nodeByKey.has(nodeKey) ? ambiguous : node);
       }
-      if ((nodeId = parentId(d, i, data)) != null && (nodeId += "")) {
+      if ((nodeId = currentParentId(d, i, data)) != null && (nodeId += "")) {
         node.parent = nodeId;
       }
     }
@@ -13447,6 +13467,20 @@ function stratify() {
     }
 
     if (!root) throw new Error("no root");
+
+    // When imputing internal nodes, only introduce roots if needed.
+    // Then replace the imputed marker data with null.
+    if (path != null) {
+      while (root.data === imputed && root.children.length === 1) {
+        root = root.children[0], --n;
+      }
+      for (let i = nodes.length - 1; i >= 0; --i) {
+        node = nodes[i];
+        if (node.data !== imputed) break;
+        node.data = null;
+      }
+    }
+
     root.parent = preroot;
     root.eachBefore(function(node) { node.depth = node.parent.depth + 1; --n; }).eachBefore(computeHeight);
     root.parent = null;
@@ -13456,14 +13490,50 @@ function stratify() {
   }
 
   stratify.id = function(x) {
-    return arguments.length ? (id = required(x), stratify) : id;
+    return arguments.length ? (id = optional(x), stratify) : id;
   };
 
   stratify.parentId = function(x) {
-    return arguments.length ? (parentId = required(x), stratify) : parentId;
+    return arguments.length ? (parentId = optional(x), stratify) : parentId;
+  };
+
+  stratify.path = function(x) {
+    return arguments.length ? (path = optional(x), stratify) : path;
   };
 
   return stratify;
+}
+
+// To normalize a path, we coerce to a string, strip trailing slash if present,
+// and add leading slash if missing. This requires counting the number of
+// preceding backslashes which may be used to escape the forward slash: an odd
+// number indicates an escaped forward slash.
+function normalize$1(path) {
+  path = `${path}`;
+  let i = path.length - 1;
+  if (path[i] === "/") {
+    let k = 0;
+    while (i > 0 && path[--i] === "\\") ++k;
+    if ((k & 1) === 0) path = path.slice(0, -1);
+  }
+  return path[0] === "/" ? path : `/${path}`;
+}
+
+// Walk backwards to find the first slash that is not the leading slash, e.g.:
+// "/foo/bar" ⇥ "/foo", "/foo" ⇥ "/", "/" ↦ "". (The root is special-cased
+// because the id of the root must be a truthy value.) The slash may be escaped,
+// which again requires counting the number of preceding backslashes. Note that
+// normalized paths cannot end with a slash except for the root.
+function parentof(path) {
+  let i = path.length;
+  while (i > 2) {
+    if (path[--i] === "/") {
+      let j = i, k = 0;
+      while (j > 0 && path[--j] === "\\") ++k;
+      if ((k & 1) === 0) break;
+    }
+  }
+  return path.slice(0, i < 3 ? i - 1 : i);
 }
 
 function defaultSeparation(a, b) {
