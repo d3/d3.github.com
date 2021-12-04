@@ -1,9 +1,9 @@
-// https://d3js.org/d3-format/ v3.0.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-format/ v3.1.0 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
 function formatDecimal(x) {
   return Math.abs(x = Math.round(x)) >= 1e21
@@ -342,4 +342,4 @@ exports.precisionRound = precisionRound;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
