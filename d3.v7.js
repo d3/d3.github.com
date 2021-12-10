@@ -1,11 +1,11 @@
-// https://d3js.org v7.2.0 Copyright 2010-2021 Mike Bostock
+// https://d3js.org v7.2.1 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.2.0";
+var version = "7.2.1";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -13504,36 +13504,36 @@ function stratify() {
   return stratify;
 }
 
-// To normalize a path, we coerce to a string, strip trailing slash if present,
-// and add leading slash if missing. This requires counting the number of
-// preceding backslashes which may be used to escape the forward slash: an odd
-// number indicates an escaped forward slash.
+// To normalize a path, we coerce to a string, strip the trailing slash if any
+// (as long as the trailing slash is not immediately preceded by another slash),
+// and add leading slash if missing.
 function normalize$1(path) {
   path = `${path}`;
-  let i = path.length - 1;
-  if (path[i] === "/") {
-    let k = 0;
-    while (i > 0 && path[--i] === "\\") ++k;
-    if ((k & 1) === 0) path = path.slice(0, -1);
-  }
+  let i = path.length;
+  if (slash(path, i - 1) && !slash(path, i - 2)) path = path.slice(0, -1);
   return path[0] === "/" ? path : `/${path}`;
 }
 
 // Walk backwards to find the first slash that is not the leading slash, e.g.:
 // "/foo/bar" ⇥ "/foo", "/foo" ⇥ "/", "/" ↦ "". (The root is special-cased
-// because the id of the root must be a truthy value.) The slash may be escaped,
-// which again requires counting the number of preceding backslashes. Note that
-// normalized paths cannot end with a slash except for the root.
+// because the id of the root must be a truthy value.)
 function parentof(path) {
   let i = path.length;
-  while (i > 2) {
-    if (path[--i] === "/") {
-      let j = i, k = 0;
-      while (j > 0 && path[--j] === "\\") ++k;
-      if ((k & 1) === 0) break;
-    }
+  if (i < 2) return "";
+  while (--i > 1) if (slash(path, i)) break;
+  return path.slice(0, i);
+}
+
+// Slashes can be escaped; to determine whether a slash is a path delimiter, we
+// count the number of preceding backslashes escaping the forward slash: an odd
+// number indicates an escaped forward slash.
+function slash(path, i) {
+  if (path[i] === "/") {
+    let k = 0;
+    while (i > 0 && path[--i] === "\\") ++k;
+    if ((k & 1) === 0) return true;
   }
-  return path.slice(0, i < 3 ? i - 1 : i);
+  return false;
 }
 
 function defaultSeparation(a, b) {
