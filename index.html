@@ -52,7 +52,7 @@ body {
 }
 
 a {
-  color: steelblue;
+  color: rgb(70, 130, 180);
 }
 
 a:not(:hover),
@@ -61,12 +61,12 @@ a:not(:hover)::before {
 }
 
 #examples {
-  background: #ddd;
+  background: rgb(221, 221, 221);
   height: 460px;
   overflow: hidden;
   padding: 0;
   position: relative;
-  border-top: solid 1px #fff;
+  border-top: solid 1px rgb(255, 255, 255);
 }
 
 #examples-container {
@@ -80,19 +80,19 @@ a:not(:hover)::before {
   display: block;
   width: 100%;
   position: absolute;
-  background: white;
+  background: rgb(255, 255, 255);
   height: 16px;
   z-index: 2;
 }
 
 #examples-container:before {
   bottom: -16px;
-  box-shadow: 0px -8px 16px rgba(0,0,0,.3);
+  box-shadow: 0 -8px 16px rgba(0, 0, 0, .3);
 }
 
 #examples-container:after {
   top: -16px;
-  box-shadow: 0px 8px 16px rgba(0,0,0,.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, .3);
 }
 
 #examples-deep {
@@ -111,7 +111,7 @@ a:not(:hover)::before {
 
 .example-mesh {
   fill: none;
-  stroke: #fff;
+  stroke: rgb(255, 255, 255);
   stroke-width: 2px;
 }
 
@@ -122,12 +122,12 @@ a:not(:hover)::before {
 }
 
 .example-anchor path:hover {
-  stroke: #000;
+  stroke: rgb(0, 0, 0);
   stroke-width: 2px;
 }
 
 h1 {
-  color: #555;
+  color: rgb(85, 85, 85);
   font-size: 4rem;
   line-height: 3.5rem;
   font-weight: 200;
@@ -219,12 +219,12 @@ body > div > header {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom,#ffc,#ffa);
-  border-bottom: solid 1px rgba(0,0,0,0.1);
+  background: linear-gradient(to bottom, rgb(255, 255, 204), rgb(255, 255, 170));
+  border-bottom: solid 1px rgba(0, 0, 0, 0.1);
 }
 
-#observable-banner a  {
-  color: rgba(0,0,0,0.8);
+#observable-banner a {
+  color: rgba(0, 0, 0, 0.8);
 }
 
 section {
@@ -271,7 +271,7 @@ code {
 
 pre {
   overflow: scroll;
-  box-shadow: -1.1em 0 0 0 white, -1.2em 0 0 0 #ccc;
+  box-shadow: -1.1em 0 0 0 rgb(255, 255, 255), -1.2em 0 0 0 rgb(204, 204, 204);
   margin: 2em 0;
   line-height: inherit;
 }
@@ -371,29 +371,29 @@ li.ico-so::before {
 .html .string,
 .javascript .string,
 .javascript .regexp {
-  color: #756bb1;
+  color: rgb(117, 107, 177);
 }
 
 .html .tag,
 .css .tag,
 .javascript .keyword {
-  color: #3182bd;
+  color: rgb(49, 130, 189);
 }
 
 .comment {
-  color: #636363;
+  color: rgb(99, 99, 99);
 }
 
 .html .doctype,
 .javascript .number {
-  color: #31a354;
+  color: rgb(49, 163, 84);
 }
 
 .html .attr,
 .css .attr,
 .javascript .class,
 .javascript .special {
-  color: #e6550d;
+  color: rgb(230, 85, 13);
 }
 
 .github-fork-ribbon img {
