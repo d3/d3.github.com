@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=1040">
+<meta name="viewport" content="width=device-width, maximum-scale=10.0, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
 <meta name="keywords" content="d3,d3.js,visualization,dom,javascript">
@@ -31,14 +31,33 @@
 
 html {
   font: 16px/1.5em "Helvetica Neue", Helvetica, sans-serif;
-  min-width: 1040px;
   margin: 0;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  margin: 1em 0 4em 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1em 0 0;
+  line-height: 1.5em;
+}
+
+/* hide elements from view which help with accessibility */
+.visually-hidden {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+a {
+  color: steelblue;
+}
+
+a:not(:hover),
+a:not(:hover)::before {
+  text-decoration: none;
 }
 
 #examples {
@@ -50,8 +69,13 @@ body {
   border-top: solid 1px #fff;
 }
 
-#examples:after,
-#examples:before {
+#examples-container {
+  position: relative;
+  overflow: hidden;
+}
+
+#examples-container:after,
+#examples-container:before {
   content: "";
   display: block;
   width: 100%;
@@ -61,12 +85,12 @@ body {
   z-index: 2;
 }
 
-#examples:before {
+#examples-container:before {
   bottom: -16px;
   box-shadow: 0px -8px 16px rgba(0,0,0,.3);
 }
 
-#examples:after {
+#examples-container:after {
   top: -16px;
   box-shadow: 0px 8px 16px rgba(0,0,0,.3);
 }
@@ -104,11 +128,12 @@ body {
 
 h1 {
   color: #555;
-  font-size: 64px;
+  font-size: 4rem;
+  line-height: 3.5rem;
   font-weight: 200;
   letter-spacing: -2px;
   white-space: nowrap;
-  margin-top: 20px;
+  margin: 0 0 0 .2em;
 }
 
 h1,
@@ -117,51 +142,125 @@ h2 {
 }
 
 h2 {
-  margin-top: 2em;
+  margin: .6em 0 .2em;
 }
 
 h2 a {
-  color: #ccc;
-  left: -20px;
-  position: absolute;
-  width: 740px;
+  color: initial;
+}
+
+h2 a:hover {
+  text-decoration: none;
+}
+
+h2 a::before {
+  content: "#";
+  display: inline-block;
+  width: 1.2rem;
+  margin-left: -1.2rem;
+  color: rgb(204, 204, 204);
+  text-decoration: underline solid rgb(204, 204, 204) 1px;
+}
+
+@supports (content: "#" / "") {
+  h2 a::before {
+    content: "#" / "";
+  }
+}
+
+main, footer, /* top-level */
+#page-top, /* top-level */
+#observable-banner a {
+  width: 54%;
+}
+
+body > div > nav,
+body > div > header,
+body > aside, /* top-level element */
+#examples-container,
+#examples,
+#observable-banner {
+  width: 100%;
+}
+
+body > div > nav {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 1em;
+}
+
+body > div > nav > * {
+  margin-right: 1.3em;
+}
+
+body > div > nav > *:first-child {
+  font-weight: bold;
+}
+
+#page-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body > div > header {
+  margin: 1.3em 0;
+  display: flex;
+  align-items: center;
+}
+
+#d3-logo {
+  width: 96px;
+  height: 91px;
+}
+
+#observable-banner {
+  padding: 1.4em 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom,#ffc,#ffa);
+  border-bottom: solid 1px rgba(0,0,0,0.1);
+}
+
+#observable-banner a  {
+  color: rgba(0,0,0,0.8);
+}
+
+section {
+  margin: .5rem 0 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+section h2 {
+  width: 100%;
+}
+
+section > div,
+.socials-container {
+  width: 75%;
+}
+
+section:first-of-type {
+  margin-top: 1rem;
+}
+
+section:last-of-type {
+  margin-bottom: 1.5em;
 }
 
 footer {
   font-size: small;
-  margin-top: 8em;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1em;
 }
 
-header aside {
-  margin-top: 82px;
-}
-
-header aside,
-footer aside {
-  color: #636363;
-  text-align: right;
-}
-
-aside {
-  font-size: small;
-  left: 780px;
-  position: absolute;
-  width: 180px;
-}
-
-.column {
-  margin: auto;
-  width: 720px;
-  padding-right: 240px;
-  position: relative;
-}
-
-a {
-  color: steelblue;
-}
-
-a:not(:hover) {
-  text-decoration: none;
+section aside {
+  margin-top: 1.2rem;
+  width: 20%;
 }
 
 pre,
@@ -170,19 +269,103 @@ code {
   -webkit-text-size-adjust: 100%;
 }
 
-code {
-  line-height: 1em;
-}
-
 pre {
-  border-left: solid 2px #ccc;
-  padding-left: 18px;
-  margin: 2em 0 2em -20px;
+  overflow: scroll;
+  box-shadow: -1.1em 0 0 0 white, -1.2em 0 0 0 #ccc;
+  margin: 2em 0;
+  line-height: inherit;
 }
 
-aside ul {
+section aside div,
+section aside ul {
+  font-size: .8em;
+  line-height: .8em;
+}
+
+section aside > div {
+  padding-left: 1.45em;
+}
+
+section aside ul {
   padding-left: 0;
   margin: 0;
+}
+
+.d3-weblinks {
+  padding-left: 0;
+}
+
+.d3-weblinks li {
+  white-space: nowrap;
+  height: 1.8em;
+}
+
+.d3-weblinks li::marker {
+  color: transparent;
+  font-size: smaller;
+}
+
+.d3-weblinks li::before {
+  content: "";
+  display: inline-block;
+  background: no-repeat;
+  background-size: 1em 1em;
+  height: 1.1em;
+  width: 1.4em;
+}
+
+.d3-weblinks li a {
+  vertical-align: text-top;
+}
+
+.download-link {
+  margin-left: 2em;
+}
+
+.socials-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5em;
+}
+
+.socials {
+  width: 40%;
+  display: flex;
+  justify-content: space-between;
+}
+
+a.ico-soc::before {
+  content: "";
+  display: inline-block;
+  background: no-repeat;
+  background-size: 2em 2em;
+  height: 2em;
+  width: 2em;
+}
+
+a.ico-ob::before,
+li.ico-ob::before {
+  background-image: url("icon-observable.svg");
+}
+
+a.ico-sl::before,
+li.ico-sl::before {
+  background-image: url("icon-slack.svg");
+}
+
+a.ico-tw::before,
+li.ico-tw::before {
+  background-image: url("icon-twitter.svg");
+}
+
+a.ico-gh::before,
+li.ico-gh::before {
+  background-image: url("icon-github.svg");
+}
+
+a.ico-so::before,
+li.ico-so::before {
+  background-image: url("icon-stackoverflow.svg");
 }
 
 .html .string,
@@ -213,21 +396,311 @@ aside ul {
   color: #e6550d;
 }
 
+.github-fork-ribbon img {
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: 0;
+  z-index:2;
+  width: 149px;
+  height: 149px;
+}
+
+@media screen and (max-width: 1480px) {
+  main, footer,
+  #page-top,
+  #observable-banner a {
+    width: 68%;
+  }
+}
+
+@media screen and (max-width: 1366px) {
+  section > div,
+  .socials-container {
+    width: 70%;
+  }
+
+  pre {
+    margin: 1.5em 0;
+  }
+}
+
+
+@media screen and (max-width: 1200px) {
+  main, footer,
+  #page-top,
+  #observable-banner a {
+    width: 80%;
+  }
+
+  pre {
+    line-height: 1.3em;
+  }
+
+  .socials {
+    width: 50%;
+  }
+
+}
+
+@media screen and (max-width: 1024px) {
+  main, footer,
+  #page-top,
+  #observable-banner a {
+    width: 90%;
+  }
+
+  section > div,
+  .socials-container {
+    width: 65%;
+  }
+
+  pre {
+    line-height: initial;
+  }
+
+  .github-fork-ribbon img {
+    width: 130px;
+    height: 130px;
+  }
+}
+
+@media screen and (min-width: 768px) and (max-width: 992px) {
+  h1 {
+    white-space: normal;
+    font-size: 3.3rem;
+    line-height: 2.5rem;
+  }
+
+  section > div,
+  .socials-container {
+    width: 70%;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  pre {
+    margin: .5em 0;
+    padding: 1em 0;
+    background: rgba(204, 204, 204, .2);
+    box-shadow: -.5em 0 0 0 rgba(204, 204, 204, .2), .5em 0 0 0 rgba(204, 204, 204, .2);
+  }
+}
+
+@media screen and (max-width: 767px) {
+  body {
+    margin-bottom: initial;
+  }
+
+  h1 {
+    font-size: 3rem;
+    white-space: normal;
+    line-height: 2.5rem;
+  }
+
+  h2 a::before {
+    content: none;
+  }
+
+  #page-top {
+    flex-direction: column-reverse;
+  }
+
+  body > div > nav {
+    margin: 0 0 1em;
+  }
+
+  body > div > nav > * {
+    margin-right: .8em;
+  }
+
+  body > div > header {
+    margin: .5em 0 1em;
+  }
+
+  #examples {
+    height: 200px;
+    overflow: scroll;
+  }
+
+  #observable-banner {
+    padding: 1em 0;
+  }
+
+  #observable-banner a {
+    width: 90%;
+  }
+
+  section > div,
+  .socials-container {
+    width: 100%;
+    flex: unset;
+  }
+
+  section p:first-of-type {
+    margin-top: .3em;
+  }
+
+  section:first-of-type p:first-of-type {
+    margin-top: 0;
+  }
+
+  section p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  section aside {
+    margin: 1em 0 .7em;
+    width: initial;
+  }
+
+  section aside > div {
+    padding: unset;
+  }
+
+  .d3-weblinks {
+    display: none;
+  }
+
+  .github-fork-ribbon {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  body {
+    line-height: normal;
+  }
+
+  main, footer,
+  #page-top,
+  #observable-banner a {
+    width: 93%;
+  }
+
+  h2 {
+    margin-top: 0;
+  }
+
+  pre {
+    margin: 0;
+    padding: .7em .5em .75em;
+    box-shadow: -.2em 0 0 0 rgba(204, 204, 204, .2), .2em 0 0 0 rgba(204, 204, 204, .2);
+  }
+
+  code {
+    font-size: .9em;
+  }
+
+  .socials {
+    width: 55%;
+  }
+}
+
+@media screen and (max-width: 359px) {
+  h1 {
+    font-size: 2.6rem;
+    white-space: normal;
+    line-height: 2.5rem;
+  }
+
+  .socials {
+    width: 70%;
+  }
+}
+
+@media print {
+  body,
+  pre {
+    margin: unset;
+    line-height: normal;
+  }
+
+  main, footer,
+  #page-top,
+  #observable-banner a {
+    width: 100%;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+  }
+
+  h2 {
+    page-break-before: avoid;
+  }
+
+  p {
+    margin: .5em 0;
+    page-break-inside: auto;
+  }
+
+  pre {
+    margin: 1em 0;
+    box-shadow: unset;
+    page-break-inside: avoid;
+  }
+
+  body > div > nav {
+    margin-bottom: unset;
+  }
+
+  body > div > header {
+    margin: .5em 0;
+  }
+
+  #observable-banner {
+    padding: .5em 0;
+  }
+
+  section,
+  section:first-of-type {
+    margin: unset;
+    page-break-inside: auto;
+  }
+
+  section > div,
+  .socials-container {
+    width: 100%;
+  }
+
+  section aside {
+    width: unset;
+    margin: .5em 0;
+  }
+
+  section aside > div {
+    padding-left: unset;
+  }
+
+  h2 a::before {
+    content: none;
+  }
+
+  .github-fork-ribbon {
+    display: none;
+  }
+
+  #examples {
+    height: 200px;
+  }
+}
 </style>
 </head>
 
 <body>
-<div class="column">
-<header>
-  <a href="./"><strong>Overview</strong></a>
-  <a style="margin-left:1em;" href="https://observablehq.com/@d3/gallery">Examples</a>
-  <a style="margin-left:1em;" href="https://github.com/d3/d3/wiki">Documentation</a>
-  <a style="margin-left:1em;" href="https://github.com/d3/d3/blob/main/API.md">API</a>
-  <a style="margin-left:1em;" href="https://github.com/d3/d3">Source</a>
-</header>
+<div id="page-top">
+<nav>
+  <a href="./">Overview</a>
+  <a href="https://observablehq.com/@d3/gallery">Examples</a>
+  <a href="https://github.com/d3/d3/wiki">Documentation</a>
+  <a href="https://github.com/d3/d3/blob/main/API.md">API</a>
+  <a href="https://github.com/d3/d3">Source</a>
+</nav>
 
-<h1>
-  <svg width="96" height="91" style="position:relative;top:22px;">
+<header>
+  <div id="d3-logo">
+  <svg width="96" height="91">
     <clipPath id="clip">
       <path d="M0,0h7.75a45.5,45.5 0 1 1 0,91h-7.75v-20h7.75a25.5,25.5 0 1 0 0,-51h-7.75zm36.2510,0h32a27.75,27.75 0 0 1 21.331,45.5a27.75,27.75 0 0 1 -21.331,45.5h-32a53.6895,53.6895 0 0 0 18.7464,-20h13.2526a7.75,7.75 0 1 0 0,-15.5h-7.75a53.6895,53.6895 0 0 0 0,-20h7.75a7.75,7.75 0 1 0 0,-15.5h-13.2526a53.6895,53.6895 0 0 0 -18.7464,-20z"/>
     </clipPath>
@@ -249,33 +722,28 @@ aside ul {
       <path d="M-100,-102l300,300" fill="none" stroke="url(#gradient-2)" stroke-width="40"/>
     </g>
   </svg>
+  </div>
+<h1>
   Data-Driven Documents
 </h1>
+</header>
 </div>
 
-<div id="examples">
+<aside id="d3-examples-demo">
+<div id="examples-container">
+  <div id="examples">
   <div id="examples-deep"></div>
-</div>
-<a
-  href="https://observablehq.com/?utm_source=d3js-org&utm_medium=banner&utm_campaign=try-observable"
-  style="
-    padding: 20px 0;
-    display: block;
-    margin-bottom: 2em;
-    color: black;
-    line-height: inherit;
-    background: linear-gradient(to bottom,#ffc,#ffa);
-    border-bottom: solid 1px rgba(0,0,0,0.1);
-">
-  <div class="column" style="
-      color: rgba(0,0,0,0.8);
-  ">
-    Like visualization and creative coding? Try interactive JavaScript notebooks in
-    <span style="font-weight: bold;">
-      Observable!
-    </span>
   </div>
+</div>
+<div id="observable-banner">
+<a href="https://observablehq.com/?utm_source=d3js-org&utm_medium=banner&utm_campaign=try-observable">
+    Like visualization and creative coding? Try interactive JavaScript notebooks in
+    <strong>
+      Observable!
+    </strong>
 </a>
+</div>
+</aside>
 
 <script src="d3.v7.min.js" charset="utf-8"></script>
 <script>
@@ -523,46 +991,16 @@ function moved() {
 }
 </script>
 
-<div class="column">
-
-<aside>
-  <ul>
-    <li style="list-style-image: url('icon-observable.svg');">
-      <a href="https://observablehq.com/@d3/gallery" title="D3 Gallery">
-        See more examples
-      </a>
-    </li>
-    <li style="list-style-image: url('icon-slack.svg');">
-      <a href="https://d3-slackin.herokuapp.com/" title="D3 Slack">
-        Chat with the community
-      </a>
-    </li>
-    <li style="list-style-image: url('icon-twitter.svg');">
-      <a href="https://twitter.com/d3js_org" title="D3 Twitter">
-        Follow announcements
-      </a>
-    </li>
-    <li style="list-style-image: url('icon-github.svg');">
-      <a href="https://github.com/d3/d3" title="D3 GitHub">
-        Report a bug
-      </a>
-    </li>
-    <li style="list-style-image: url('icon-stackoverflow.svg');">
-      <a href="https://stackoverflow.com/questions/tagged/d3.js" title="D3 Stack Overflow">
-        Ask for help
-      </a>
-    </li>
-  </ul>
-</aside>
-
+<main>
+<section>
+<h2 class="visually-hidden">Summary</h2>
+<div>
 <p><strong>D3.js</strong> is a JavaScript library for manipulating documents based on data. <strong>D3</strong> helps you bring data to life using HTML, SVG, and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to DOM manipulation.
 
-<p>Download the latest version <span id="version"></span> here:
-
-<ul>
-  <li><a id="download" href="https://github.com/d3/d3/releases/latest">d3.tgz</a>
-</ul>
-
+<p>Download the latest version <span id="version"></span> here:</p>
+<p class="download-link">
+  <a id="download" href="https://github.com/d3/d3/releases/latest" type="application/gzip" title="gzip file of D3">d3.tgz</a>
+</p>
 <script>
 d3.select("#download").attr("href", "https://registry.npmjs.org/d3/-/d3-" + d3.version + ".tgz").text("d3-" + d3.version + ".tgz");
 d3.select("#version").text(" (" + d3.version + ")");
@@ -572,20 +1010,37 @@ d3.select("#version").text(" (" + d3.version + ")");
 
 <pre><code class="html">&lt;script src="https://d3js.org/d3.v7.min.js">&lt;/script></code></pre>
 
-<p>The <a href="https://github.com/d3/d3">full source and tests</a> are also available <a href="https://github.com/d3/d3/zipball/main">for download</a> on GitHub.
+<p>The <a href="https://github.com/d3/d3">full source and tests</a> are also available <a href="https://github.com/d3/d3/zipball/main" type="application/zip" title="zip file of D3">for download</a> on GitHub.
+</div>
 
-<h2><a name="introduction" href="#introduction">#</a>Introduction</h2>
+<aside class="d3-weblinks">
+  <ul>
+    <li class="ico-ob"><a href="https://observablehq.com/@d3/gallery">See more examples</a></li>
+    <li class="ico-sl"><a href="https://d3-slackin.herokuapp.com/">Chat with the community</a></li>
+    <li class="ico-tw"><a href="https://twitter.com/d3js_org">Follow announcements</a></li>
+    <li class="ico-gh"><a href="https://github.com/d3/d3">Report a bug</a></li>
+    <li class="ico-so"><a href="https://stackoverflow.com/questions/tagged/d3.js">Ask for help</a></li>
+  </ul>
+</aside>
+</section>
 
-<aside>Read <a href="https://observablehq.com/@d3/learn-d3">more tutorials</a>.</aside>
-
+<section>
+<h2><a name="introduction" href="#introduction">Introduction</a></h2>
+<div>
 <p><strong>D3</strong> allows you to bind arbitrary data to a Document Object Model (DOM), and then apply data-driven transformations to the document. For example, you can use D3 to generate an HTML table from an array of numbers. Or, use the same data to create an interactive SVG bar chart with smooth transitions and interaction.
 
 <p>D3 is not a monolithic framework that seeks to provide every conceivable feature. Instead, D3 solves the crux of the problem: efficient manipulation of documents based on data. This avoids proprietary representation and affords extraordinary flexibility, exposing the full capabilities of web standards such as HTML, SVG, and CSS. With minimal overhead, D3 is extremely fast, supporting large datasets and dynamic behaviors for interaction and animation. D3’s functional style allows code reuse through a diverse collection of <a href="https://github.com/d3/d3/blob/main/API.md">official</a> and <a href="https://www.npmjs.com/browse/keyword/d3-module">community-developed</a> modules.
+</div>
 
-<h2><a name="selections" href="#selections">#</a>Selections</h2>
+<aside>
+  <div>Read <a href="https://observablehq.com/@d3/learn-d3">more tutorials</a>.</div>
+</aside>
+</section>
 
-<aside>Read <a href="https://github.com/d3/d3-selection">more about selections</a>.</aside>
+<section>
+<h2><a name="selections" href="#selections">Selections</a></h2>
 
+<div>
 <p>Modifying documents using the <a href="https://www.w3.org/DOM/DOMTR">W3C DOM API</a> is tedious: the method names are verbose, and the imperative approach requires manual iteration and bookkeeping of temporary state. For example, to change the text color of paragraph elements:
 
 <pre><code>var paragraphs = document.getElementsByTagName("p");
@@ -605,9 +1060,16 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
 <p>Selectors are defined by the <a href="https://www.w3.org/TR/selectors-api/">W3C Selectors API</a> and supported natively by modern browsers. The above examples select nodes by tag name (<code>"p"</code> and <code>"body"</code>, respectively). Elements may be selected using a variety of predicates, including containment, attribute values, class and ID.
 
 <p>D3 provides numerous methods for mutating nodes: setting attributes or styles; registering event listeners; adding, removing or sorting nodes; and changing HTML or text content. These suffice for the vast majority of needs. Direct access to the underlying DOM is also possible, as each D3 selection is simply an array of nodes.
+</div>
 
-<h2><a name="properties" href="#properties">#</a>Dynamic Properties</h2>
+<aside>
+  <div>Read <a href="https://github.com/d3/d3-selection">more about selections</a>.</div>
+</aside>
+</section>
 
+<section>
+<h2><a name="properties" href="#properties">Dynamic Properties</a></h2>
+<div>
 <p>Readers familiar with other DOM frameworks such as <a href="https://jquery.com/">jQuery</a> should immediately recognize similarities with D3. Yet styles, attributes, and other properties can be specified as <em>functions of data</em> in D3, not just simple constants. Despite their apparent simplicity, these functions can be surprisingly powerful; the <a href="https://github.com/d3/d3-geo/blob/main/README.md#geoPath">d3.geoPath</a> function, for example, projects <a href="https://tools.ietf.org/html/rfc7946">geographic coordinates</a> into SVG <a href="https://www.w3.org/TR/SVG/paths.html#PathData">path data</a>. D3 provides many built-in reusable functions and function factories, such as <a href="https://github.com/d3/d3-shape">graphical primitives</a> for area, line and pie charts.
 
 <p>For example, to randomly color paragraphs:
@@ -629,11 +1091,12 @@ for (var i = 0; i &lt; paragraphs.length; i++) {
     .style("font-size", function(d) { return d + "px"; });</code></pre>
 
 <p>Once the data has been bound to the document, you can omit the <code>data</code> operator; D3 will retrieve the previously-bound data. This allows you to recompute properties without rebinding.
+</div>
+</section>
 
-<h2><a name="enter-exit" href="#enter-exit">#</a>Enter and Exit</h2>
-
-<aside>Read <a href="https://bost.ocks.org/mike/join/">more about data joins</a>.</aside>
-
+<section>
+<h2><a name="enter-exit" href="#enter-exit">Enter and Exit</a></h2>
+<div>
 <p>Using D3’s <em>enter</em> and <em>exit</em> selections, you can create new nodes for incoming data and remove outgoing nodes that are no longer needed.
 
 <p>When data is bound to a selection, each element in the data array is paired with the corresponding node in the selection. If there are fewer nodes than data, the extra data elements form the enter selection, which you can instantiate by appending to the <code>enter</code> selection. For example:
@@ -662,15 +1125,25 @@ p.exit().remove();</code></pre>
 <p>By handling these three cases separately, you specify precisely which operations run on which nodes. This improves performance and offers greater control over transitions. For example, with a bar chart you might initialize entering bars using the old scale, and then transition entering bars to the new scale along with the updating and exiting bars.
 
 <p>D3 lets you transform documents based on data; this includes both creating and destroying elements. D3 allows you to change an existing document in response to user interaction, animation over time, or even asynchronous notification from a third-party. A hybrid approach is even possible, where the document is initially rendered on the server, and updated on the client via D3.
+</div>
 
-<h2><a name="transformation" href="#transformation">#</a>Transformation, not Representation</h2>
+<aside>
+  <div>Read <a href="https://bost.ocks.org/mike/join/">more about data joins</a>.</div>
+</aside>
+</section>
 
+<section>
+<h2><a name="transformation" href="#transformation">Transformation, not Representation</a></h2>
+<div>
 <p>D3 does not introduce a new visual representation. Unlike <a href="https://processing.org/">Processing</a> or <a href="https://mbostock.github.io/protovis/">Protovis</a>, D3’s vocabulary of graphical marks comes directly from web standards: HTML, SVG, and CSS. For example, you can create SVG elements using D3 and style them with external stylesheets. You can use composite filter effects, dashed strokes and clipping. If browser vendors introduce new features tomorrow, you’ll be able to use them immediately—no toolkit update required. And, if you decide in the future to use a toolkit other than D3, you can take your knowledge of standards with you!
 
 <p>Best of all, D3 is easy to debug using the browser’s built-in element inspector: the nodes that you manipulate with D3 are exactly those that the browser understands natively.
+</div>
+</section>
 
-<h2><a name="transitions" href="#transitions">#</a>Transitions</h2>
-
+<section>
+<h2><a name="transitions" href="#transitions">Transitions</a></h2>
+<div>
 <p>D3’s focus on transformation extends naturally to animated transitions. Transitions gradually interpolate styles and attributes over time. Tweening can be controlled via easing functions such as “elastic”, “cubic-in-out” and “linear”. D3’s interpolators support both primitives, such as numbers and numbers embedded within strings (font sizes, path data, <em>etc.</em>), and compound values. You can even extend D3’s interpolator registry to support complex properties and data structures.
 
 <p>For example, to fade the background of the page to black:
@@ -688,14 +1161,27 @@ p.exit().remove();</code></pre>
 <p>By modifying only the attributes that actually change, D3 reduces overhead and allows greater graphical complexity at high frame rates. D3 also allows sequencing of complex transitions via events. And, you can still use CSS3 transitions; D3 does not replace the browser’s toolbox, but exposes it in a way that is easier to use.
 
 <p>Want to learn more? Read <a href="https://observablehq.com/@d3/learn-d3">these tutorials</a>.
+</div>
+</section>
+</main>
 
 <footer>
-  Library released under <a href="https://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2021 <a href="https://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
+  <div class="socials-container">
+    <div class="socials">
+      <a class="ico-soc ico-ob" href="https://observablehq.com/@d3/gallery"><span class="visually-hidden">D3 gallery on Observable</span></a>
+      <a class="ico-soc ico-sl" href="https://d3-slackin.herokuapp.com/"><span class="visually-hidden">D3 community Slack</span></a>
+      <a class="ico-soc ico-tw" href="https://twitter.com/d3js_org"><span class="visually-hidden">D3 Twitter account</span></a>
+      <a class="ico-soc ico-gh" href="https://github.com/d3/d3"><span class="visually-hidden">D3 repository on GitHub</span></a>
+      <a class="ico-soc ico-so" href="https://stackoverflow.com/questions/tagged/d3.js"><span class="visually-hidden">D3 tag on Stack Overflow</span></a>
+    </div>
+  </div>
+  <div class="copyright">
+    Library released under <a href="https://opensource.org/licenses/BSD-3-Clause">BSD license</a>. Copyright 2021 <a href="https://bost.ocks.org/mike/" rel="author">Mike Bostock</a>.
+  </div>
+  <a class="github-fork-ribbon" href="https://github.com/d3/d3">
+    <img src="forkme.png" alt="Fork me on GitHub">
+  </a>
 </footer>
-
-</div>
-
-<a href="https://github.com/d3/d3"><img style="position:fixed;top:0;right:0;border:0;z-index:2;" width="149" height="149" src="forkme.png" alt="Fork me on GitHub"></a>
 
 <script src="highlight.v9.min.js"></script>
 <script>
