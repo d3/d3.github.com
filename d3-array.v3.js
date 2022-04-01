@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.1.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-array/ v3.1.2 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -749,7 +749,7 @@ function thresholdFreedmanDiaconis(values, min, max) {
 }
 
 function thresholdScott(values, min, max) {
-  return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(count(values), -1 / 3)));
+  return Math.ceil((max - min) / (3.49 * deviation(values) * Math.pow(count(values), -1 / 3)));
 }
 
 function maxIndex(values, valueof) {
