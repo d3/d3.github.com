@@ -1,4 +1,4 @@
-// https://d3js.org/d3-hierarchy/ v3.1.1 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-hierarchy/ v3.1.2 Copyright 2010-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -323,19 +323,48 @@ Node$1.prototype = hierarchy.prototype = {
   [Symbol.iterator]: node_iterator
 };
 
+function optional(f) {
+  return f == null ? null : required(f);
+}
+
+function required(f) {
+  if (typeof f !== "function") throw new Error;
+  return f;
+}
+
+function constantZero() {
+  return 0;
+}
+
+function constant(x) {
+  return function() {
+    return x;
+  };
+}
+
+// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+const a = 1664525;
+const c = 1013904223;
+const m = 4294967296; // 2^32
+
+function lcg() {
+  let s = 1;
+  return () => (s = (a * s + c) % m) / m;
+}
+
 function array(x) {
   return typeof x === "object" && "length" in x
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x); // Map, Set, iterable, string, or anything else
 }
 
-function shuffle(array) {
-  var m = array.length,
+function shuffle(array, random) {
+  let m = array.length,
       t,
       i;
 
   while (m) {
-    i = Math.random() * m-- | 0;
+    i = random() * m-- | 0;
     t = array[m];
     array[m] = array[i];
     array[i] = t;
@@ -345,7 +374,11 @@ function shuffle(array) {
 }
 
 function enclose(circles) {
-  var i = 0, n = (circles = shuffle(Array.from(circles))).length, B = [], p, e;
+  return packEncloseRandom(circles, lcg());
+}
+
+function packEncloseRandom(circles, random) {
+  var i = 0, n = (circles = shuffle(Array.from(circles), random)).length, B = [], p, e;
 
   while (i < n) {
     p = circles[i];
@@ -453,7 +486,7 @@ function encloseBasis3(a, b, c) {
       A = xb * xb + yb * yb - 1,
       B = 2 * (r1 + xa * xb + ya * yb),
       C = xa * xa + ya * ya - r1 * r1,
-      r = -(A ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
+      r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
   return {
     x: x1 + xa + xb * r,
     y: y1 + ya + yb * r,
@@ -505,7 +538,7 @@ function Node(circle) {
   this.previous = null;
 }
 
-function packEnclose(circles) {
+function packSiblingsRandom(circles, random) {
   if (!(n = (circles = array(circles)).length)) return 0;
 
   var a, b, c, n, aa, ca, i, j, k, sj, sk;
@@ -565,7 +598,7 @@ function packEnclose(circles) {
   }
 
   // Compute the enclosing circle of the front chain.
-  a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = enclose(a);
+  a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = packEncloseRandom(a, random);
 
   // Translate the circles to put the enclosing circle around the origin.
   for (i = 0; i < n; ++i) a = circles[i], a.x -= c.x, a.y -= c.y;
@@ -574,27 +607,8 @@ function packEnclose(circles) {
 }
 
 function siblings(circles) {
-  packEnclose(circles);
+  packSiblingsRandom(circles, lcg());
   return circles;
-}
-
-function optional(f) {
-  return f == null ? null : required(f);
-}
-
-function required(f) {
-  if (typeof f !== "function") throw new Error;
-  return f;
-}
-
-function constantZero() {
-  return 0;
-}
-
-function constant(x) {
-  return function() {
-    return x;
-  };
 }
 
 function defaultRadius(d) {
@@ -608,15 +622,16 @@ function index$1() {
       padding = constantZero;
 
   function pack(root) {
+    const random = lcg();
     root.x = dx / 2, root.y = dy / 2;
     if (radius) {
       root.eachBefore(radiusLeaf(radius))
-          .eachAfter(packChildren(padding, 0.5))
+          .eachAfter(packChildrenRandom(padding, 0.5, random))
           .eachBefore(translateChild(1));
     } else {
       root.eachBefore(radiusLeaf(defaultRadius))
-          .eachAfter(packChildren(constantZero, 1))
-          .eachAfter(packChildren(padding, root.r / Math.min(dx, dy)))
+          .eachAfter(packChildrenRandom(constantZero, 1, random))
+          .eachAfter(packChildrenRandom(padding, root.r / Math.min(dx, dy), random))
           .eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)));
     }
     return root;
@@ -645,7 +660,7 @@ function radiusLeaf(radius) {
   };
 }
 
-function packChildren(padding, k) {
+function packChildrenRandom(padding, k, random) {
   return function(node) {
     if (children = node.children) {
       var children,
@@ -655,7 +670,7 @@ function packChildren(padding, k) {
           e;
 
       if (r) for (i = 0; i < n; ++i) children[i].r += r;
-      e = packEnclose(children);
+      e = packSiblingsRandom(children, random);
       if (r) for (i = 0; i < n; ++i) children[i].r -= r;
       node.r = e + r;
     }
