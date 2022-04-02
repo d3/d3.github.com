@@ -1,11 +1,11 @@
-// https://d3js.org v7.4.0 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.4.1 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.4.0";
+var version = "7.4.1";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -552,6 +552,7 @@ function bin() {
     var i,
         n = data.length,
         x,
+        step,
         values = new Array(n);
 
     for (i = 0; i < n; ++i) {
@@ -569,6 +570,11 @@ function bin() {
       const max = x1, tn = +tz;
       if (domain === extent$1) [x0, x1] = nice$1(x0, x1, tn);
       tz = ticks(x0, x1, tn);
+
+      // If the domain is aligned with the first tick (which it will by
+      // default), then we can use quantization rather than bisection to bin
+      // values, which is substantially faster.
+      if (tz[0] <= x0) step = tickIncrement(x0, x1, tn);
 
       // If the last threshold is coincident with the domain’s upper bound, the
       // last bin will be zero-width. If the default domain is used, and this
@@ -609,10 +615,25 @@ function bin() {
     }
 
     // Assign data to bins by value, ignoring any outside the domain.
-    for (i = 0; i < n; ++i) {
-      x = values[i];
-      if (x != null && x0 <= x && x <= x1) {
-        bins[bisect(tz, x, 0, m)].push(data[i]);
+    if (isFinite(step)) {
+      if (step > 0) {
+        for (i = 0; i < n; ++i) {
+          if ((x = values[i]) != null && x0 <= x && x <= x1) {
+            bins[Math.floor((x - x0) / step)].push(data[i]);
+          }
+        }
+      } else if (step < 0) {
+        for (i = 0; i < n; ++i) {
+          if ((x = values[i]) != null && x0 <= x && x <= x1) {
+            bins[Math.floor((x0 - x) * step)].push(data[i]);
+          }
+        }
+      }
+    } else {
+      for (i = 0; i < n; ++i) {
+        if ((x = values[i]) != null && x0 <= x && x <= x1) {
+          bins[bisect(tz, x, 0, m)].push(data[i]);
+        }
       }
     }
 
@@ -751,7 +772,7 @@ function thresholdFreedmanDiaconis(values, min, max) {
 }
 
 function thresholdScott(values, min, max) {
-  return Math.ceil((max - min) / (3.5 * deviation(values) * Math.pow(count$1(values), -1 / 3)));
+  return Math.ceil((max - min) * Math.cbrt(count$1(values)) / (3.49 * deviation(values)));
 }
 
 function maxIndex(values, valueof) {
@@ -8871,13 +8892,13 @@ function link$2(links) {
 }
 
 // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
-const a$1 = 1664525;
-const c$3 = 1013904223;
-const m = 4294967296; // 2^32
+const a$2 = 1664525;
+const c$4 = 1013904223;
+const m$1 = 4294967296; // 2^32
 
-function lcg$1() {
+function lcg$2() {
   let s = 1;
-  return () => (s = (a$1 * s + c$3) % m) / m;
+  return () => (s = (a$2 * s + c$4) % m$1) / m$1;
 }
 
 function x$3(d) {
@@ -8901,7 +8922,7 @@ function simulation(nodes) {
       forces = new Map(),
       stepper = timer(step),
       event = dispatch("tick", "end"),
-      random = lcg$1();
+      random = lcg$2();
 
   if (nodes == null) nodes = [];
 
@@ -12998,19 +13019,48 @@ Node$1.prototype = hierarchy.prototype = {
   [Symbol.iterator]: node_iterator
 };
 
+function optional(f) {
+  return f == null ? null : required(f);
+}
+
+function required(f) {
+  if (typeof f !== "function") throw new Error;
+  return f;
+}
+
+function constantZero() {
+  return 0;
+}
+
+function constant$2(x) {
+  return function() {
+    return x;
+  };
+}
+
+// https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+const a$1 = 1664525;
+const c$3 = 1013904223;
+const m = 4294967296; // 2^32
+
+function lcg$1() {
+  let s = 1;
+  return () => (s = (a$1 * s + c$3) % m) / m;
+}
+
 function array$1(x) {
   return typeof x === "object" && "length" in x
     ? x // Array, TypedArray, NodeList, array-like
     : Array.from(x); // Map, Set, iterable, string, or anything else
 }
 
-function shuffle(array) {
-  var m = array.length,
+function shuffle(array, random) {
+  let m = array.length,
       t,
       i;
 
   while (m) {
-    i = Math.random() * m-- | 0;
+    i = random() * m-- | 0;
     t = array[m];
     array[m] = array[i];
     array[i] = t;
@@ -13020,7 +13070,11 @@ function shuffle(array) {
 }
 
 function enclose(circles) {
-  var i = 0, n = (circles = shuffle(Array.from(circles))).length, B = [], p, e;
+  return packEncloseRandom(circles, lcg$1());
+}
+
+function packEncloseRandom(circles, random) {
+  var i = 0, n = (circles = shuffle(Array.from(circles), random)).length, B = [], p, e;
 
   while (i < n) {
     p = circles[i];
@@ -13128,7 +13182,7 @@ function encloseBasis3(a, b, c) {
       A = xb * xb + yb * yb - 1,
       B = 2 * (r1 + xa * xb + ya * yb),
       C = xa * xa + ya * ya - r1 * r1,
-      r = -(A ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
+      r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
   return {
     x: x1 + xa + xb * r,
     y: y1 + ya + yb * r,
@@ -13180,7 +13234,7 @@ function Node(circle) {
   this.previous = null;
 }
 
-function packEnclose(circles) {
+function packSiblingsRandom(circles, random) {
   if (!(n = (circles = array$1(circles)).length)) return 0;
 
   var a, b, c, n, aa, ca, i, j, k, sj, sk;
@@ -13240,7 +13294,7 @@ function packEnclose(circles) {
   }
 
   // Compute the enclosing circle of the front chain.
-  a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = enclose(a);
+  a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = packEncloseRandom(a, random);
 
   // Translate the circles to put the enclosing circle around the origin.
   for (i = 0; i < n; ++i) a = circles[i], a.x -= c.x, a.y -= c.y;
@@ -13249,27 +13303,8 @@ function packEnclose(circles) {
 }
 
 function siblings(circles) {
-  packEnclose(circles);
+  packSiblingsRandom(circles, lcg$1());
   return circles;
-}
-
-function optional(f) {
-  return f == null ? null : required(f);
-}
-
-function required(f) {
-  if (typeof f !== "function") throw new Error;
-  return f;
-}
-
-function constantZero() {
-  return 0;
-}
-
-function constant$2(x) {
-  return function() {
-    return x;
-  };
 }
 
 function defaultRadius(d) {
@@ -13283,15 +13318,16 @@ function index$1() {
       padding = constantZero;
 
   function pack(root) {
+    const random = lcg$1();
     root.x = dx / 2, root.y = dy / 2;
     if (radius) {
       root.eachBefore(radiusLeaf(radius))
-          .eachAfter(packChildren(padding, 0.5))
+          .eachAfter(packChildrenRandom(padding, 0.5, random))
           .eachBefore(translateChild(1));
     } else {
       root.eachBefore(radiusLeaf(defaultRadius))
-          .eachAfter(packChildren(constantZero, 1))
-          .eachAfter(packChildren(padding, root.r / Math.min(dx, dy)))
+          .eachAfter(packChildrenRandom(constantZero, 1, random))
+          .eachAfter(packChildrenRandom(padding, root.r / Math.min(dx, dy), random))
           .eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)));
     }
     return root;
@@ -13320,7 +13356,7 @@ function radiusLeaf(radius) {
   };
 }
 
-function packChildren(padding, k) {
+function packChildrenRandom(padding, k, random) {
   return function(node) {
     if (children = node.children) {
       var children,
@@ -13330,7 +13366,7 @@ function packChildren(padding, k) {
           e;
 
       if (r) for (i = 0; i < n; ++i) children[i].r += r;
-      e = packEnclose(children);
+      e = packSiblingsRandom(children, random);
       if (r) for (i = 0; i < n; ++i) children[i].r -= r;
       node.r = e + r;
     }
