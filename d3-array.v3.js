@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.1.4 Copyright 2010-2022 Mike Bostock
+// https://d3js.org/d3-array/ v3.1.5 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -617,14 +617,14 @@ function bin() {
       if (step > 0) {
         for (i = 0; i < n; ++i) {
           if ((x = values[i]) != null && x0 <= x && x <= x1) {
-            bins[Math.floor((x - x0) / step)].push(data[i]);
+            bins[Math.min(m, Math.floor((x - x0) / step))].push(data[i]);
           }
         }
       } else if (step < 0) {
         for (i = 0; i < n; ++i) {
           if ((x = values[i]) != null && x0 <= x && x <= x1) {
             const j = Math.floor((x0 - x) * step);
-            bins[j + (tz[j] <= x)].push(data[i]); // handle off-by-one due to rounding
+            bins[Math.min(m, j + (tz[j] <= x))].push(data[i]); // handle off-by-one due to rounding
           }
         }
       }
