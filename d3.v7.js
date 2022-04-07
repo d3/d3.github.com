@@ -1,11 +1,11 @@
-// https://d3js.org v7.4.2 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.4.3 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.4.2";
+var version = "7.4.3";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -619,14 +619,14 @@ function bin() {
       if (step > 0) {
         for (i = 0; i < n; ++i) {
           if ((x = values[i]) != null && x0 <= x && x <= x1) {
-            bins[Math.floor((x - x0) / step)].push(data[i]);
+            bins[Math.min(m, Math.floor((x - x0) / step))].push(data[i]);
           }
         }
       } else if (step < 0) {
         for (i = 0; i < n; ++i) {
           if ((x = values[i]) != null && x0 <= x && x <= x1) {
             const j = Math.floor((x0 - x) * step);
-            bins[j + (tz[j] <= x)].push(data[i]); // handle off-by-one due to rounding
+            bins[Math.min(m, j + (tz[j] <= x))].push(data[i]); // handle off-by-one due to rounding
           }
         }
       }
