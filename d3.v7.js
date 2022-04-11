@@ -1,25 +1,40 @@
-// https://d3js.org v7.4.3 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.4.4 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.4.3";
+var version = "7.4.4";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
-function bisector(f) {
-  let delta = f;
-  let compare1 = f;
-  let compare2 = f;
+function descending$2(a, b) {
+  return a == null || b == null ? NaN
+    : b < a ? -1
+    : b > a ? 1
+    : b >= a ? 0
+    : NaN;
+}
 
+function bisector(f) {
+  let compare1, compare2, delta;
+
+  // If an accessor is specified, promote it to a comparator. In this case we
+  // can test whether the search value is (self-) comparable. We can’t do this
+  // for a comparator (except for specific, known comparators) because we can’t
+  // tell if the comparator is symmetric, and an asymmetric comparator can’t be
+  // used to test whether a single value is comparable.
   if (f.length !== 2) {
-    delta = (d, x) => f(d) - x;
     compare1 = ascending$3;
     compare2 = (d, x) => ascending$3(f(d), x);
+    delta = (d, x) => f(d) - x;
+  } else {
+    compare1 = f === ascending$3 || f === descending$2 ? f : zero$1;
+    compare2 = f;
+    delta = f;
   }
 
   function left(a, x, lo = 0, hi = a.length) {
@@ -52,6 +67,10 @@ function bisector(f) {
   }
 
   return {left, center, right};
+}
+
+function zero$1() {
+  return 0;
 }
 
 function number$3(x) {
@@ -139,14 +158,6 @@ function cumsum(values, valueof) {
   return Float64Array.from(values, valueof === undefined
     ? v => (sum += +v || 0)
     : v => (sum += +valueof(v, index++, values) || 0));
-}
-
-function descending$2(a, b) {
-  return a == null || b == null ? NaN
-    : b < a ? -1
-    : b > a ? 1
-    : b >= a ? 0
-    : NaN;
 }
 
 function variance(values, valueof) {
