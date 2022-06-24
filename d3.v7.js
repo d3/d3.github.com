@@ -1,11 +1,11 @@
-// https://d3js.org v7.4.4 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.4.5 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.4.4";
+var version = "7.4.5";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -6497,7 +6497,10 @@ function density() {
     var tz = threshold(values0);
 
     // Convert number of thresholds into uniform thresholds.
-    if (!Array.isArray(tz)) {
+    if (Array.isArray(tz)) {
+      const pow4k = Math.pow(2, 2 * k);
+      tz = tz.map(d => d * pow4k);
+    } else {
       var stop = max$3(values0);
       tz = tickStep(0, stop, tz);
       tz = range$2(0, Math.floor(stop / tz) * tz, tz);
