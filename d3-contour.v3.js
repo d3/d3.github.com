@@ -1,9 +1,9 @@
-// https://d3js.org/d3-contour/ v3.0.1 Copyright 2012-2021 Mike Bostock
+// https://d3js.org/d3-contour/ v3.0.2 Copyright 2012-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}, global.d3));
-}(this, (function (exports, d3Array) { 'use strict';
+})(this, (function (exports, d3Array) { 'use strict';
 
 var array = Array.prototype;
 
@@ -345,7 +345,10 @@ function density() {
     var tz = threshold(values0);
 
     // Convert number of thresholds into uniform thresholds.
-    if (!Array.isArray(tz)) {
+    if (Array.isArray(tz)) {
+      const pow4k = Math.pow(2, 2 * k);
+      tz = tz.map(d => d * pow4k);
+    } else {
       var stop = d3Array.max(values0);
       tz = d3Array.tickStep(0, stop, tz);
       tz = d3Array.range(0, Math.floor(stop / tz) * tz, tz);
@@ -429,4 +432,4 @@ exports.contours = contours;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
