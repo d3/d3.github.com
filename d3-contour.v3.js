@@ -1,4 +1,4 @@
-// https://d3js.org/d3-contour/ v3.0.2 Copyright 2012-2021 Mike Bostock
+// https://d3js.org/d3-contour/ v3.1.0 Copyright 2012-2021 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -70,7 +70,7 @@ var cases = [
   []
 ];
 
-function contours() {
+function Contours() {
   var dx = 1,
       dy = 1,
       threshold = d3Array.thresholdSturges,
@@ -313,7 +313,7 @@ function density() {
       m = (dy + o * 2) >> k, // grid height
       threshold = constant(20);
 
-  function density(data) {
+  function grid(data) {
     var values0 = new Float32Array(n * m),
         values1 = new Float32Array(n * m),
         pow2k = Math.pow(2, -k);
@@ -342,28 +342,41 @@ function density() {
     blurX({width: n, height: m, data: values0}, {width: n, height: m, data: values1}, r >> k);
     blurY({width: n, height: m, data: values1}, {width: n, height: m, data: values0}, r >> k);
 
-    var tz = threshold(values0);
-
-    // Convert number of thresholds into uniform thresholds.
-    if (Array.isArray(tz)) {
-      const pow4k = Math.pow(2, 2 * k);
-      tz = tz.map(d => d * pow4k);
-    } else {
-      var stop = d3Array.max(values0);
-      tz = d3Array.tickStep(0, stop, tz);
-      tz = d3Array.range(0, Math.floor(stop / tz) * tz, tz);
-      tz.shift();
-    }
-
-    return contours()
-        .thresholds(tz)
-        .size([n, m])
-      (values0)
-        .map(transform);
+    return values0;
   }
 
+  function density(data) {
+    var values = grid(data),
+        tz = threshold(values),
+        pow4k = Math.pow(2, 2 * k);
+
+    // Convert number of thresholds into uniform thresholds.
+    if (!Array.isArray(tz)) {
+      tz = d3Array.ticks(Number.MIN_VALUE, d3Array.max(values) / pow4k, tz);
+    }
+
+    return Contours()
+        .size([n, m])
+        .thresholds(tz.map(d => d * pow4k))
+      (values)
+        .map((c, i) => (c.value = +tz[i], transform(c)));
+  }
+
+  density.contours = function(data) {
+    var values = grid(data),
+        contours = Contours().size([n, m]),
+        pow4k = Math.pow(2, 2 * k),
+        contour = value => {
+          value = +value;
+          var c = transform(contours.contour(values, value * pow4k));
+          c.value = value; // preserve exact threshold value
+          return c;
+        };
+    Object.defineProperty(contour, "max", {get: () => d3Array.max(values) / pow4k});
+    return contour;
+  };
+
   function transform(geometry) {
-    geometry.value *= Math.pow(2, -2 * k); // Density in points per square pixel.
     geometry.coordinates.forEach(transformPolygon);
     return geometry;
   }
@@ -428,7 +441,7 @@ function density() {
 }
 
 exports.contourDensity = density;
-exports.contours = contours;
+exports.contours = Contours;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
