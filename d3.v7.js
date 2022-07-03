@@ -1,11 +1,11 @@
-// https://d3js.org v7.5.0 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.6.0 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.5.0";
+var version = "7.6.0";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -99,6 +99,122 @@ const bisectRight = ascendingBisect.right;
 const bisectLeft = ascendingBisect.left;
 const bisectCenter = bisector(number$3).center;
 var bisect = bisectRight;
+
+function blur(values, r) {
+  if (!((r = +r) >= 0)) throw new RangeError("invalid r");
+  let length = values.length;
+  if (!((length = Math.floor(length)) >= 0)) throw new RangeError("invalid length");
+  if (!length || !r) return values;
+  const blur = blurf(r);
+  const temp = values.slice();
+  blur(values, temp, 0, length, 1);
+  blur(temp, values, 0, length, 1);
+  blur(values, temp, 0, length, 1);
+  return values;
+}
+
+const blur2 = Blur2(blurf);
+
+const blurImage = Blur2(blurfImage);
+
+function Blur2(blur) {
+  return function(data, rx, ry = rx) {
+    if (!((rx = +rx) >= 0)) throw new RangeError("invalid rx");
+    if (!((ry = +ry) >= 0)) throw new RangeError("invalid ry");
+    let {data: values, width, height} = data;
+    if (!((width = Math.floor(width)) >= 0)) throw new RangeError("invalid width");
+    if (!((height = Math.floor(height !== undefined ? height : values.length / width)) >= 0)) throw new RangeError("invalid height");
+    if (!width || !height || (!rx && !ry)) return data;
+    const blurx = rx && blur(rx);
+    const blury = ry && blur(ry);
+    const temp = values.slice();
+    if (blurx && blury) {
+      blurh(blurx, temp, values, width, height);
+      blurh(blurx, values, temp, width, height);
+      blurh(blurx, temp, values, width, height);
+      blurv(blury, values, temp, width, height);
+      blurv(blury, temp, values, width, height);
+      blurv(blury, values, temp, width, height);
+    } else if (blurx) {
+      blurh(blurx, values, temp, width, height);
+      blurh(blurx, temp, values, width, height);
+      blurh(blurx, values, temp, width, height);
+    } else if (blury) {
+      blurv(blury, values, temp, width, height);
+      blurv(blury, temp, values, width, height);
+      blurv(blury, values, temp, width, height);
+    }
+    return data;
+  };
+}
+
+function blurh(blur, T, S, w, h) {
+  for (let y = 0, n = w * h; y < n;) {
+    blur(T, S, y, y += w, 1);
+  }
+}
+
+function blurv(blur, T, S, w, h) {
+  for (let x = 0, n = w * h; x < w; ++x) {
+    blur(T, S, x, x + n, w);
+  }
+}
+
+function blurfImage(radius) {
+  const blur = blurf(radius);
+  return (T, S, start, stop, step) => {
+    start <<= 2, stop <<= 2, step <<= 2;
+    blur(T, S, start + 0, stop + 0, step);
+    blur(T, S, start + 1, stop + 1, step);
+    blur(T, S, start + 2, stop + 2, step);
+    blur(T, S, start + 3, stop + 3, step);
+  };
+}
+
+// Given a target array T, a source array S, sets each value T[i] to the average
+// of {S[i - r], …, S[i], …, S[i + r]}, where r = ⌊radius⌋, start <= i < stop,
+// for each i, i + step, i + 2 * step, etc., and where S[j] is clamped between
+// S[start] (inclusive) and S[stop] (exclusive). If the given radius is not an
+// integer, S[i - r - 1] and S[i + r + 1] are added to the sum, each weighted
+// according to r - ⌊radius⌋.
+function blurf(radius) {
+  const radius0 = Math.floor(radius);
+  if (radius0 === radius) return bluri(radius);
+  const t = radius - radius0;
+  const w = 2 * radius + 1;
+  return (T, S, start, stop, step) => { // stop must be aligned!
+    if (!((stop -= step) >= start)) return; // inclusive stop
+    let sum = radius0 * S[start];
+    const s0 = step * radius0;
+    const s1 = s0 + step;
+    for (let i = start, j = start + s0; i < j; i += step) {
+      sum += S[Math.min(stop, i)];
+    }
+    for (let i = start, j = stop; i <= j; i += step) {
+      sum += S[Math.min(stop, i + s0)];
+      T[i] = (sum + t * (S[Math.max(start, i - s1)] + S[Math.min(stop, i + s1)])) / w;
+      sum -= S[Math.max(start, i - s0)];
+    }
+  };
+}
+
+// Like blurf, but optimized for integer radius.
+function bluri(radius) {
+  const w = 2 * radius + 1;
+  return (T, S, start, stop, step) => { // stop must be aligned!
+    if (!((stop -= step) >= start)) return; // inclusive stop
+    let sum = radius * S[start];
+    const s = step * radius;
+    for (let i = start, j = start + s; i < j; i += step) {
+      sum += S[Math.min(stop, i)];
+    }
+    for (let i = start, j = stop; i <= j; i += step) {
+      sum += S[Math.min(stop, i + s)];
+      T[i] = sum / w;
+      sum -= S[Math.max(start, i - s)];
+    }
+  };
+}
 
 function count$1(values, valueof) {
   let count = 0;
@@ -688,6 +804,29 @@ function max$3(values, valueof) {
   return max;
 }
 
+function maxIndex(values, valueof) {
+  let max;
+  let maxIndex = -1;
+  let index = -1;
+  if (valueof === undefined) {
+    for (const value of values) {
+      ++index;
+      if (value != null
+          && (max < value || (max === undefined && value >= value))) {
+        max = value, maxIndex = index;
+      }
+    }
+  } else {
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null
+          && (max < value || (max === undefined && value >= value))) {
+        max = value, maxIndex = index;
+      }
+    }
+  }
+  return maxIndex;
+}
+
 function min$2(values, valueof) {
   let min;
   if (valueof === undefined) {
@@ -707,6 +846,29 @@ function min$2(values, valueof) {
     }
   }
   return min;
+}
+
+function minIndex(values, valueof) {
+  let min;
+  let minIndex = -1;
+  let index = -1;
+  if (valueof === undefined) {
+    for (const value of values) {
+      ++index;
+      if (value != null
+          && (min > value || (min === undefined && value >= value))) {
+        min = value, minIndex = index;
+      }
+    }
+  } else {
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null
+          && (min > value || (min === undefined && value >= value))) {
+        min = value, minIndex = index;
+      }
+    }
+  }
+  return minIndex;
 }
 
 // Based on https://github.com/mourner/quickselect
@@ -745,6 +907,7 @@ function quickselect(array, k, left = 0, right = array.length - 1, compare) {
     if (j <= k) left = j + 1;
     if (k <= j) right = j - 1;
   }
+
   return array;
 }
 
@@ -752,6 +915,34 @@ function swap$1(array, i, j) {
   const t = array[i];
   array[i] = array[j];
   array[j] = t;
+}
+
+function greatest(values, compare = ascending$3) {
+  let max;
+  let defined = false;
+  if (compare.length === 1) {
+    let maxValue;
+    for (const element of values) {
+      const value = compare(element);
+      if (defined
+          ? ascending$3(value, maxValue) > 0
+          : ascending$3(value, value) === 0) {
+        max = element;
+        maxValue = value;
+        defined = true;
+      }
+    }
+  } else {
+    for (const value of values) {
+      if (defined
+          ? compare(value, max) > 0
+          : compare(value, value) === 0) {
+        max = value;
+        defined = true;
+      }
+    }
+  }
+  return max;
 }
 
 function quantile$1(values, p, valueof) {
@@ -779,35 +970,24 @@ function quantileSorted(values, p, valueof = number$3) {
   return value0 + (value1 - value0) * (i - i0);
 }
 
+function quantileIndex(values, p, valueof) {
+  values = Float64Array.from(numbers(values, valueof));
+  if (!(n = values.length)) return;
+  if ((p = +p) <= 0 || n < 2) return minIndex(values);
+  if (p >= 1) return maxIndex(values);
+  var n,
+      i = Math.floor((n - 1) * p),
+      order = (i, j) => ascendingDefined(values[i], values[j]),
+      index = quickselect(Uint32Array.from(values, (_, i) => i), i, 0, n - 1, order);
+  return greatest(index.subarray(0, i + 1), i => values[i]);
+}
+
 function thresholdFreedmanDiaconis(values, min, max) {
   return Math.ceil((max - min) / (2 * (quantile$1(values, 0.75) - quantile$1(values, 0.25)) * Math.pow(count$1(values), -1 / 3)));
 }
 
 function thresholdScott(values, min, max) {
   return Math.ceil((max - min) * Math.cbrt(count$1(values)) / (3.49 * deviation(values)));
-}
-
-function maxIndex(values, valueof) {
-  let max;
-  let maxIndex = -1;
-  let index = -1;
-  if (valueof === undefined) {
-    for (const value of values) {
-      ++index;
-      if (value != null
-          && (max < value || (max === undefined && value >= value))) {
-        max = value, maxIndex = index;
-      }
-    }
-  } else {
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
-          && (max < value || (max === undefined && value >= value))) {
-        max = value, maxIndex = index;
-      }
-    }
-  }
-  return maxIndex;
 }
 
 function mean(values, valueof) {
@@ -834,6 +1014,10 @@ function median(values, valueof) {
   return quantile$1(values, 0.5, valueof);
 }
 
+function medianIndex(values, valueof) {
+  return quantileIndex(values, 0.5, valueof);
+}
+
 function* flatten(arrays) {
   for (const array of arrays) {
     yield* array;
@@ -842,29 +1026,6 @@ function* flatten(arrays) {
 
 function merge(arrays) {
   return Array.from(flatten(arrays));
-}
-
-function minIndex(values, valueof) {
-  let min;
-  let minIndex = -1;
-  let index = -1;
-  if (valueof === undefined) {
-    for (const value of values) {
-      ++index;
-      if (value != null
-          && (min > value || (min === undefined && value >= value))) {
-        min = value, minIndex = index;
-      }
-    }
-  } else {
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
-          && (min > value || (min === undefined && value >= value))) {
-        min = value, minIndex = index;
-      }
-    }
-  }
-  return minIndex;
 }
 
 function mode(values, valueof) {
@@ -989,34 +1150,6 @@ function leastIndex(values, compare = ascending$3) {
     }
   }
   return min;
-}
-
-function greatest(values, compare = ascending$3) {
-  let max;
-  let defined = false;
-  if (compare.length === 1) {
-    let maxValue;
-    for (const element of values) {
-      const value = compare(element);
-      if (defined
-          ? ascending$3(value, maxValue) > 0
-          : ascending$3(value, value) === 0) {
-        max = element;
-        maxValue = value;
-        defined = true;
-      }
-    }
-  } else {
-    for (const value of values) {
-      if (defined
-          ? compare(value, max) > 0
-          : compare(value, value) === 0) {
-        max = value;
-        defined = true;
-      }
-    }
-  }
-  return max;
 }
 
 function greatestIndex(values, compare = ascending$3) {
@@ -19849,6 +19982,9 @@ exports.bisectLeft = bisectLeft;
 exports.bisectRight = bisectRight;
 exports.bisector = bisector;
 exports.blob = blob;
+exports.blur = blur;
+exports.blur2 = blur2;
+exports.blurImage = blurImage;
 exports.brush = brush;
 exports.brushSelection = brushSelection;
 exports.brushX = brushX;
@@ -20109,6 +20245,7 @@ exports.max = max$3;
 exports.maxIndex = maxIndex;
 exports.mean = mean;
 exports.median = median;
+exports.medianIndex = medianIndex;
 exports.merge = merge;
 exports.min = min$2;
 exports.minIndex = minIndex;
@@ -20139,6 +20276,7 @@ exports.precisionPrefix = precisionPrefix;
 exports.precisionRound = precisionRound;
 exports.quadtree = quadtree;
 exports.quantile = quantile$1;
+exports.quantileIndex = quantileIndex;
 exports.quantileSorted = quantileSorted;
 exports.quantize = quantize$1;
 exports.quickselect = quickselect;
