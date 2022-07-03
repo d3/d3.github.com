@@ -1,11 +1,11 @@
-// https://d3js.org v7.6.0 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.6.1 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.6.0";
+var version = "7.6.1";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -6529,50 +6529,6 @@ function Contours() {
   return contours;
 }
 
-// TODO Optimize edge cases.
-// TODO Optimize index calculation.
-// TODO Optimize arguments.
-function blurX(source, target, r) {
-  var n = source.width,
-      m = source.height,
-      w = (r << 1) + 1;
-  for (var j = 0; j < m; ++j) {
-    for (var i = 0, sr = 0; i < n + r; ++i) {
-      if (i < n) {
-        sr += source.data[i + j * n];
-      }
-      if (i >= r) {
-        if (i >= w) {
-          sr -= source.data[i - w + j * n];
-        }
-        target.data[i - r + j * n] = sr / Math.min(i + 1, n - 1 + w - i, w);
-      }
-    }
-  }
-}
-
-// TODO Optimize edge cases.
-// TODO Optimize index calculation.
-// TODO Optimize arguments.
-function blurY(source, target, r) {
-  var n = source.width,
-      m = source.height,
-      w = (r << 1) + 1;
-  for (var i = 0; i < n; ++i) {
-    for (var j = 0, sr = 0; j < m + r; ++j) {
-      if (j < m) {
-        sr += source.data[i + j * n];
-      }
-      if (j >= r) {
-        if (j >= w) {
-          sr -= source.data[i + (j - w) * n];
-        }
-        target.data[i + (j - r) * n] = sr / Math.min(j + 1, m - 1 + w - j, w);
-      }
-    }
-  }
-}
-
 function defaultX$1(d) {
   return d[0];
 }
@@ -6599,12 +6555,12 @@ function density() {
       threshold = constant$5(20);
 
   function grid(data) {
-    var values0 = new Float32Array(n * m),
-        values1 = new Float32Array(n * m),
-        pow2k = Math.pow(2, -k);
+    var values = new Float32Array(n * m),
+        pow2k = Math.pow(2, -k),
+        i = -1;
 
-    data.forEach(function(d, i, data) {
-      var xi = (x(d, i, data) + o) * pow2k,
+    for (const d of data) {
+      var xi = (x(d, ++i, data) + o) * pow2k,
           yi = (y(d, i, data) + o) * pow2k,
           wi = +weight(d, i, data);
       if (xi >= 0 && xi < n && yi >= 0 && yi < m) {
@@ -6612,22 +6568,15 @@ function density() {
             y0 = Math.floor(yi),
             xt = xi - x0 - 0.5,
             yt = yi - y0 - 0.5;
-        values0[x0 + y0 * n] += (1 - xt) * (1 - yt) * wi;
-        values0[x0 + 1 + y0 * n] += xt * (1 - yt) * wi;
-        values0[x0 + 1 + (y0 + 1) * n] += xt * yt * wi;
-        values0[x0 + (y0 + 1) * n] += (1 - xt) * yt * wi;
+        values[x0 + y0 * n] += (1 - xt) * (1 - yt) * wi;
+        values[x0 + 1 + y0 * n] += xt * (1 - yt) * wi;
+        values[x0 + 1 + (y0 + 1) * n] += xt * yt * wi;
+        values[x0 + (y0 + 1) * n] += (1 - xt) * yt * wi;
       }
-    });
+    }
 
-    // TODO Optimize.
-    blurX({width: n, height: m, data: values0}, {width: n, height: m, data: values1}, r >> k);
-    blurY({width: n, height: m, data: values1}, {width: n, height: m, data: values0}, r >> k);
-    blurX({width: n, height: m, data: values0}, {width: n, height: m, data: values1}, r >> k);
-    blurY({width: n, height: m, data: values1}, {width: n, height: m, data: values0}, r >> k);
-    blurX({width: n, height: m, data: values0}, {width: n, height: m, data: values1}, r >> k);
-    blurY({width: n, height: m, data: values1}, {width: n, height: m, data: values0}, r >> k);
-
-    return values0;
+    blur2({data: values, width: n, height: m}, r * pow2k);
+    return values;
   }
 
   function density(data) {
@@ -6719,7 +6668,7 @@ function density() {
   density.bandwidth = function(_) {
     if (!arguments.length) return Math.sqrt(r * (r + 1));
     if (!((_ = +_) >= 0)) throw new Error("invalid bandwidth");
-    return r = Math.round((Math.sqrt(4 * _ * _ + 1) - 1) / 2), resize();
+    return r = (Math.sqrt(4 * _ * _ + 1) - 1) / 2, resize();
   };
 
   return density;
