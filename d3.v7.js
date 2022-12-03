@@ -1,11 +1,11 @@
-// https://d3js.org v7.6.1 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.7.0 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.6.1";
+var version = "7.7.0";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -727,9 +727,11 @@ function bin() {
     }
 
     // Remove any thresholds outside the domain.
-    var m = tz.length;
-    while (tz[0] <= x0) tz.shift(), --m;
-    while (tz[m - 1] > x1) tz.pop(), --m;
+    // Be careful not to mutate an array owned by the user!
+    var m = tz.length, a = 0, b = m;
+    while (tz[a] <= x0) ++a;
+    while (tz[b - 1] > x1) --b;
+    if (a || b < m) tz = tz.slice(a, b), m = b - a;
 
     var bins = new Array(m + 1),
         bin;
@@ -777,7 +779,7 @@ function bin() {
   };
 
   histogram.thresholds = function(_) {
-    return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant$b(slice$3.call(_)) : constant$b(_), histogram) : threshold;
+    return arguments.length ? (threshold = typeof _ === "function" ? _ : constant$b(Array.isArray(_) ? slice$3.call(_) : _), histogram) : threshold;
   };
 
   return histogram;
@@ -873,7 +875,13 @@ function minIndex(values, valueof) {
 
 // Based on https://github.com/mourner/quickselect
 // ISC license, Copyright 2018 Vladimir Agafonkin.
-function quickselect(array, k, left = 0, right = array.length - 1, compare) {
+function quickselect(array, k, left = 0, right = Infinity, compare) {
+  k = Math.floor(k);
+  left = Math.floor(Math.max(0, left));
+  right = Math.floor(Math.min(array.length - 1, right));
+
+  if (!(left <= k && k <= right)) return array;
+
   compare = compare === undefined ? ascendingDefined : compareDefined(compare);
 
   while (right > left) {
@@ -947,8 +955,8 @@ function greatest(values, compare = ascending$3) {
 
 function quantile$1(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return min$2(values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return min$2(values);
   if (p >= 1) return max$3(values);
   var n,
       i = (n - 1) * p,
@@ -959,8 +967,8 @@ function quantile$1(values, p, valueof) {
 }
 
 function quantileSorted(values, p, valueof = number$3) {
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return +valueof(values[0], 0, values);
   if (p >= 1) return +valueof(values[n - 1], n - 1, values);
   var n,
       i = (n - 1) * p,
@@ -972,8 +980,8 @@ function quantileSorted(values, p, valueof = number$3) {
 
 function quantileIndex(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return minIndex(values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return minIndex(values);
   if (p >= 1) return maxIndex(values);
   var n,
       i = Math.floor((n - 1) * p),
@@ -15513,47 +15521,46 @@ function threshold() {
   return initRange.apply(scale, arguments);
 }
 
-var t0 = new Date,
-    t1 = new Date;
+const t0 = new Date, t1 = new Date;
 
-function newInterval(floori, offseti, count, field) {
+function timeInterval(floori, offseti, count, field) {
 
   function interval(date) {
     return floori(date = arguments.length === 0 ? new Date : new Date(+date)), date;
   }
 
-  interval.floor = function(date) {
+  interval.floor = (date) => {
     return floori(date = new Date(+date)), date;
   };
 
-  interval.ceil = function(date) {
+  interval.ceil = (date) => {
     return floori(date = new Date(date - 1)), offseti(date, 1), floori(date), date;
   };
 
-  interval.round = function(date) {
-    var d0 = interval(date),
-        d1 = interval.ceil(date);
+  interval.round = (date) => {
+    const d0 = interval(date), d1 = interval.ceil(date);
     return date - d0 < d1 - date ? d0 : d1;
   };
 
-  interval.offset = function(date, step) {
+  interval.offset = (date, step) => {
     return offseti(date = new Date(+date), step == null ? 1 : Math.floor(step)), date;
   };
 
-  interval.range = function(start, stop, step) {
-    var range = [], previous;
+  interval.range = (start, stop, step) => {
+    const range = [];
     start = interval.ceil(start);
     step = step == null ? 1 : Math.floor(step);
     if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
+    let previous;
     do range.push(previous = new Date(+start)), offseti(start, step), floori(start);
     while (previous < start && start < stop);
     return range;
   };
 
-  interval.filter = function(test) {
-    return newInterval(function(date) {
+  interval.filter = (test) => {
+    return timeInterval((date) => {
       if (date >= date) while (floori(date), !test(date)) date.setTime(date - 1);
-    }, function(date, step) {
+    }, (date, step) => {
       if (date >= date) {
         if (step < 0) while (++step <= 0) {
           while (offseti(date, -1), !test(date)) {} // eslint-disable-line no-empty
@@ -15565,49 +15572,48 @@ function newInterval(floori, offseti, count, field) {
   };
 
   if (count) {
-    interval.count = function(start, end) {
+    interval.count = (start, end) => {
       t0.setTime(+start), t1.setTime(+end);
       floori(t0), floori(t1);
       return Math.floor(count(t0, t1));
     };
 
-    interval.every = function(step) {
+    interval.every = (step) => {
       step = Math.floor(step);
       return !isFinite(step) || !(step > 0) ? null
           : !(step > 1) ? interval
           : interval.filter(field
-              ? function(d) { return field(d) % step === 0; }
-              : function(d) { return interval.count(0, d) % step === 0; });
+              ? (d) => field(d) % step === 0
+              : (d) => interval.count(0, d) % step === 0);
     };
   }
 
   return interval;
 }
 
-var millisecond = newInterval(function() {
+const millisecond = timeInterval(() => {
   // noop
-}, function(date, step) {
+}, (date, step) => {
   date.setTime(+date + step);
-}, function(start, end) {
+}, (start, end) => {
   return end - start;
 });
 
 // An optimized implementation for this simple case.
-millisecond.every = function(k) {
+millisecond.every = (k) => {
   k = Math.floor(k);
   if (!isFinite(k) || !(k > 0)) return null;
   if (!(k > 1)) return millisecond;
-  return newInterval(function(date) {
+  return timeInterval((date) => {
     date.setTime(Math.floor(date / k) * k);
-  }, function(date, step) {
+  }, (date, step) => {
     date.setTime(+date + step * k);
-  }, function(start, end) {
+  }, (start, end) => {
     return (end - start) / k;
   });
 };
 
-var millisecond$1 = millisecond;
-var milliseconds = millisecond.range;
+const milliseconds = millisecond.range;
 
 const durationSecond = 1000;
 const durationMinute = durationSecond * 60;
@@ -15617,233 +15623,234 @@ const durationWeek = durationDay * 7;
 const durationMonth = durationDay * 30;
 const durationYear = durationDay * 365;
 
-var second = newInterval(function(date) {
+const second = timeInterval((date) => {
   date.setTime(date - date.getMilliseconds());
-}, function(date, step) {
+}, (date, step) => {
   date.setTime(+date + step * durationSecond);
-}, function(start, end) {
+}, (start, end) => {
   return (end - start) / durationSecond;
-}, function(date) {
+}, (date) => {
   return date.getUTCSeconds();
 });
 
-var utcSecond = second;
-var seconds = second.range;
+const seconds = second.range;
 
-var minute = newInterval(function(date) {
+const timeMinute = timeInterval((date) => {
   date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond);
-}, function(date, step) {
+}, (date, step) => {
   date.setTime(+date + step * durationMinute);
-}, function(start, end) {
+}, (start, end) => {
   return (end - start) / durationMinute;
-}, function(date) {
+}, (date) => {
   return date.getMinutes();
 });
 
-var timeMinute = minute;
-var minutes = minute.range;
+const timeMinutes = timeMinute.range;
 
-var hour = newInterval(function(date) {
+const utcMinute = timeInterval((date) => {
+  date.setUTCSeconds(0, 0);
+}, (date, step) => {
+  date.setTime(+date + step * durationMinute);
+}, (start, end) => {
+  return (end - start) / durationMinute;
+}, (date) => {
+  return date.getUTCMinutes();
+});
+
+const utcMinutes = utcMinute.range;
+
+const timeHour = timeInterval((date) => {
   date.setTime(date - date.getMilliseconds() - date.getSeconds() * durationSecond - date.getMinutes() * durationMinute);
-}, function(date, step) {
+}, (date, step) => {
   date.setTime(+date + step * durationHour);
-}, function(start, end) {
+}, (start, end) => {
   return (end - start) / durationHour;
-}, function(date) {
+}, (date) => {
   return date.getHours();
 });
 
-var timeHour = hour;
-var hours = hour.range;
+const timeHours = timeHour.range;
 
-var day = newInterval(
+const utcHour = timeInterval((date) => {
+  date.setUTCMinutes(0, 0, 0);
+}, (date, step) => {
+  date.setTime(+date + step * durationHour);
+}, (start, end) => {
+  return (end - start) / durationHour;
+}, (date) => {
+  return date.getUTCHours();
+});
+
+const utcHours = utcHour.range;
+
+const timeDay = timeInterval(
   date => date.setHours(0, 0, 0, 0),
   (date, step) => date.setDate(date.getDate() + step),
   (start, end) => (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationDay,
   date => date.getDate() - 1
 );
 
-var timeDay = day;
-var days = day.range;
+const timeDays = timeDay.range;
 
-function weekday(i) {
-  return newInterval(function(date) {
+const utcDay = timeInterval((date) => {
+  date.setUTCHours(0, 0, 0, 0);
+}, (date, step) => {
+  date.setUTCDate(date.getUTCDate() + step);
+}, (start, end) => {
+  return (end - start) / durationDay;
+}, (date) => {
+  return date.getUTCDate() - 1;
+});
+
+const utcDays = utcDay.range;
+
+const unixDay = timeInterval((date) => {
+  date.setUTCHours(0, 0, 0, 0);
+}, (date, step) => {
+  date.setUTCDate(date.getUTCDate() + step);
+}, (start, end) => {
+  return (end - start) / durationDay;
+}, (date) => {
+  return Math.floor(date / durationDay);
+});
+
+const unixDays = unixDay.range;
+
+function timeWeekday(i) {
+  return timeInterval((date) => {
     date.setDate(date.getDate() - (date.getDay() + 7 - i) % 7);
     date.setHours(0, 0, 0, 0);
-  }, function(date, step) {
+  }, (date, step) => {
     date.setDate(date.getDate() + step * 7);
-  }, function(start, end) {
+  }, (start, end) => {
     return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute) / durationWeek;
   });
 }
 
-var sunday = weekday(0);
-var monday = weekday(1);
-var tuesday = weekday(2);
-var wednesday = weekday(3);
-var thursday = weekday(4);
-var friday = weekday(5);
-var saturday = weekday(6);
+const timeSunday = timeWeekday(0);
+const timeMonday = timeWeekday(1);
+const timeTuesday = timeWeekday(2);
+const timeWednesday = timeWeekday(3);
+const timeThursday = timeWeekday(4);
+const timeFriday = timeWeekday(5);
+const timeSaturday = timeWeekday(6);
 
-var sundays = sunday.range;
-var mondays = monday.range;
-var tuesdays = tuesday.range;
-var wednesdays = wednesday.range;
-var thursdays = thursday.range;
-var fridays = friday.range;
-var saturdays = saturday.range;
-
-var month = newInterval(function(date) {
-  date.setDate(1);
-  date.setHours(0, 0, 0, 0);
-}, function(date, step) {
-  date.setMonth(date.getMonth() + step);
-}, function(start, end) {
-  return end.getMonth() - start.getMonth() + (end.getFullYear() - start.getFullYear()) * 12;
-}, function(date) {
-  return date.getMonth();
-});
-
-var timeMonth = month;
-var months = month.range;
-
-var year = newInterval(function(date) {
-  date.setMonth(0, 1);
-  date.setHours(0, 0, 0, 0);
-}, function(date, step) {
-  date.setFullYear(date.getFullYear() + step);
-}, function(start, end) {
-  return end.getFullYear() - start.getFullYear();
-}, function(date) {
-  return date.getFullYear();
-});
-
-// An optimized implementation for this simple case.
-year.every = function(k) {
-  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
-    date.setFullYear(Math.floor(date.getFullYear() / k) * k);
-    date.setMonth(0, 1);
-    date.setHours(0, 0, 0, 0);
-  }, function(date, step) {
-    date.setFullYear(date.getFullYear() + step * k);
-  });
-};
-
-var timeYear = year;
-var years = year.range;
-
-var utcMinute = newInterval(function(date) {
-  date.setUTCSeconds(0, 0);
-}, function(date, step) {
-  date.setTime(+date + step * durationMinute);
-}, function(start, end) {
-  return (end - start) / durationMinute;
-}, function(date) {
-  return date.getUTCMinutes();
-});
-
-var utcMinute$1 = utcMinute;
-var utcMinutes = utcMinute.range;
-
-var utcHour = newInterval(function(date) {
-  date.setUTCMinutes(0, 0, 0);
-}, function(date, step) {
-  date.setTime(+date + step * durationHour);
-}, function(start, end) {
-  return (end - start) / durationHour;
-}, function(date) {
-  return date.getUTCHours();
-});
-
-var utcHour$1 = utcHour;
-var utcHours = utcHour.range;
-
-var utcDay = newInterval(function(date) {
-  date.setUTCHours(0, 0, 0, 0);
-}, function(date, step) {
-  date.setUTCDate(date.getUTCDate() + step);
-}, function(start, end) {
-  return (end - start) / durationDay;
-}, function(date) {
-  return date.getUTCDate() - 1;
-});
-
-var utcDay$1 = utcDay;
-var utcDays = utcDay.range;
+const timeSundays = timeSunday.range;
+const timeMondays = timeMonday.range;
+const timeTuesdays = timeTuesday.range;
+const timeWednesdays = timeWednesday.range;
+const timeThursdays = timeThursday.range;
+const timeFridays = timeFriday.range;
+const timeSaturdays = timeSaturday.range;
 
 function utcWeekday(i) {
-  return newInterval(function(date) {
+  return timeInterval((date) => {
     date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 7 - i) % 7);
     date.setUTCHours(0, 0, 0, 0);
-  }, function(date, step) {
+  }, (date, step) => {
     date.setUTCDate(date.getUTCDate() + step * 7);
-  }, function(start, end) {
+  }, (start, end) => {
     return (end - start) / durationWeek;
   });
 }
 
-var utcSunday = utcWeekday(0);
-var utcMonday = utcWeekday(1);
-var utcTuesday = utcWeekday(2);
-var utcWednesday = utcWeekday(3);
-var utcThursday = utcWeekday(4);
-var utcFriday = utcWeekday(5);
-var utcSaturday = utcWeekday(6);
+const utcSunday = utcWeekday(0);
+const utcMonday = utcWeekday(1);
+const utcTuesday = utcWeekday(2);
+const utcWednesday = utcWeekday(3);
+const utcThursday = utcWeekday(4);
+const utcFriday = utcWeekday(5);
+const utcSaturday = utcWeekday(6);
 
-var utcSundays = utcSunday.range;
-var utcMondays = utcMonday.range;
-var utcTuesdays = utcTuesday.range;
-var utcWednesdays = utcWednesday.range;
-var utcThursdays = utcThursday.range;
-var utcFridays = utcFriday.range;
-var utcSaturdays = utcSaturday.range;
+const utcSundays = utcSunday.range;
+const utcMondays = utcMonday.range;
+const utcTuesdays = utcTuesday.range;
+const utcWednesdays = utcWednesday.range;
+const utcThursdays = utcThursday.range;
+const utcFridays = utcFriday.range;
+const utcSaturdays = utcSaturday.range;
 
-var utcMonth = newInterval(function(date) {
+const timeMonth = timeInterval((date) => {
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+}, (date, step) => {
+  date.setMonth(date.getMonth() + step);
+}, (start, end) => {
+  return end.getMonth() - start.getMonth() + (end.getFullYear() - start.getFullYear()) * 12;
+}, (date) => {
+  return date.getMonth();
+});
+
+const timeMonths = timeMonth.range;
+
+const utcMonth = timeInterval((date) => {
   date.setUTCDate(1);
   date.setUTCHours(0, 0, 0, 0);
-}, function(date, step) {
+}, (date, step) => {
   date.setUTCMonth(date.getUTCMonth() + step);
-}, function(start, end) {
+}, (start, end) => {
   return end.getUTCMonth() - start.getUTCMonth() + (end.getUTCFullYear() - start.getUTCFullYear()) * 12;
-}, function(date) {
+}, (date) => {
   return date.getUTCMonth();
 });
 
-var utcMonth$1 = utcMonth;
-var utcMonths = utcMonth.range;
+const utcMonths = utcMonth.range;
 
-var utcYear = newInterval(function(date) {
+const timeYear = timeInterval((date) => {
+  date.setMonth(0, 1);
+  date.setHours(0, 0, 0, 0);
+}, (date, step) => {
+  date.setFullYear(date.getFullYear() + step);
+}, (start, end) => {
+  return end.getFullYear() - start.getFullYear();
+}, (date) => {
+  return date.getFullYear();
+});
+
+// An optimized implementation for this simple case.
+timeYear.every = (k) => {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : timeInterval((date) => {
+    date.setFullYear(Math.floor(date.getFullYear() / k) * k);
+    date.setMonth(0, 1);
+    date.setHours(0, 0, 0, 0);
+  }, (date, step) => {
+    date.setFullYear(date.getFullYear() + step * k);
+  });
+};
+
+const timeYears = timeYear.range;
+
+const utcYear = timeInterval((date) => {
   date.setUTCMonth(0, 1);
   date.setUTCHours(0, 0, 0, 0);
-}, function(date, step) {
+}, (date, step) => {
   date.setUTCFullYear(date.getUTCFullYear() + step);
-}, function(start, end) {
+}, (start, end) => {
   return end.getUTCFullYear() - start.getUTCFullYear();
-}, function(date) {
+}, (date) => {
   return date.getUTCFullYear();
 });
 
 // An optimized implementation for this simple case.
-utcYear.every = function(k) {
-  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+utcYear.every = (k) => {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : timeInterval((date) => {
     date.setUTCFullYear(Math.floor(date.getUTCFullYear() / k) * k);
     date.setUTCMonth(0, 1);
     date.setUTCHours(0, 0, 0, 0);
-  }, function(date, step) {
+  }, (date, step) => {
     date.setUTCFullYear(date.getUTCFullYear() + step * k);
   });
 };
 
-var utcYear$1 = utcYear;
-var utcYears = utcYear.range;
+const utcYears = utcYear.range;
 
 function ticker(year, month, week, day, hour, minute) {
 
   const tickIntervals = [
-    [utcSecond,  1,      durationSecond],
-    [utcSecond,  5,  5 * durationSecond],
-    [utcSecond, 15, 15 * durationSecond],
-    [utcSecond, 30, 30 * durationSecond],
+    [second,  1,      durationSecond],
+    [second,  5,  5 * durationSecond],
+    [second, 15, 15 * durationSecond],
+    [second, 30, 30 * durationSecond],
     [minute,  1,      durationMinute],
     [minute,  5,  5 * durationMinute],
     [minute, 15, 15 * durationMinute],
@@ -15872,7 +15879,7 @@ function ticker(year, month, week, day, hour, minute) {
     const target = Math.abs(stop - start) / count;
     const i = bisector(([,, step]) => step).right(tickIntervals, target);
     if (i === tickIntervals.length) return year.every(tickStep(start / durationYear, stop / durationYear, count));
-    if (i === 0) return millisecond$1.every(Math.max(tickStep(start, stop, count), 1));
+    if (i === 0) return millisecond.every(Math.max(tickStep(start, stop, count), 1));
     const [t, step] = tickIntervals[target / tickIntervals[i - 1][2] < tickIntervals[i][2] / target ? i - 1 : i];
     return t.every(step);
   }
@@ -15880,8 +15887,8 @@ function ticker(year, month, week, day, hour, minute) {
   return [ticks, tickInterval];
 }
 
-const [utcTicks, utcTickInterval] = ticker(utcYear$1, utcMonth$1, utcSunday, utcDay$1, utcHour$1, utcMinute$1);
-const [timeTicks, timeTickInterval] = ticker(timeYear, timeMonth, sunday, timeDay, timeHour, timeMinute);
+const [utcTicks, utcTickInterval] = ticker(utcYear, utcMonth, utcSunday, unixDay, utcHour, utcMinute);
+const [timeTicks, timeTickInterval] = ticker(timeYear, timeMonth, timeSunday, timeDay, timeHour, timeMinute);
 
 function localDate(d) {
   if (0 <= d.y && d.y < 100) {
@@ -16094,13 +16101,13 @@ function formatLocale(locale) {
         if ("Z" in d) {
           week = utcDate(newDate(d.y, 0, 1)), day = week.getUTCDay();
           week = day > 4 || day === 0 ? utcMonday.ceil(week) : utcMonday(week);
-          week = utcDay$1.offset(week, (d.V - 1) * 7);
+          week = utcDay.offset(week, (d.V - 1) * 7);
           d.y = week.getUTCFullYear();
           d.m = week.getUTCMonth();
           d.d = week.getUTCDate() + (d.w + 6) % 7;
         } else {
           week = localDate(newDate(d.y, 0, 1)), day = week.getDay();
-          week = day > 4 || day === 0 ? monday.ceil(week) : monday(week);
+          week = day > 4 || day === 0 ? timeMonday.ceil(week) : timeMonday(week);
           week = timeDay.offset(week, (d.V - 1) * 7);
           d.y = week.getFullYear();
           d.m = week.getMonth();
@@ -16423,17 +16430,17 @@ function formatWeekdayNumberMonday(d) {
 }
 
 function formatWeekNumberSunday(d, p) {
-  return pad(sunday.count(timeYear(d) - 1, d), p, 2);
+  return pad(timeSunday.count(timeYear(d) - 1, d), p, 2);
 }
 
 function dISO(d) {
   var day = d.getDay();
-  return (day >= 4 || day === 0) ? thursday(d) : thursday.ceil(d);
+  return (day >= 4 || day === 0) ? timeThursday(d) : timeThursday.ceil(d);
 }
 
 function formatWeekNumberISO(d, p) {
   d = dISO(d);
-  return pad(thursday.count(timeYear(d), d) + (timeYear(d).getDay() === 4), p, 2);
+  return pad(timeThursday.count(timeYear(d), d) + (timeYear(d).getDay() === 4), p, 2);
 }
 
 function formatWeekdayNumberSunday(d) {
@@ -16441,7 +16448,7 @@ function formatWeekdayNumberSunday(d) {
 }
 
 function formatWeekNumberMonday(d, p) {
-  return pad(monday.count(timeYear(d) - 1, d), p, 2);
+  return pad(timeMonday.count(timeYear(d) - 1, d), p, 2);
 }
 
 function formatYear(d, p) {
@@ -16459,7 +16466,7 @@ function formatFullYear(d, p) {
 
 function formatFullYearISO(d, p) {
   var day = d.getDay();
-  d = (day >= 4 || day === 0) ? thursday(d) : thursday.ceil(d);
+  d = (day >= 4 || day === 0) ? timeThursday(d) : timeThursday.ceil(d);
   return pad(d.getFullYear() % 10000, p, 4);
 }
 
@@ -16483,7 +16490,7 @@ function formatUTCHour12(d, p) {
 }
 
 function formatUTCDayOfYear(d, p) {
-  return pad(1 + utcDay$1.count(utcYear$1(d), d), p, 3);
+  return pad(1 + utcDay.count(utcYear(d), d), p, 3);
 }
 
 function formatUTCMilliseconds(d, p) {
@@ -16512,7 +16519,7 @@ function formatUTCWeekdayNumberMonday(d) {
 }
 
 function formatUTCWeekNumberSunday(d, p) {
-  return pad(utcSunday.count(utcYear$1(d) - 1, d), p, 2);
+  return pad(utcSunday.count(utcYear(d) - 1, d), p, 2);
 }
 
 function UTCdISO(d) {
@@ -16522,7 +16529,7 @@ function UTCdISO(d) {
 
 function formatUTCWeekNumberISO(d, p) {
   d = UTCdISO(d);
-  return pad(utcThursday.count(utcYear$1(d), d) + (utcYear$1(d).getUTCDay() === 4), p, 2);
+  return pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
 }
 
 function formatUTCWeekdayNumberSunday(d) {
@@ -16530,7 +16537,7 @@ function formatUTCWeekdayNumberSunday(d) {
 }
 
 function formatUTCWeekNumberMonday(d, p) {
-  return pad(utcMonday.count(utcYear$1(d) - 1, d), p, 2);
+  return pad(utcMonday.count(utcYear(d) - 1, d), p, 2);
 }
 
 function formatUTCYear(d, p) {
@@ -16680,11 +16687,11 @@ function calendar(ticks, tickInterval, year, month, week, day, hour, minute, sec
 }
 
 function time() {
-  return initRange.apply(calendar(timeTicks, timeTickInterval, timeYear, timeMonth, sunday, timeDay, timeHour, timeMinute, utcSecond, exports.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(timeTicks, timeTickInterval, timeYear, timeMonth, timeSunday, timeDay, timeHour, timeMinute, second, exports.timeFormat).domain([new Date(2000, 0, 1), new Date(2000, 0, 2)]), arguments);
 }
 
 function utcTime() {
-  return initRange.apply(calendar(utcTicks, utcTickInterval, utcYear$1, utcMonth$1, utcSunday, utcDay$1, utcHour$1, utcMinute$1, utcSecond, exports.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
+  return initRange.apply(calendar(utcTicks, utcTickInterval, utcYear, utcMonth, utcSunday, utcDay, utcHour, utcMinute, second, exports.utcFormat).domain([Date.UTC(2000, 0, 1), Date.UTC(2000, 0, 2)]), arguments);
 }
 
 function transformer$1() {
@@ -20376,40 +20383,40 @@ exports.tickIncrement = tickIncrement;
 exports.tickStep = tickStep;
 exports.ticks = ticks;
 exports.timeDay = timeDay;
-exports.timeDays = days;
+exports.timeDays = timeDays;
 exports.timeFormatDefaultLocale = defaultLocale;
 exports.timeFormatLocale = formatLocale;
-exports.timeFriday = friday;
-exports.timeFridays = fridays;
+exports.timeFriday = timeFriday;
+exports.timeFridays = timeFridays;
 exports.timeHour = timeHour;
-exports.timeHours = hours;
-exports.timeInterval = newInterval;
-exports.timeMillisecond = millisecond$1;
+exports.timeHours = timeHours;
+exports.timeInterval = timeInterval;
+exports.timeMillisecond = millisecond;
 exports.timeMilliseconds = milliseconds;
 exports.timeMinute = timeMinute;
-exports.timeMinutes = minutes;
-exports.timeMonday = monday;
-exports.timeMondays = mondays;
+exports.timeMinutes = timeMinutes;
+exports.timeMonday = timeMonday;
+exports.timeMondays = timeMondays;
 exports.timeMonth = timeMonth;
-exports.timeMonths = months;
-exports.timeSaturday = saturday;
-exports.timeSaturdays = saturdays;
-exports.timeSecond = utcSecond;
+exports.timeMonths = timeMonths;
+exports.timeSaturday = timeSaturday;
+exports.timeSaturdays = timeSaturdays;
+exports.timeSecond = second;
 exports.timeSeconds = seconds;
-exports.timeSunday = sunday;
-exports.timeSundays = sundays;
-exports.timeThursday = thursday;
-exports.timeThursdays = thursdays;
+exports.timeSunday = timeSunday;
+exports.timeSundays = timeSundays;
+exports.timeThursday = timeThursday;
+exports.timeThursdays = timeThursdays;
 exports.timeTickInterval = timeTickInterval;
 exports.timeTicks = timeTicks;
-exports.timeTuesday = tuesday;
-exports.timeTuesdays = tuesdays;
-exports.timeWednesday = wednesday;
-exports.timeWednesdays = wednesdays;
-exports.timeWeek = sunday;
-exports.timeWeeks = sundays;
+exports.timeTuesday = timeTuesday;
+exports.timeTuesdays = timeTuesdays;
+exports.timeWednesday = timeWednesday;
+exports.timeWednesdays = timeWednesdays;
+exports.timeWeek = timeSunday;
+exports.timeWeeks = timeSundays;
 exports.timeYear = timeYear;
-exports.timeYears = years;
+exports.timeYears = timeYears;
 exports.timeout = timeout;
 exports.timer = timer;
 exports.timerFlush = timerFlush;
@@ -20432,23 +20439,25 @@ exports.tsvFormatValue = tsvFormatValue;
 exports.tsvParse = tsvParse;
 exports.tsvParseRows = tsvParseRows;
 exports.union = union;
-exports.utcDay = utcDay$1;
+exports.unixDay = unixDay;
+exports.unixDays = unixDays;
+exports.utcDay = utcDay;
 exports.utcDays = utcDays;
 exports.utcFriday = utcFriday;
 exports.utcFridays = utcFridays;
-exports.utcHour = utcHour$1;
+exports.utcHour = utcHour;
 exports.utcHours = utcHours;
-exports.utcMillisecond = millisecond$1;
+exports.utcMillisecond = millisecond;
 exports.utcMilliseconds = milliseconds;
-exports.utcMinute = utcMinute$1;
+exports.utcMinute = utcMinute;
 exports.utcMinutes = utcMinutes;
 exports.utcMonday = utcMonday;
 exports.utcMondays = utcMondays;
-exports.utcMonth = utcMonth$1;
+exports.utcMonth = utcMonth;
 exports.utcMonths = utcMonths;
 exports.utcSaturday = utcSaturday;
 exports.utcSaturdays = utcSaturdays;
-exports.utcSecond = utcSecond;
+exports.utcSecond = second;
 exports.utcSeconds = seconds;
 exports.utcSunday = utcSunday;
 exports.utcSundays = utcSundays;
@@ -20462,7 +20471,7 @@ exports.utcWednesday = utcWednesday;
 exports.utcWednesdays = utcWednesdays;
 exports.utcWeek = utcSunday;
 exports.utcWeeks = utcSundays;
-exports.utcYear = utcYear$1;
+exports.utcYear = utcYear;
 exports.utcYears = utcYears;
 exports.variance = variance;
 exports.version = version;
@@ -20472,7 +20481,5 @@ exports.zip = zip;
 exports.zoom = zoom;
 exports.zoomIdentity = identity;
 exports.zoomTransform = transform;
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
