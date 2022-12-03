@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.2.0 Copyright 2010-2022 Mike Bostock
+// https://d3js.org/d3-array/ v3.2.1 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -725,9 +725,11 @@ function bin() {
     }
 
     // Remove any thresholds outside the domain.
-    var m = tz.length;
-    while (tz[0] <= x0) tz.shift(), --m;
-    while (tz[m - 1] > x1) tz.pop(), --m;
+    // Be careful not to mutate an array owned by the user!
+    var m = tz.length, a = 0, b = m;
+    while (tz[a] <= x0) ++a;
+    while (tz[b - 1] > x1) --b;
+    if (a || b < m) tz = tz.slice(a, b), m = b - a;
 
     var bins = new Array(m + 1),
         bin;
@@ -775,7 +777,7 @@ function bin() {
   };
 
   histogram.thresholds = function(_) {
-    return arguments.length ? (threshold = typeof _ === "function" ? _ : Array.isArray(_) ? constant(slice.call(_)) : constant(_), histogram) : threshold;
+    return arguments.length ? (threshold = typeof _ === "function" ? _ : constant(Array.isArray(_) ? slice.call(_) : _), histogram) : threshold;
   };
 
   return histogram;
@@ -871,7 +873,13 @@ function minIndex(values, valueof) {
 
 // Based on https://github.com/mourner/quickselect
 // ISC license, Copyright 2018 Vladimir Agafonkin.
-function quickselect(array, k, left = 0, right = array.length - 1, compare) {
+function quickselect(array, k, left = 0, right = Infinity, compare) {
+  k = Math.floor(k);
+  left = Math.floor(Math.max(0, left));
+  right = Math.floor(Math.min(array.length - 1, right));
+
+  if (!(left <= k && k <= right)) return array;
+
   compare = compare === undefined ? ascendingDefined : compareDefined(compare);
 
   while (right > left) {
@@ -945,8 +953,8 @@ function greatest(values, compare = ascending) {
 
 function quantile(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return min(values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return min(values);
   if (p >= 1) return max(values);
   var n,
       i = (n - 1) * p,
@@ -957,8 +965,8 @@ function quantile(values, p, valueof) {
 }
 
 function quantileSorted(values, p, valueof = number) {
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return +valueof(values[0], 0, values);
   if (p >= 1) return +valueof(values[n - 1], n - 1, values);
   var n,
       i = (n - 1) * p,
@@ -970,8 +978,8 @@ function quantileSorted(values, p, valueof = number) {
 
 function quantileIndex(values, p, valueof) {
   values = Float64Array.from(numbers(values, valueof));
-  if (!(n = values.length)) return;
-  if ((p = +p) <= 0 || n < 2) return minIndex(values);
+  if (!(n = values.length) || isNaN(p = +p)) return;
+  if (p <= 0 || n < 2) return minIndex(values);
   if (p >= 1) return maxIndex(values);
   var n,
       i = Math.floor((n - 1) * p),
@@ -1438,7 +1446,5 @@ exports.transpose = transpose;
 exports.union = union;
 exports.variance = variance;
 exports.zip = zip;
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
