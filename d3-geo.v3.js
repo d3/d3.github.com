@@ -1,9 +1,9 @@
-// https://d3js.org/d3-geo/ v3.0.1 Copyright 2010-2021 Mike Bostock, 2008-2012 Charles Karney
+// https://d3js.org/d3-geo/ v3.1.0 Copyright 2010-2022 Mike Bostock, 2008-2012 Charles Karney
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}, global.d3));
-}(this, (function (exports, d3Array) { 'use strict';
+})(this, (function (exports, d3Array) { 'use strict';
 
 var epsilon = 1e-6;
 var epsilon2 = 1e-12;
@@ -550,7 +550,8 @@ function compose(a, b) {
 }
 
 function rotationIdentity(lambda, phi) {
-  return [abs(lambda) > pi ? lambda + Math.round(-lambda / tau) * tau : lambda, phi];
+  if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau;
+  return [lambda, phi];
 }
 
 rotationIdentity.invert = rotationIdentity;
@@ -564,7 +565,9 @@ function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
 
 function forwardRotationLambda(deltaLambda) {
   return function(lambda, phi) {
-    return lambda += deltaLambda, [lambda > pi ? lambda - tau : lambda < -pi ? lambda + tau : lambda, phi];
+    lambda += deltaLambda;
+    if (abs(lambda) > pi) lambda -= Math.round(lambda / tau) * tau;
+    return [lambda, phi];
   };
 }
 
@@ -651,7 +654,7 @@ function circleRadius(cosRadius, point) {
   return ((-point[2] < 0 ? -radius : radius) + tau - epsilon) % tau;
 }
 
-function circle$1() {
+function circle() {
   var center = constant([0, 0]),
       radius = constant(90),
       precision = constant(6),
@@ -2062,68 +2065,96 @@ function lengthPoint(x, y) {
   x0 = x, y0 = y;
 }
 
-function PathString() {
-  this._string = [];
-}
+// Simple caching for constant-radius points.
+let cacheDigits, cacheAppend, cacheRadius, cacheCircle;
 
-PathString.prototype = {
-  _radius: 4.5,
-  _circle: circle(4.5),
-  pointRadius: function(_) {
-    if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
+class PathString {
+  constructor(digits) {
+    this._append = digits == null ? append : appendRound(digits);
+    this._radius = 4.5;
+    this._ = "";
+  }
+  pointRadius(_) {
+    this._radius = +_;
     return this;
-  },
-  polygonStart: function() {
+  }
+  polygonStart() {
     this._line = 0;
-  },
-  polygonEnd: function() {
+  }
+  polygonEnd() {
     this._line = NaN;
-  },
-  lineStart: function() {
+  }
+  lineStart() {
     this._point = 0;
-  },
-  lineEnd: function() {
-    if (this._line === 0) this._string.push("Z");
+  }
+  lineEnd() {
+    if (this._line === 0) this._ += "Z";
     this._point = NaN;
-  },
-  point: function(x, y) {
+  }
+  point(x, y) {
     switch (this._point) {
       case 0: {
-        this._string.push("M", x, ",", y);
+        this._append`M${x},${y}`;
         this._point = 1;
         break;
       }
       case 1: {
-        this._string.push("L", x, ",", y);
+        this._append`L${x},${y}`;
         break;
       }
       default: {
-        if (this._circle == null) this._circle = circle(this._radius);
-        this._string.push("M", x, ",", y, this._circle);
+        this._append`M${x},${y}`;
+        if (this._radius !== cacheRadius || this._append !== cacheAppend) {
+          const r = this._radius;
+          const s = this._;
+          this._ = ""; // stash the old string so we can cache the circle path fragment
+          this._append`m0,${r}a${r},${r} 0 1,1 0,${-2 * r}a${r},${r} 0 1,1 0,${2 * r}z`;
+          cacheRadius = r;
+          cacheAppend = this._append;
+          cacheCircle = this._;
+          this._ = s;
+        }
+        this._ += cacheCircle;
         break;
       }
     }
-  },
-  result: function() {
-    if (this._string.length) {
-      var result = this._string.join("");
-      this._string = [];
-      return result;
-    } else {
-      return null;
-    }
   }
-};
+  result() {
+    const result = this._;
+    this._ = "";
+    return result.length ? result : null;
+  }
+}
 
-function circle(radius) {
-  return "m0," + radius
-      + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius
-      + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius
-      + "z";
+function append(strings) {
+  let i = 1;
+  this._ += strings[0];
+  for (const j = strings.length; i < j; ++i) {
+    this._ += arguments[i] + strings[i];
+  }
+}
+
+function appendRound(digits) {
+  const d = Math.floor(digits);
+  if (!(d >= 0)) throw new RangeError(`invalid digits: ${digits}`);
+  if (d > 15) return append;
+  if (d !== cacheDigits) {
+    const k = 10 ** d;
+    cacheDigits = d;
+    cacheAppend = function append(strings) {
+      let i = 1;
+      this._ += strings[0];
+      for (const j = strings.length; i < j; ++i) {
+        this._ += Math.round(arguments[i] * k) / k + strings[i];
+      }
+    };
+  }
+  return cacheAppend;
 }
 
 function index(projection, context) {
-  var pointRadius = 4.5,
+  let digits = 3,
+      pointRadius = 4.5,
       projectionStream,
       contextStream;
 
@@ -2156,12 +2187,14 @@ function index(projection, context) {
   };
 
   path.projection = function(_) {
-    return arguments.length ? (projectionStream = _ == null ? (projection = null, identity$1) : (projection = _).stream, path) : projection;
+    if (!arguments.length) return projection;
+    projectionStream = _ == null ? (projection = null, identity$1) : (projection = _).stream;
+    return path;
   };
 
   path.context = function(_) {
     if (!arguments.length) return context;
-    contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
+    contextStream = _ == null ? (context = null, new PathString(digits)) : new PathContext(context = _);
     if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
     return path;
   };
@@ -2172,7 +2205,19 @@ function index(projection, context) {
     return path;
   };
 
-  return path.projection(projection).context(context);
+  path.digits = function(_) {
+    if (!arguments.length) return digits;
+    if (_ == null) digits = null;
+    else {
+      const d = Math.floor(_);
+      if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+      digits = d;
+    }
+    if (context === null) contextStream = new PathString(digits);
+    return path;
+  };
+
+  return path.projection(projection).digits(digits).context(context);
 }
 
 function transform(methods) {
@@ -3078,7 +3123,7 @@ exports.geoAzimuthalEquidistant = azimuthalEquidistant;
 exports.geoAzimuthalEquidistantRaw = azimuthalEquidistantRaw;
 exports.geoBounds = bounds;
 exports.geoCentroid = centroid;
-exports.geoCircle = circle$1;
+exports.geoCircle = circle;
 exports.geoClipAntimeridian = clipAntimeridian;
 exports.geoClipCircle = clipCircle;
 exports.geoClipExtent = extent;
@@ -3119,6 +3164,4 @@ exports.geoTransform = transform;
 exports.geoTransverseMercator = transverseMercator;
 exports.geoTransverseMercatorRaw = transverseMercatorRaw;
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+}));
