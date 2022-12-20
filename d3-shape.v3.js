@@ -1,4 +1,4 @@
-// https://d3js.org/d3-shape/ v3.1.0 Copyright 2010-2021 Mike Bostock
+// https://d3js.org/d3-shape/ v3.2.0 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-path'], factory) :
@@ -30,6 +30,24 @@ function acos(x) {
 
 function asin(x) {
   return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x);
+}
+
+function withPath(shape) {
+  let digits = 3;
+
+  shape.digits = function(_) {
+    if (!arguments.length) return digits;
+    if (_ == null) {
+      digits = null;
+    } else {
+      const d = Math.floor(_);
+      if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+      digits = d;
+    }
+    return shape;
+  };
+
+  return () => new d3Path.Path(digits);
 }
 
 function arcInnerRadius(d) {
@@ -112,7 +130,8 @@ function arc() {
       startAngle = arcStartAngle,
       endAngle = arcEndAngle,
       padAngle = arcPadAngle,
-      context = null;
+      context = null,
+      path = withPath(arc);
 
   function arc() {
     var buffer,
@@ -124,7 +143,7 @@ function arc() {
         da = abs(a1 - a0),
         cw = a1 > a0;
 
-    if (!context) context = buffer = d3Path.path();
+    if (!context) context = buffer = path();
 
     // Ensure that the outer radius is always larger than the inner radius.
     if (r1 < r0) r = r1, r1 = r0, r0 = r;
@@ -181,16 +200,22 @@ function arc() {
             y00 = r0 * sin(a00),
             oc;
 
-        // Restrict the corner radius according to the sector angle.
-        if (da < pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          var ax = x01 - oc[0],
-              ay = y01 - oc[1],
-              bx = x11 - oc[0],
-              by = y11 - oc[1],
-              kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
-              lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
-          rc0 = min(rc, (r0 - lc) / (kc - 1));
-          rc1 = min(rc, (r1 - lc) / (kc + 1));
+        // Restrict the corner radius according to the sector angle. If this
+        // intersection fails, it’s probably because the arc is too small, so
+        // disable the corner radius entirely.
+        if (da < pi) {
+          if (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)) {
+            var ax = x01 - oc[0],
+                ay = y01 - oc[1],
+                bx = x11 - oc[0],
+                by = y11 - oc[1],
+                kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
+                lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+            rc0 = min(rc, (r0 - lc) / (kc - 1));
+            rc1 = min(rc, (r1 - lc) / (kc + 1));
+          } else {
+            rc0 = rc1 = 0;
+          }
         }
       }
 
@@ -330,7 +355,7 @@ function curveLinear(context) {
   return new Linear(context);
 }
 
-function x$1(p) {
+function x(p) {
   return p[0];
 }
 
@@ -338,13 +363,14 @@ function y(p) {
   return p[1];
 }
 
-function line(x, y$1) {
+function line(x$1, y$1) {
   var defined = constant(true),
       context = null,
       curve = curveLinear,
-      output = null;
+      output = null,
+      path = withPath(line);
 
-  x = typeof x === "function" ? x : (x === undefined) ? x$1 : constant(x);
+  x$1 = typeof x$1 === "function" ? x$1 : (x$1 === undefined) ? x : constant(x$1);
   y$1 = typeof y$1 === "function" ? y$1 : (y$1 === undefined) ? y : constant(y$1);
 
   function line(data) {
@@ -354,21 +380,21 @@ function line(x, y$1) {
         defined0 = false,
         buffer;
 
-    if (context == null) output = curve(buffer = d3Path.path());
+    if (context == null) output = curve(buffer = path());
 
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
         if (defined0 = !defined0) output.lineStart();
         else output.lineEnd();
       }
-      if (defined0) output.point(+x(d, i, data), +y$1(d, i, data));
+      if (defined0) output.point(+x$1(d, i, data), +y$1(d, i, data));
     }
 
     if (buffer) return output = null, buffer + "" || null;
   }
 
   line.x = function(_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant(+_), line) : x;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant(+_), line) : x$1;
   };
 
   line.y = function(_) {
@@ -395,9 +421,10 @@ function area(x0, y0, y1) {
       defined = constant(true),
       context = null,
       curve = curveLinear,
-      output = null;
+      output = null,
+      path = withPath(area);
 
-  x0 = typeof x0 === "function" ? x0 : (x0 === undefined) ? x$1 : constant(+x0);
+  x0 = typeof x0 === "function" ? x0 : (x0 === undefined) ? x : constant(+x0);
   y0 = typeof y0 === "function" ? y0 : (y0 === undefined) ? constant(0) : constant(+y0);
   y1 = typeof y1 === "function" ? y1 : (y1 === undefined) ? y : constant(+y1);
 
@@ -412,7 +439,7 @@ function area(x0, y0, y1) {
         x0z = new Array(n),
         y0z = new Array(n);
 
-    if (context == null) output = curve(buffer = d3Path.path());
+    if (context == null) output = curve(buffer = path());
 
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
@@ -708,8 +735,8 @@ class BumpRadial {
   lineEnd() {}
   point(x, y) {
     x = +x, y = +y;
-    if (this._point++ === 0) {
-      this._x0 = x, this._y0 = y;
+    if (this._point === 0) {
+      this._point = 1;
     } else {
       const p0 = pointRadial(this._x0, this._y0);
       const p1 = pointRadial(this._x0, this._y0 = (this._y0 + y) / 2);
@@ -718,6 +745,7 @@ class BumpRadial {
       this._context.moveTo(...p0);
       this._context.bezierCurveTo(...p1, ...p2, ...p3);
     }
+    this._x0 = x, this._y0 = y;
   }
 }
 
@@ -742,22 +770,23 @@ function linkTarget(d) {
 }
 
 function link(curve) {
-  let source = linkSource;
-  let target = linkTarget;
-  let x = x$1;
-  let y$1 = y;
-  let context = null;
-  let output = null;
+  let source = linkSource,
+      target = linkTarget,
+      x$1 = x,
+      y$1 = y,
+      context = null,
+      output = null,
+      path = withPath(link);
 
   function link() {
     let buffer;
     const argv = slice.call(arguments);
     const s = source.apply(this, argv);
     const t = target.apply(this, argv);
-    if (context == null) output = curve(buffer = d3Path.path());
+    if (context == null) output = curve(buffer = path());
     output.lineStart();
-    argv[0] = s, output.point(+x.apply(this, argv), +y$1.apply(this, argv));
-    argv[0] = t, output.point(+x.apply(this, argv), +y$1.apply(this, argv));
+    argv[0] = s, output.point(+x$1.apply(this, argv), +y$1.apply(this, argv));
+    argv[0] = t, output.point(+x$1.apply(this, argv), +y$1.apply(this, argv));
     output.lineEnd();
     if (buffer) return output = null, buffer + "" || null;
   }
@@ -771,7 +800,7 @@ function link(curve) {
   };
 
   link.x = function(_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant(+_), link) : x;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant(+_), link) : x$1;
   };
 
   link.y = function(_) {
@@ -971,7 +1000,7 @@ var wye = {
   }
 };
 
-var x = {
+var times = {
   draw(context, size) {
     const r = sqrt(size - min(size / 6, 1.7)) * 0.6189;
     context.moveTo(-r, -r);
@@ -996,7 +1025,7 @@ const symbolsFill = [
 const symbolsStroke = [
   circle,
   plus,
-  x,
+  times,
   triangle2,
   asterisk,
   square2,
@@ -1004,14 +1033,15 @@ const symbolsStroke = [
 ];
 
 function Symbol(type, size) {
-  let context = null;
+  let context = null,
+      path = withPath(symbol);
 
   type = typeof type === "function" ? type : constant(type || circle);
   size = typeof size === "function" ? size : constant(size === undefined ? 64 : +size);
 
   function symbol() {
     let buffer;
-    if (!context) context = buffer = d3Path.path();
+    if (!context) context = buffer = path();
     type.apply(this, arguments).draw(context, +size.apply(this, arguments));
     if (buffer) return context = null, buffer + "" || null;
   }
@@ -2099,14 +2129,13 @@ exports.symbolPlus = plus;
 exports.symbolSquare = square;
 exports.symbolSquare2 = square2;
 exports.symbolStar = star;
+exports.symbolTimes = times;
 exports.symbolTriangle = triangle;
 exports.symbolTriangle2 = triangle2;
 exports.symbolWye = wye;
-exports.symbolX = x;
+exports.symbolX = times;
 exports.symbols = symbolsFill;
 exports.symbolsFill = symbolsFill;
 exports.symbolsStroke = symbolsStroke;
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
