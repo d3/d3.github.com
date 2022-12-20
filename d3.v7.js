@@ -1,11 +1,11 @@
-// https://d3js.org v7.7.0 Copyright 2010-2022 Mike Bostock
+// https://d3js.org v7.8.0 Copyright 2010-2022 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.7.0";
+var version = "7.8.0";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -6036,39 +6036,58 @@ const pi$2 = Math.PI,
     epsilon$4 = 1e-6,
     tauEpsilon = tau$3 - epsilon$4;
 
-function Path$1() {
-  this._x0 = this._y0 = // start of current subpath
-  this._x1 = this._y1 = null; // end of current subpath
-  this._ = "";
+function append$1(strings) {
+  this._ += strings[0];
+  for (let i = 1, n = strings.length; i < n; ++i) {
+    this._ += arguments[i] + strings[i];
+  }
 }
 
-function path() {
-  return new Path$1;
+function appendRound$1(digits) {
+  let d = Math.floor(digits);
+  if (!(d >= 0)) throw new Error(`invalid digits: ${digits}`);
+  if (d > 15) return append$1;
+  const k = 10 ** d;
+  return function(strings) {
+    this._ += strings[0];
+    for (let i = 1, n = strings.length; i < n; ++i) {
+      this._ += Math.round(arguments[i] * k) / k + strings[i];
+    }
+  };
 }
 
-Path$1.prototype = path.prototype = {
-  constructor: Path$1,
-  moveTo: function(x, y) {
-    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
-  },
-  closePath: function() {
+let Path$1 = class Path {
+  constructor(digits) {
+    this._x0 = this._y0 = // start of current subpath
+    this._x1 = this._y1 = null; // end of current subpath
+    this._ = "";
+    this._append = digits == null ? append$1 : appendRound$1(digits);
+  }
+  moveTo(x, y) {
+    this._append`M${this._x0 = this._x1 = +x},${this._y0 = this._y1 = +y}`;
+  }
+  closePath() {
     if (this._x1 !== null) {
       this._x1 = this._x0, this._y1 = this._y0;
-      this._ += "Z";
+      this._append`Z`;
     }
-  },
-  lineTo: function(x, y) {
-    this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  quadraticCurveTo: function(x1, y1, x, y) {
-    this._ += "Q" + (+x1) + "," + (+y1) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  bezierCurveTo: function(x1, y1, x2, y2, x, y) {
-    this._ += "C" + (+x1) + "," + (+y1) + "," + (+x2) + "," + (+y2) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
-  },
-  arcTo: function(x1, y1, x2, y2, r) {
+  }
+  lineTo(x, y) {
+    this._append`L${this._x1 = +x},${this._y1 = +y}`;
+  }
+  quadraticCurveTo(x1, y1, x, y) {
+    this._append`Q${+x1},${+y1},${this._x1 = +x},${this._y1 = +y}`;
+  }
+  bezierCurveTo(x1, y1, x2, y2, x, y) {
+    this._append`C${+x1},${+y1},${+x2},${+y2},${this._x1 = +x},${this._y1 = +y}`;
+  }
+  arcTo(x1, y1, x2, y2, r) {
     x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
-    var x0 = this._x1,
+
+    // Is the radius negative? Error.
+    if (r < 0) throw new Error(`negative radius: ${r}`);
+
+    let x0 = this._x1,
         y0 = this._y1,
         x21 = x2 - x1,
         y21 = y2 - y1,
@@ -6076,12 +6095,9 @@ Path$1.prototype = path.prototype = {
         y01 = y0 - y1,
         l01_2 = x01 * x01 + y01 * y01;
 
-    // Is the radius negative? Error.
-    if (r < 0) throw new Error("negative radius: " + r);
-
     // Is this path empty? Move to (x1,y1).
     if (this._x1 === null) {
-      this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
+      this._append`M${this._x1 = x1},${this._y1 = y1}`;
     }
 
     // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
@@ -6091,12 +6107,12 @@ Path$1.prototype = path.prototype = {
     // Equivalently, is (x1,y1) coincident with (x2,y2)?
     // Or, is the radius zero? Line to (x1,y1).
     else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$4) || !r) {
-      this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+      this._append`L${this._x1 = x1},${this._y1 = y1}`;
     }
 
     // Otherwise, draw an arc!
     else {
-      var x20 = x2 - x0,
+      let x20 = x2 - x0,
           y20 = y2 - y0,
           l21_2 = x21 * x21 + y21 * y21,
           l20_2 = x20 * x20 + y20 * y20,
@@ -6108,32 +6124,33 @@ Path$1.prototype = path.prototype = {
 
       // If the start tangent is not coincident with (x0,y0), line to.
       if (Math.abs(t01 - 1) > epsilon$4) {
-        this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+        this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
       }
 
-      this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+      this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
     }
-  },
-  arc: function(x, y, r, a0, a1, ccw) {
+  }
+  arc(x, y, r, a0, a1, ccw) {
     x = +x, y = +y, r = +r, ccw = !!ccw;
-    var dx = r * Math.cos(a0),
+
+    // Is the radius negative? Error.
+    if (r < 0) throw new Error(`negative radius: ${r}`);
+
+    let dx = r * Math.cos(a0),
         dy = r * Math.sin(a0),
         x0 = x + dx,
         y0 = y + dy,
         cw = 1 ^ ccw,
         da = ccw ? a0 - a1 : a1 - a0;
 
-    // Is the radius negative? Error.
-    if (r < 0) throw new Error("negative radius: " + r);
-
     // Is this path empty? Move to (x0,y0).
     if (this._x1 === null) {
-      this._ += "M" + x0 + "," + y0;
+      this._append`M${x0},${y0}`;
     }
 
     // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
     else if (Math.abs(this._x1 - x0) > epsilon$4 || Math.abs(this._y1 - y0) > epsilon$4) {
-      this._ += "L" + x0 + "," + y0;
+      this._append`L${x0},${y0}`;
     }
 
     // Is this arc empty? We’re done.
@@ -6144,21 +6161,32 @@ Path$1.prototype = path.prototype = {
 
     // Is this a complete circle? Draw two arcs to complete the circle.
     if (da > tauEpsilon) {
-      this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
+      this._append`A${r},${r},0,1,${cw},${x - dx},${y - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
     }
 
     // Is this arc non-empty? Draw an arc!
     else if (da > epsilon$4) {
-      this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+      this._append`A${r},${r},0,${+(da >= pi$2)},${cw},${this._x1 = x + r * Math.cos(a1)},${this._y1 = y + r * Math.sin(a1)}`;
     }
-  },
-  rect: function(x, y, w, h) {
-    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + (+w) + "v" + (+h) + "h" + (-w) + "Z";
-  },
-  toString: function() {
+  }
+  rect(x, y, w, h) {
+    this._append`M${this._x0 = this._x1 = +x},${this._y0 = this._y1 = +y}h${w = +w}v${+h}h${-w}Z`;
+  }
+  toString() {
     return this._;
   }
 };
+
+function path() {
+  return new Path$1;
+}
+
+// Allow instanceof d3.path
+path.prototype = Path$1.prototype;
+
+function pathRound(digits = 3) {
+  return new Path$1(+digits);
+}
 
 var slice$2 = Array.prototype.slice;
 
@@ -8797,7 +8825,7 @@ function jiggle(random) {
   return (random() - 0.5) * 1e-6;
 }
 
-function x$4(d) {
+function x$3(d) {
   return d.x + d.vx;
 }
 
@@ -8824,7 +8852,7 @@ function collide(radius) {
         ri2;
 
     for (var k = 0; k < iterations; ++k) {
-      tree = quadtree(nodes, x$4, y$3).visitAfter(prepare);
+      tree = quadtree(nodes, x$3, y$3).visitAfter(prepare);
       for (i = 0; i < n; ++i) {
         node = nodes[i];
         ri = radii[node.index], ri2 = ri * ri;
@@ -9019,7 +9047,7 @@ function lcg$2() {
   return () => (s = (a$2 * s + c$4) % m$1) / m$1;
 }
 
-function x$3(d) {
+function x$2(d) {
   return d.x;
 }
 
@@ -9184,7 +9212,7 @@ function manyBody() {
       theta2 = 0.81;
 
   function force(_) {
-    var i, n = nodes.length, tree = quadtree(nodes, x$3, y$2).visitAfter(accumulate);
+    var i, n = nodes.length, tree = quadtree(nodes, x$2, y$2).visitAfter(accumulate);
     for (alpha = _, i = 0; i < n; ++i) node = nodes[i], tree.visit(apply);
   }
 
@@ -9340,7 +9368,7 @@ function radial$1(radius, x, y) {
   return force;
 }
 
-function x$2(x) {
+function x$1(x) {
   var strength = constant$4(0.1),
       nodes,
       strengths,
@@ -9578,7 +9606,7 @@ function identity$6(x) {
 }
 
 var map = Array.prototype.map,
-    prefixes = ["y","z","a","f","p","n","\xB5","m","","k","M","G","T","P","E","Z","Y"];
+    prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
 
 function formatLocale$1(locale) {
   var group = locale.grouping === undefined || locale.thousands === undefined ? identity$6 : formatGroup(map.call(locale.grouping, Number), locale.thousands + ""),
@@ -9587,7 +9615,7 @@ function formatLocale$1(locale) {
       decimal = locale.decimal === undefined ? "." : locale.decimal + "",
       numerals = locale.numerals === undefined ? identity$6 : formatNumerals(map.call(locale.numerals, String)),
       percent = locale.percent === undefined ? "%" : locale.percent + "",
-      minus = locale.minus === undefined ? "\u2212" : locale.minus + "",
+      minus = locale.minus === undefined ? "−" : locale.minus + "",
       nan = locale.nan === undefined ? "NaN" : locale.nan + "";
 
   function newFormat(specifier) {
@@ -10292,7 +10320,8 @@ function compose(a, b) {
 }
 
 function rotationIdentity(lambda, phi) {
-  return [abs$1(lambda) > pi$1 ? lambda + Math.round(-lambda / tau$1) * tau$1 : lambda, phi];
+  if (abs$1(lambda) > pi$1) lambda -= Math.round(lambda / tau$1) * tau$1;
+  return [lambda, phi];
 }
 
 rotationIdentity.invert = rotationIdentity;
@@ -10306,7 +10335,9 @@ function rotateRadians(deltaLambda, deltaPhi, deltaGamma) {
 
 function forwardRotationLambda(deltaLambda) {
   return function(lambda, phi) {
-    return lambda += deltaLambda, [lambda > pi$1 ? lambda - tau$1 : lambda < -pi$1 ? lambda + tau$1 : lambda, phi];
+    lambda += deltaLambda;
+    if (abs$1(lambda) > pi$1) lambda -= Math.round(lambda / tau$1) * tau$1;
+    return [lambda, phi];
   };
 }
 
@@ -10393,7 +10424,7 @@ function circleRadius(cosRadius, point) {
   return ((-point[2] < 0 ? -radius : radius) + tau$1 - epsilon$1) % tau$1;
 }
 
-function circle$2() {
+function circle$1() {
   var center = constant$3([0, 0]),
       radius = constant$3(90),
       precision = constant$3(6),
@@ -11812,68 +11843,96 @@ function lengthPoint(x, y) {
 
 var pathMeasure = lengthStream;
 
-function PathString() {
-  this._string = [];
-}
+// Simple caching for constant-radius points.
+let cacheDigits, cacheAppend, cacheRadius, cacheCircle;
 
-PathString.prototype = {
-  _radius: 4.5,
-  _circle: circle$1(4.5),
-  pointRadius: function(_) {
-    if ((_ = +_) !== this._radius) this._radius = _, this._circle = null;
+class PathString {
+  constructor(digits) {
+    this._append = digits == null ? append : appendRound(digits);
+    this._radius = 4.5;
+    this._ = "";
+  }
+  pointRadius(_) {
+    this._radius = +_;
     return this;
-  },
-  polygonStart: function() {
+  }
+  polygonStart() {
     this._line = 0;
-  },
-  polygonEnd: function() {
+  }
+  polygonEnd() {
     this._line = NaN;
-  },
-  lineStart: function() {
+  }
+  lineStart() {
     this._point = 0;
-  },
-  lineEnd: function() {
-    if (this._line === 0) this._string.push("Z");
+  }
+  lineEnd() {
+    if (this._line === 0) this._ += "Z";
     this._point = NaN;
-  },
-  point: function(x, y) {
+  }
+  point(x, y) {
     switch (this._point) {
       case 0: {
-        this._string.push("M", x, ",", y);
+        this._append`M${x},${y}`;
         this._point = 1;
         break;
       }
       case 1: {
-        this._string.push("L", x, ",", y);
+        this._append`L${x},${y}`;
         break;
       }
       default: {
-        if (this._circle == null) this._circle = circle$1(this._radius);
-        this._string.push("M", x, ",", y, this._circle);
+        this._append`M${x},${y}`;
+        if (this._radius !== cacheRadius || this._append !== cacheAppend) {
+          const r = this._radius;
+          const s = this._;
+          this._ = ""; // stash the old string so we can cache the circle path fragment
+          this._append`m0,${r}a${r},${r} 0 1,1 0,${-2 * r}a${r},${r} 0 1,1 0,${2 * r}z`;
+          cacheRadius = r;
+          cacheAppend = this._append;
+          cacheCircle = this._;
+          this._ = s;
+        }
+        this._ += cacheCircle;
         break;
       }
     }
-  },
-  result: function() {
-    if (this._string.length) {
-      var result = this._string.join("");
-      this._string = [];
-      return result;
-    } else {
-      return null;
-    }
   }
-};
+  result() {
+    const result = this._;
+    this._ = "";
+    return result.length ? result : null;
+  }
+}
 
-function circle$1(radius) {
-  return "m0," + radius
-      + "a" + radius + "," + radius + " 0 1,1 0," + -2 * radius
-      + "a" + radius + "," + radius + " 0 1,1 0," + 2 * radius
-      + "z";
+function append(strings) {
+  let i = 1;
+  this._ += strings[0];
+  for (const j = strings.length; i < j; ++i) {
+    this._ += arguments[i] + strings[i];
+  }
+}
+
+function appendRound(digits) {
+  const d = Math.floor(digits);
+  if (!(d >= 0)) throw new RangeError(`invalid digits: ${digits}`);
+  if (d > 15) return append;
+  if (d !== cacheDigits) {
+    const k = 10 ** d;
+    cacheDigits = d;
+    cacheAppend = function append(strings) {
+      let i = 1;
+      this._ += strings[0];
+      for (const j = strings.length; i < j; ++i) {
+        this._ += Math.round(arguments[i] * k) / k + strings[i];
+      }
+    };
+  }
+  return cacheAppend;
 }
 
 function index$2(projection, context) {
-  var pointRadius = 4.5,
+  let digits = 3,
+      pointRadius = 4.5,
       projectionStream,
       contextStream;
 
@@ -11906,12 +11965,14 @@ function index$2(projection, context) {
   };
 
   path.projection = function(_) {
-    return arguments.length ? (projectionStream = _ == null ? (projection = null, identity$5) : (projection = _).stream, path) : projection;
+    if (!arguments.length) return projection;
+    projectionStream = _ == null ? (projection = null, identity$5) : (projection = _).stream;
+    return path;
   };
 
   path.context = function(_) {
     if (!arguments.length) return context;
-    contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
+    contextStream = _ == null ? (context = null, new PathString(digits)) : new PathContext(context = _);
     if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
     return path;
   };
@@ -11922,7 +11983,19 @@ function index$2(projection, context) {
     return path;
   };
 
-  return path.projection(projection).context(context);
+  path.digits = function(_) {
+    if (!arguments.length) return digits;
+    if (_ == null) digits = null;
+    else {
+      const d = Math.floor(_);
+      if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+      digits = d;
+    }
+    if (context === null) contextStream = new PathString(digits);
+    return path;
+  };
+
+  return path.projection(projection).digits(digits).context(context);
 }
 
 function transform$1(methods) {
@@ -17385,6 +17458,24 @@ function asin(x) {
   return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x);
 }
 
+function withPath(shape) {
+  let digits = 3;
+
+  shape.digits = function(_) {
+    if (!arguments.length) return digits;
+    if (_ == null) {
+      digits = null;
+    } else {
+      const d = Math.floor(_);
+      if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+      digits = d;
+    }
+    return shape;
+  };
+
+  return () => new Path$1(digits);
+}
+
 function arcInnerRadius(d) {
   return d.innerRadius;
 }
@@ -17465,7 +17556,8 @@ function arc() {
       startAngle = arcStartAngle,
       endAngle = arcEndAngle,
       padAngle = arcPadAngle,
-      context = null;
+      context = null,
+      path = withPath(arc);
 
   function arc() {
     var buffer,
@@ -17534,16 +17626,22 @@ function arc() {
             y00 = r0 * sin(a00),
             oc;
 
-        // Restrict the corner radius according to the sector angle.
-        if (da < pi && (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10))) {
-          var ax = x01 - oc[0],
-              ay = y01 - oc[1],
-              bx = x11 - oc[0],
-              by = y11 - oc[1],
-              kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
-              lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
-          rc0 = min(rc, (r0 - lc) / (kc - 1));
-          rc1 = min(rc, (r1 - lc) / (kc + 1));
+        // Restrict the corner radius according to the sector angle. If this
+        // intersection fails, it’s probably because the arc is too small, so
+        // disable the corner radius entirely.
+        if (da < pi) {
+          if (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)) {
+            var ax = x01 - oc[0],
+                ay = y01 - oc[1],
+                bx = x11 - oc[0],
+                by = y11 - oc[1],
+                kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
+                lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+            rc0 = min(rc, (r0 - lc) / (kc - 1));
+            rc1 = min(rc, (r1 - lc) / (kc + 1));
+          } else {
+            rc0 = rc1 = 0;
+          }
         }
       }
 
@@ -17683,7 +17781,7 @@ function curveLinear(context) {
   return new Linear(context);
 }
 
-function x$1(p) {
+function x(p) {
   return p[0];
 }
 
@@ -17691,13 +17789,14 @@ function y(p) {
   return p[1];
 }
 
-function line(x, y$1) {
+function line(x$1, y$1) {
   var defined = constant$1(true),
       context = null,
       curve = curveLinear,
-      output = null;
+      output = null,
+      path = withPath(line);
 
-  x = typeof x === "function" ? x : (x === undefined) ? x$1 : constant$1(x);
+  x$1 = typeof x$1 === "function" ? x$1 : (x$1 === undefined) ? x : constant$1(x$1);
   y$1 = typeof y$1 === "function" ? y$1 : (y$1 === undefined) ? y : constant$1(y$1);
 
   function line(data) {
@@ -17714,14 +17813,14 @@ function line(x, y$1) {
         if (defined0 = !defined0) output.lineStart();
         else output.lineEnd();
       }
-      if (defined0) output.point(+x(d, i, data), +y$1(d, i, data));
+      if (defined0) output.point(+x$1(d, i, data), +y$1(d, i, data));
     }
 
     if (buffer) return output = null, buffer + "" || null;
   }
 
   line.x = function(_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant$1(+_), line) : x;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant$1(+_), line) : x$1;
   };
 
   line.y = function(_) {
@@ -17748,9 +17847,10 @@ function area(x0, y0, y1) {
       defined = constant$1(true),
       context = null,
       curve = curveLinear,
-      output = null;
+      output = null,
+      path = withPath(area);
 
-  x0 = typeof x0 === "function" ? x0 : (x0 === undefined) ? x$1 : constant$1(+x0);
+  x0 = typeof x0 === "function" ? x0 : (x0 === undefined) ? x : constant$1(+x0);
   y0 = typeof y0 === "function" ? y0 : (y0 === undefined) ? constant$1(0) : constant$1(+y0);
   y1 = typeof y1 === "function" ? y1 : (y1 === undefined) ? y : constant$1(+y1);
 
@@ -18061,8 +18161,8 @@ class BumpRadial {
   lineEnd() {}
   point(x, y) {
     x = +x, y = +y;
-    if (this._point++ === 0) {
-      this._x0 = x, this._y0 = y;
+    if (this._point === 0) {
+      this._point = 1;
     } else {
       const p0 = pointRadial(this._x0, this._y0);
       const p1 = pointRadial(this._x0, this._y0 = (this._y0 + y) / 2);
@@ -18071,6 +18171,7 @@ class BumpRadial {
       this._context.moveTo(...p0);
       this._context.bezierCurveTo(...p1, ...p2, ...p3);
     }
+    this._x0 = x, this._y0 = y;
   }
 }
 
@@ -18095,12 +18196,13 @@ function linkTarget(d) {
 }
 
 function link(curve) {
-  let source = linkSource;
-  let target = linkTarget;
-  let x = x$1;
-  let y$1 = y;
-  let context = null;
-  let output = null;
+  let source = linkSource,
+      target = linkTarget,
+      x$1 = x,
+      y$1 = y,
+      context = null,
+      output = null,
+      path = withPath(link);
 
   function link() {
     let buffer;
@@ -18109,8 +18211,8 @@ function link(curve) {
     const t = target.apply(this, argv);
     if (context == null) output = curve(buffer = path());
     output.lineStart();
-    argv[0] = s, output.point(+x.apply(this, argv), +y$1.apply(this, argv));
-    argv[0] = t, output.point(+x.apply(this, argv), +y$1.apply(this, argv));
+    argv[0] = s, output.point(+x$1.apply(this, argv), +y$1.apply(this, argv));
+    argv[0] = t, output.point(+x$1.apply(this, argv), +y$1.apply(this, argv));
     output.lineEnd();
     if (buffer) return output = null, buffer + "" || null;
   }
@@ -18124,7 +18226,7 @@ function link(curve) {
   };
 
   link.x = function(_) {
-    return arguments.length ? (x = typeof _ === "function" ? _ : constant$1(+_), link) : x;
+    return arguments.length ? (x$1 = typeof _ === "function" ? _ : constant$1(+_), link) : x$1;
   };
 
   link.y = function(_) {
@@ -18324,7 +18426,7 @@ var wye = {
   }
 };
 
-var x = {
+var times = {
   draw(context, size) {
     const r = sqrt(size - min(size / 6, 1.7)) * 0.6189;
     context.moveTo(-r, -r);
@@ -18349,7 +18451,7 @@ const symbolsFill = [
 const symbolsStroke = [
   circle,
   plus,
-  x,
+  times,
   triangle2,
   asterisk,
   square2,
@@ -18357,7 +18459,8 @@ const symbolsStroke = [
 ];
 
 function Symbol$1(type, size) {
-  let context = null;
+  let context = null,
+      path = withPath(symbol);
 
   type = typeof type === "function" ? type : constant$1(type || circle);
   size = typeof size === "function" ? size : constant$1(size === undefined ? 64 : +size);
@@ -19919,6 +20022,7 @@ exports.FormatSpecifier = FormatSpecifier;
 exports.InternMap = InternMap;
 exports.InternSet = InternSet;
 exports.Node = Node$1;
+exports.Path = Path$1;
 exports.Voronoi = Voronoi;
 exports.ZoomTransform = Transform;
 exports.active = active;
@@ -20046,7 +20150,7 @@ exports.forceLink = link$2;
 exports.forceManyBody = manyBody;
 exports.forceRadial = radial$1;
 exports.forceSimulation = simulation;
-exports.forceX = x$2;
+exports.forceX = x$1;
 exports.forceY = y$1;
 exports.formatDefaultLocale = defaultLocale$1;
 exports.formatLocale = formatLocale$1;
@@ -20061,7 +20165,7 @@ exports.geoAzimuthalEquidistant = azimuthalEquidistant;
 exports.geoAzimuthalEquidistantRaw = azimuthalEquidistantRaw;
 exports.geoBounds = bounds;
 exports.geoCentroid = centroid$1;
-exports.geoCircle = circle$2;
+exports.geoCircle = circle$1;
 exports.geoClipAntimeridian = clipAntimeridian;
 exports.geoClipCircle = clipCircle;
 exports.geoClipExtent = extent;
@@ -20216,6 +20320,7 @@ exports.packSiblings = siblings;
 exports.pairs = pairs;
 exports.partition = partition;
 exports.path = path;
+exports.pathRound = pathRound;
 exports.permute = permute;
 exports.pie = pie;
 exports.piecewise = piecewise;
@@ -20367,10 +20472,11 @@ exports.symbolPlus = plus;
 exports.symbolSquare = square;
 exports.symbolSquare2 = square2;
 exports.symbolStar = star;
+exports.symbolTimes = times;
 exports.symbolTriangle = triangle;
 exports.symbolTriangle2 = triangle2;
 exports.symbolWye = wye;
-exports.symbolX = x;
+exports.symbolX = times;
 exports.symbols = symbolsFill;
 exports.symbolsFill = symbolsFill;
 exports.symbolsStroke = symbolsStroke;
