@@ -1,4 +1,4 @@
-// https://d3js.org/d3-contour/ v4.0.0 Copyright 2012-2021 Mike Bostock
+// https://d3js.org/d3-contour/ v4.0.1 Copyright 2012-2023 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -81,7 +81,7 @@ function Contours() {
 
     // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
-      const e = d3Array.extent(values), ts = d3Array.tickStep(e[0], e[1], tz);
+      const e = d3Array.extent(values, finite), ts = d3Array.tickStep(e[0], e[1], tz);
       tz = d3Array.ticks(Math.floor(e[0] / ts) * ts, Math.floor(e[1] / ts - 1) * ts, tz);
     } else {
       tz = tz.slice().sort(ascending);
@@ -93,11 +93,14 @@ function Contours() {
   // Accumulate, smooth contour rings, assign holes to exterior rings.
   // Based on https://github.com/mbostock/shapefile/blob/v0.6.2/shp/polygon.js
   function contour(values, value) {
+    const v = value == null ? NaN : +value;
+    if (isNaN(v)) throw new Error(`invalid value: ${value}`);
+
     var polygons = [],
         holes = [];
 
-    isorings(values, value, function(ring) {
-      smooth(ring, values, value);
+    isorings(values, v, function(ring) {
+      smooth(ring, values, v);
       if (area(ring) > 0) polygons.push([ring]);
       else holes.push(ring);
     });
@@ -127,10 +130,10 @@ function Contours() {
 
     // Special case for the first row (y = -1, t2 = t3 = 0).
     x = y = -1;
-    t1 = values[0] >= value;
+    t1 = above(values[0], value);
     cases[t1 << 1].forEach(stitch);
     while (++x < dx - 1) {
-      t0 = t1, t1 = values[x + 1] >= value;
+      t0 = t1, t1 = above(values[x + 1], value);
       cases[t0 | t1 << 1].forEach(stitch);
     }
     cases[t1 << 0].forEach(stitch);
@@ -138,12 +141,12 @@ function Contours() {
     // General case for the intermediate rows.
     while (++y < dy - 1) {
       x = -1;
-      t1 = values[y * dx + dx] >= value;
-      t2 = values[y * dx] >= value;
+      t1 = above(values[y * dx + dx], value);
+      t2 = above(values[y * dx], value);
       cases[t1 << 1 | t2 << 2].forEach(stitch);
       while (++x < dx - 1) {
-        t0 = t1, t1 = values[y * dx + dx + x + 1] >= value;
-        t3 = t2, t2 = values[y * dx + x + 1] >= value;
+        t0 = t1, t1 = above(values[y * dx + dx + x + 1], value);
+        t3 = t2, t2 = above(values[y * dx + x + 1], value);
         cases[t0 | t1 << 1 | t2 << 2 | t3 << 3].forEach(stitch);
       }
       cases[t1 | t2 << 3].forEach(stitch);
@@ -154,7 +157,7 @@ function Contours() {
     t2 = values[y * dx] >= value;
     cases[t2 << 2].forEach(stitch);
     while (++x < dx - 1) {
-      t3 = t2, t2 = values[y * dx + x + 1] >= value;
+      t3 = t2, t2 = above(values[y * dx + x + 1], value);
       cases[t2 << 2 | t3 << 3].forEach(stitch);
     }
     cases[t2 << 3].forEach(stitch);
@@ -211,15 +214,12 @@ function Contours() {
           y = point[1],
           xt = x | 0,
           yt = y | 0,
-          v0,
-          v1 = values[yt * dx + xt];
+          v1 = valid(values[yt * dx + xt]);
       if (x > 0 && x < dx && xt === x) {
-        v0 = values[yt * dx + xt - 1];
-        point[0] = x + (value - v0) / (v1 - v0) - 0.5;
+        point[0] = smooth1(x, valid(values[yt * dx + xt - 1]), v1, value);
       }
       if (y > 0 && y < dy && yt === y) {
-        v0 = values[(yt - 1) * dx + xt];
-        point[1] = y + (value - v0) / (v1 - v0) - 0.5;
+        point[1] = smooth1(y, valid(values[(yt - 1) * dx + xt]), v1, value);
       }
     });
   }
@@ -242,6 +242,29 @@ function Contours() {
   };
 
   return contours;
+}
+
+// When computing the extent, ignore infinite values (as well as invalid ones).
+function finite(x) {
+  return isFinite(x) ? x : NaN;
+}
+
+// Is the (possibly invalid) x greater than or equal to the (known valid) value?
+// Treat any invalid value as below negative infinity.
+function above(x, value) {
+  return x == null ? false : +x >= value;
+}
+
+// During smoothing, treat any invalid value as negative infinity.
+function valid(v) {
+  return v == null || isNaN(v = +v) ? -Infinity : v;
+}
+
+function smooth1(x, v0, v1, value) {
+  const a = value - v0;
+  const b = v1 - v0;
+  const d = isFinite(a) || isFinite(b) ? a / b : Math.sign(a) / Math.sign(b);
+  return isNaN(d) ? x : x + d - 0.5;
 }
 
 function defaultX(d) {
@@ -278,7 +301,7 @@ function density() {
       var xi = (x(d, ++i, data) + o) * pow2k,
           yi = (y(d, i, data) + o) * pow2k,
           wi = +weight(d, i, data);
-      if (xi >= 0 && xi < n && yi >= 0 && yi < m) {
+      if (wi && xi >= 0 && xi < n && yi >= 0 && yi < m) {
         var x0 = Math.floor(xi),
             y0 = Math.floor(yi),
             xt = xi - x0 - 0.5,
@@ -391,7 +414,5 @@ function density() {
 
 exports.contourDensity = density;
 exports.contours = Contours;
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
