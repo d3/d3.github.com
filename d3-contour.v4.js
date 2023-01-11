@@ -1,4 +1,4 @@
-// https://d3js.org/d3-contour/ v4.0.1 Copyright 2012-2023 Mike Bostock
+// https://d3js.org/d3-contour/ v4.0.2 Copyright 2012-2023 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -81,8 +81,10 @@ function Contours() {
 
     // Convert number of thresholds into uniform thresholds.
     if (!Array.isArray(tz)) {
-      const e = d3Array.extent(values, finite), ts = d3Array.tickStep(e[0], e[1], tz);
-      tz = d3Array.ticks(Math.floor(e[0] / ts) * ts, Math.floor(e[1] / ts - 1) * ts, tz);
+      const e = d3Array.extent(values, finite);
+      tz = d3Array.ticks(...d3Array.nice(e[0], e[1], tz), tz);
+      while (tz[tz.length - 1] >= e[1]) tz.pop();
+      while (tz[1] < e[0]) tz.shift();
     } else {
       tz = tz.slice().sort(ascending);
     }
