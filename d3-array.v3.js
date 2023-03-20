@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.2.2 Copyright 2010-2023 Mike Bostock
+// https://d3js.org/d3-array/ v3.2.3 Copyright 2010-2023 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -664,7 +664,7 @@ function nice(start, stop, count) {
 }
 
 function thresholdSturges(values) {
-  return Math.ceil(Math.log(count(values)) / Math.LN2) + 1;
+  return Math.max(1, Math.ceil(Math.log(count(values)) / Math.LN2) + 1);
 }
 
 function bin() {
@@ -990,11 +990,13 @@ function quantileIndex(values, p, valueof) {
 }
 
 function thresholdFreedmanDiaconis(values, min, max) {
-  return Math.ceil((max - min) / (2 * (quantile(values, 0.75) - quantile(values, 0.25)) * Math.pow(count(values), -1 / 3)));
+  const c = count(values), d = quantile(values, 0.75) - quantile(values, 0.25);
+  return c && d ? Math.ceil((max - min) / (2 * d * Math.pow(c, -1 / 3))) : 1;
 }
 
 function thresholdScott(values, min, max) {
-  return Math.ceil((max - min) * Math.cbrt(count(values)) / (3.49 * deviation(values)));
+  const c = count(values), d = deviation(values);
+  return c && d ? Math.ceil((max - min) * Math.cbrt(c) / (3.49 * d)) : 1;
 }
 
 function mean(values, valueof) {
@@ -1099,10 +1101,10 @@ function rank(values, valueof = ascending) {
   if (valueof.length !== 2) V = V.map(valueof), valueof = ascending;
   const compareIndex = (i, j) => valueof(V[i], V[j]);
   let k, r;
-  Uint32Array
-    .from(V, (_, i) => i)
-    .sort(valueof === ascending ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex))
-    .forEach((j, i) => {
+  values = Uint32Array.from(V, (_, i) => i);
+  // Risky chaining due to Safari 14 https://github.com/d3/d3-array/issues/123
+  values.sort(valueof === ascending ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex));
+  values.forEach((j, i) => {
       const c = compareIndex(j, k === undefined ? j : k);
       if (c >= 0) {
         if (k === undefined || c > 0) k = j, r = i;
