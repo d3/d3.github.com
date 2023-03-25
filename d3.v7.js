@@ -1,11 +1,11 @@
-// https://d3js.org v7.8.2 Copyright 2010-2023 Mike Bostock
+// https://d3js.org v7.8.3 Copyright 2010-2023 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.d3 = global.d3 || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "7.8.2";
+var version = "7.8.3";
 
 function ascending$3(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -666,7 +666,7 @@ function nice$1(start, stop, count) {
 }
 
 function thresholdSturges(values) {
-  return Math.ceil(Math.log(count$1(values)) / Math.LN2) + 1;
+  return Math.max(1, Math.ceil(Math.log(count$1(values)) / Math.LN2) + 1);
 }
 
 function bin() {
@@ -992,11 +992,13 @@ function quantileIndex(values, p, valueof) {
 }
 
 function thresholdFreedmanDiaconis(values, min, max) {
-  return Math.ceil((max - min) / (2 * (quantile$1(values, 0.75) - quantile$1(values, 0.25)) * Math.pow(count$1(values), -1 / 3)));
+  const c = count$1(values), d = quantile$1(values, 0.75) - quantile$1(values, 0.25);
+  return c && d ? Math.ceil((max - min) / (2 * d * Math.pow(c, -1 / 3))) : 1;
 }
 
 function thresholdScott(values, min, max) {
-  return Math.ceil((max - min) * Math.cbrt(count$1(values)) / (3.49 * deviation(values)));
+  const c = count$1(values), d = deviation(values);
+  return c && d ? Math.ceil((max - min) * Math.cbrt(c) / (3.49 * d)) : 1;
 }
 
 function mean(values, valueof) {
@@ -1101,10 +1103,10 @@ function rank(values, valueof = ascending$3) {
   if (valueof.length !== 2) V = V.map(valueof), valueof = ascending$3;
   const compareIndex = (i, j) => valueof(V[i], V[j]);
   let k, r;
-  Uint32Array
-    .from(V, (_, i) => i)
-    .sort(valueof === ascending$3 ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex))
-    .forEach((j, i) => {
+  values = Uint32Array.from(V, (_, i) => i);
+  // Risky chaining due to Safari 14 https://github.com/d3/d3-array/issues/123
+  values.sort(valueof === ascending$3 ? (i, j) => ascendingDefined(V[i], V[j]) : compareDefined(compareIndex));
+  values.forEach((j, i) => {
       const c = compareIndex(j, k === undefined ? j : k);
       if (c >= 0) {
         if (k === undefined || c > 0) k = j, r = i;
@@ -7697,11 +7699,10 @@ class Voronoi {
       // find the common edge
       if (cj) loop: for (let ai = 0, li = ci.length; ai < li; ai += 2) {
         for (let aj = 0, lj = cj.length; aj < lj; aj += 2) {
-          if (ci[ai] == cj[aj]
-          && ci[ai + 1] == cj[aj + 1]
-          && ci[(ai + 2) % li] == cj[(aj + lj - 2) % lj]
-          && ci[(ai + 3) % li] == cj[(aj + lj - 1) % lj]
-          ) {
+          if (ci[ai] === cj[aj]
+              && ci[ai + 1] === cj[aj + 1]
+              && ci[(ai + 2) % li] === cj[(aj + lj - 2) % lj]
+              && ci[(ai + 3) % li] === cj[(aj + lj - 1) % lj]) {
             yield j;
             break loop;
           }
@@ -7733,9 +7734,9 @@ class Voronoi {
     if (points === null) return null;
     const {vectors: V} = this;
     const v = i * 4;
-    return V[v] || V[v + 1]
+    return this._simplify(V[v] || V[v + 1]
         ? this._clipInfinite(i, points, V[v], V[v + 1], V[v + 2], V[v + 3])
-        : this._clipFinite(i, points);
+        : this._clipFinite(i, points));
   }
   _clipFinite(i, points) {
     const n = points.length;
@@ -7778,8 +7779,11 @@ class Voronoi {
     return P;
   }
   _clipSegment(x0, y0, x1, y1, c0, c1) {
+    // for more robustness, always consider the segment in the same order
+    const flip = c0 < c1;
+    if (flip) [x0, y0, x1, y1, c0, c1] = [x1, y1, x0, y0, c1, c0];
     while (true) {
-      if (c0 === 0 && c1 === 0) return [x0, y0, x1, y1];
+      if (c0 === 0 && c1 === 0) return flip ? [x1, y1, x0, y0] : [x0, y0, x1, y1];
       if (c0 & c1) return null;
       let x, y, c = c0 || c1;
       if (c & 0b1000) x = x0 + (x1 - x0) * (this.ymax - y0) / (y1 - y0), y = this.ymax;
@@ -7823,14 +7827,6 @@ class Voronoi {
         P.splice(j, 0, x, y), j += 2;
       }
     }
-    if (P.length > 4) {
-      for (let i = 0; i < P.length; i+= 2) {
-        const j = (i + 2) % P.length, k = (i + 4) % P.length;
-        if (P[i] === P[j] && P[j] === P[k]
-        || P[i + 1] === P[j + 1] && P[j + 1] === P[k + 1])
-          P.splice(j, 2), i -= 2;
-      }
-    }
     return j;
   }
   _project(x0, y0, vx, vy) {
@@ -7862,6 +7858,18 @@ class Voronoi {
         : x > this.xmax ? 0b0010 : 0b0000)
         | (y < this.ymin ? 0b0100
         : y > this.ymax ? 0b1000 : 0b0000);
+  }
+  _simplify(P) {
+    if (P && P.length > 4) {
+      for (let i = 0; i < P.length; i+= 2) {
+        const j = (i + 2) % P.length, k = (i + 4) % P.length;
+        if (P[i] === P[j] && P[j] === P[k] || P[i + 1] === P[j + 1] && P[j + 1] === P[k + 1]) {
+          P.splice(j, 2), i -= 2;
+        }
+      }
+      if (!P.length) P = null;
+    }
+    return P;
   }
 }
 
