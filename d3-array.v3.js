@@ -1,4 +1,4 @@
-// https://d3js.org/d3-array/ v3.2.3 Copyright 2010-2023 Mike Bostock
+// https://d3js.org/d3-array/ v3.2.4 Copyright 2010-2023 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -977,16 +977,18 @@ function quantileSorted(values, p, valueof = number) {
   return value0 + (value1 - value0) * (i - i0);
 }
 
-function quantileIndex(values, p, valueof) {
-  values = Float64Array.from(numbers(values, valueof));
-  if (!(n = values.length) || isNaN(p = +p)) return;
-  if (p <= 0 || n < 2) return minIndex(values);
-  if (p >= 1) return maxIndex(values);
-  var n,
-      i = Math.floor((n - 1) * p),
-      order = (i, j) => ascendingDefined(values[i], values[j]),
-      index = quickselect(Uint32Array.from(values, (_, i) => i), i, 0, n - 1, order);
-  return greatest(index.subarray(0, i + 1), i => values[i]);
+function quantileIndex(values, p, valueof = number) {
+  if (isNaN(p = +p)) return;
+  numbers = Float64Array.from(values, (_, i) => number(valueof(values[i], i, values)));
+  if (p <= 0) return minIndex(numbers);
+  if (p >= 1) return maxIndex(numbers);
+  var numbers,
+      index = Uint32Array.from(values, (_, i) => i),
+      j = numbers.length - 1,
+      i = Math.floor(j * p);
+  quickselect(index, i, 0, j, (i, j) => ascendingDefined(numbers[i], numbers[j]));
+  i = greatest(index.subarray(0, i + 1), (i) => numbers[i]);
+  return i >= 0 ? i : -1;
 }
 
 function thresholdFreedmanDiaconis(values, min, max) {
